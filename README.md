@@ -1,93 +1,97 @@
 # Final-Project
 BME590 Final Project
 
-# Head Impact Exposure (HIE) Sensor Multi-Unit Downloading, Logging and Storage Management Tool
+# Image Processor Final Project (Fall 2018)
 
-**Client:** Jason Luck, PhD (Injury Biomechanics Laboratory)  
-**Contact information:** jfl1@duke.edu and 919-660-5152 (ofc)
+**Final Project DUE:** Thursday, Dec 13, 2018 05:00PM EST 
 
-**Final Project DUE:** Thursday, Dec 13, 2018 05:00PM EST                                                                                   
+## Overview
+The final project in this class will require your team to leverage the
+industry-standard skills you've learned over this semester to design and
+implement a software system to upload an image or an archive of images to a
+web-server, perform image-processing tasks on the web-server, and then display
+/ download your processed image(s).  You will be required to work in your
+groups for this projects.
 
-## Background
-Mild traumatic brain injury (mTBI) or "concussive" injuries are a major
-societal issue and are associated with activities such as sports, motor vehicle
-crashes, and falls. Sports-related concussions in children and adolescents
-(5-18 years) account for between 30-60% of all pediatric concussions. There
-currently exists no available technology to provide accurate measurement of
-head impacts in concussive or sub-concussive environments. Furthermore,
-challenges exist in objectively diagnosing mTBI and quantifying the
-physiological implications of cumulative sub-concussive insults. Currently, Dr.
-Luck is leading a prospective study in the Raleigh-Durham community where youth
-athletes are instrumented with the DASHR: a novel, noninvasive sensor that uses
-industry-standard earpieces (e.g. hearing aids) in the bony canal to quantify
-head impact exposure. In association with head exposure data measured by the
-DASHR the research team is also completing both novel and traditional on- and
-off-field injury assessments to assist with quantifying the symptomology of
-participants from concussive and cumulative sub-concussive insults to the
-pediatric brain.
+This final project is somewhat open-ended to allow groups to tailor this to
+their areas of interest; however, recommended datasets and project requirements
+are provided below.  If you plan to stray away from the recommended projects
+and datasets, please submit a one-page project proposal to Dr. Palmeri and Mr.
+Kumar by *Friday, April, 13, 2018* for evaluation to ensure the proposed
+project meets the requirements for the class. Be sure to include motivations,
+technologies, functional specifications, and anticipated deliverables.
 
-## Client Need
-Client requires a hardware and software solution that accepts multiple HIE
-sensors simultaneously to accommodate downloading of HIE data from the devices
-to a central storage unit.  Currently the client utilizes a Manhattan® MondoHub
-multi-unit USB hub that can accommodate 20+ units.  The hub is currently used
-to charge multiple devices simultaneously.  For downloading the client
-currently connects individual HIE sensors to a computer and manually copies and
-pastes the data from the HIE sensor to the computer.  The data is stored in
-sequentially numbered binary files (e.g., `L0.bin`, `L1.bin`, `L2.bin`) located
-in sequentially numbered folders (e.g., `0`, `100`, `200`, etc.) in a `FAT32`
-file system.  The storage media in the HIE sensor is a standard SD card (e.g.,
-SanDisk Ultra microSD 8/16 GB) and when connected to a computer shows up as a
-removable storage device.  Currently, if one were to connect two or more HIE
-sensors to the hub and then connect the hub to a computer multiple removable
-storage devices would appear.  If one were to look into each of these “drives”
-they would find folders and files that looked exactly the same with no
-identification between the PIN and data.  Each HIE device has a MAC address
-associated with it and this address is associated with a specific PIN. 
+It is expected that your team will follow proper professional software
+development and design conventions taught in this class, including:
+* git feature-branch workflow
+* continuous integration
+* unit testing
+* PEP8
+* docstrings / Sphinx documentation
 
 ## Functional Specifications
-Client requests the following software toolkit (GUI) [Python] that client
-utilizes to facilitate all aspects of downloading, logging and storage
-management.
-* Download data (binary files) from multiple devices simultaneously (using a
-  hub that may or may not be the Manhattan® MondoHub discussed earlier)
-* Store downloaded data in folders associated with specific HIE device (each
-  device will be associated with a unique PIN number)
-* Store data by the date HIE data was acquired – two options:
-  + User defined via GUI prior to download
-  + Using real-time clock data associated with HIE device
-* Provide ability for client to download variable number of devices:
-  + User can select to download all devices simultaneously
-  + User can select to download individual device from multi-port hub
-  + User can select to download some number of devices greater than one from
-    multi-port hub
-* Software will provide post-download log report.  Report will include the
-  following:
-  + Number of files downloaded, folders created, PIN numbers associated with
-    the downloaded data
-  + Stand-alone log reporting.  Client may use software to check what data has
-    been downloaded for a given PIN, range of PINs, date, and range of dates
-    (dates corresponding to when data was collected on the field, not
-    downloaded).
-* Software provides flexibility to interface with a database (i.e. SQL) and
-  NTFS file system.  All data is associated with a unique PIN and these data
-  include the HIE sensor data that is the focus of the current document but
-  also includes additional assessment and background data.  
+At a minimum, you image processor should do the following:
+* Provide a [graphical] user interface that will allow a user to select an image, list of
+  images, or a zip archive of images that will be uploaded to your web-server,
+  perform necessary preprocessing steps, and then issue a RESTful API request
+  to your cloud service for further processing.
+* Your [graphical] user interface will have a choice of processing steps to perform on each
+  uploaded image, including:
+  + Histogram Equalization [default]
+  + Contrast Stretching
+  + Log Compression
+  + Reverse Video
+  + Others of your choice!
+* A cloud-based web service that exposes a well-crafted RESTful API that will
+  implement the image processing methods specified above (checkout out
+  [scikit-image](http://scikit-image.org/) to make your life easier on the image processing algorithms!).
+* A database should be implemented in some form to do one or more of the following:
+  + Store previous user actions / metrics (e.g. how many times has a user run Histogram Equalization, 
+  latency for running different processing tasks, etc). 
+  + Store uploaded images and timestamps for a user
+  + Store processed images (along with what processing was applied) and timestamps for a user
+  + Another use case you choose.
+* Your user interface should also provide:
+  + An option to display and compare the original and processed images.
+  + An option to download the image(s) in one of the following formats:
+    - JPEG
+    - PNG
+    - TIFF
+  If multiple images are to be downloaded, they should be downloaded as a zip archive.
+  + Display histograms of the image color / intensity values of the original and processed images.
+  + Display useful metadata, including:
+    - Timestamp when uploaded
+    - Time to process the image(s)
+    - Image size (e.g., X x Y pixels)
 
 ## Deliverables
 * A detailed `README` describing the final performance and state of your
   project.
-* Recorded video demo of your data management tool in action.
+* Recorded video demo of your image processor in action.
 * All project code (in the form of a tagged GitHub repository named
   `bme590final`)
 * Link to deployed web service 
+
+## Recommended Datasets
+Your project can utilize some existing databases of image (or you can choose to
+use your own images).  Here are some example datasets that you can access for
+this project:
+
+* Over 13000 annotated skin lesion images are available from the International
+  Skin Imaging Collaboration (ISIC) project that can be used to develop machine
+  learning models to classify new images. This dataset can be accessed here:
+  https://isic-archive.com. A zip of all annotated images can be downloaded by
+  navigating to the Gallery and then clicking "Download as Zip" in the upper
+  right hand corner. All data can also be accessed through a RESTful API
+  provided by the ISIC.
+* http://www.vision.caltech.edu/Image_Datasets/Caltech101/
+* https://www.cs.toronto.edu/~kriz/cifar.html
+* https://github.com/beamandrew/medical-data
 
 ## Grading
 **You should approach this final project as an opportunity to show a potential
 future employer an example of your software development skills.**
 
-It is expected that your team will follow proper professional software
-development and design conventions taught in this class, including:
 * Git Repository
   + Issues/Milestones
   + Commits are discrete, logical changesets
@@ -105,6 +109,7 @@ development and design conventions taught in this class, including:
   + Validation Logic 
   + Returning proper error codes
   + Robust deployment on virtual machine 
+  + Image processing functionality
 * Proper use of a database 
 * User interface functionality
 * Demo of the final working project
