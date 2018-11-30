@@ -21,7 +21,8 @@ class Image(MongoModel):
 
 class User(MongoModel):
     user_id = fields.CharField(primary_key=True)
-    uploads = fields.DictField()  # the structure of this will be key (upload id): most recent_id
+    # the structure of this will be key (upload id): most recent_id
+    uploads = fields.DictField()
 
 
 class ImageProcessingDB(object):
@@ -31,13 +32,15 @@ class ImageProcessingDB(object):
             db_user = config_info["mongo_user"]
             db_pass = config_info["mongo_pass"]
 
-            url = "mongodb://{}:{}@mongodb://<dbuser>:<dbpassword>@ds133378.mlab.com:33378/image_processing".format(
-                db_user, db_pass)
+            url = "mongodb://{}:{}@mongodb://<dbuser>:<dbpassword>" \
+                  "@ds133378.mlab.com:33378/" \
+                  "image_processing".format(db_user, db_pass)
             connect(url)
 
     def add_image(self, user_id, image_info):
         """
-        Adds image to the database. First checks if it is a child of another image, then adds the image.
+        Adds image to the database. First checks if it is a child of
+        another image, then adds the image.
         Args:
             user_id: User who is adding the image.
             image_info: Information about the image.
@@ -83,17 +86,18 @@ class ImageProcessingDB(object):
         """
         Tests if image input is valid.
         Args:
-            image_info: Image object with imformation regarding image and history.
+            image_info: Image object with imformation regarding
+            image and history.
 
         Returns:
             bool: Whether or not the image_info object is valid.
 
         """
-        if type(image_info) != dict:
+        if not isinstance(image_info, dict):
             raise TypeError("image_info must be type dict.")
         if "image_id" not in image_info.keys():
             raise AttributeError("image_info must have image_id.")
-        if type(image_info["image_id"]) != str:
+        if not isinstance(image_info["image_id"], str):
             raise AttributeError("image_id must be type str.")
         if "image" not in image_info.keys():
             raise AttributeError("image_info must have image data.")
@@ -103,23 +107,25 @@ class ImageProcessingDB(object):
             raise AttributeError("image_info must have height.")
         if "width" not in image_info.keys():
             raise AttributeError("image_info must have width.")
-        if type(image_info["height"]) != int:
+        if not isinstance(image_info["height"], int):
             raise TypeError("height must be type int.")
-        if type(image_info["width"]) != int:
+        if not isinstance(image_info["width"], int):
             raise TypeError("height must be type int.")
         if "format" not in image_info.keys():
             raise AttributeError("image_info must have format.")
         if image_info["format"] != str:
             raise TypeError("format must be type str")
-        if image_info["format"].lower() not in ["jpg", "jpeg", "png", "tiff", "gif"]:
+        if image_info["format"].lower() not in ["jpg", "jpeg", "png",
+                                                "tiff", "gif"]:
             raise ValueError("format invalid.")
         if "processing_time" not in image_info.keys():
             raise AttributeError("image_info must have processing_time.")
-        if type(image_info["processing_time"]) != int:
-            raise TypeError("processing_time must be type int in milliseconds.")
+        if not isinstance(image_info["processing_time"], int):
+            raise TypeError(
+                "processing_time must be type int in milliseconds.")
         if "process" not in image_info.keys():
             raise AttributeError("image_info must have process.")
-        if type(image_info["process"]) != str:
+        if not isinstance(image_info["process"], str):
             raise TypeError("process must be type str.")
         return image_info
 
@@ -193,7 +199,8 @@ class ImageProcessingDB(object):
 
     def remove_image(self, image_id):
         """
-        Removes the image from the database. DANGER: will not remove parent-child relationship!
+        Removes the image from the database.
+        DANGER: will not remove parent-child relationship!
         Args:
             image_id: ID of the image to remove.
         """
