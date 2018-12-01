@@ -1,5 +1,5 @@
 import skimage
-import matplotlib.plot as plt
+import matplotlib.pyplot as plt
 
 
 class Processing:

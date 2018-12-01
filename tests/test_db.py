@@ -29,7 +29,7 @@ def image_info_test():
 
 
 def test_add_image(database_obj):
-    pass
+    assert False
 
 
 def test_add_image_with_parent(database_obj):
