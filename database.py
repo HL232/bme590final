@@ -1,5 +1,4 @@
 import json
-import base64
 import datetime
 from pymodm import connect
 from pymodm import MongoModel, fields
@@ -9,7 +8,7 @@ from processing import Processing
 
 class Image(MongoModel):
     image_id = fields.CharField(primary_key=True)
-    image = fields.ImageField()
+    image = fields.CharField()
     user_id = fields.CharField()
     timestamp = fields.DateTimeField()
     width = fields.IntegerField()
@@ -77,6 +76,7 @@ class ImageProcessingDB(object):
             description = image_info["description"]
 
         i = Image(image_id=image_info["image_id"],
+                  image=image_info["image"],
                   user_id=user_id,
                   timestamp=current_time,
                   width=image_info["width"],
@@ -222,7 +222,7 @@ class ImageProcessingDB(object):
         # query = {"image_id": image_id}
         for image in Image.objects.all():
             if str(image.image_id) == image_id:
-                image.heart_rates = description
+                image.description = description
                 return image.save()
         return None
 

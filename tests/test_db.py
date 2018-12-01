@@ -54,12 +54,12 @@ def test_add_image_with_parent(database_obj, image_info):
     image_2 = database_obj.find_image(child_id)
 
     assert child_id in image_1.child_ids and \
-           image_2.parent_id == parent_id and \
-           image_1.process_history == [parent_id]
+        image_2.parent_id == parent_id and \
+        image_1.process_history == [parent_id]
 
 
 def test_add_image_no_image_id(database_obj, image_info):
-    with pytest.raises(ValueError):
+    with pytest.raises(AttributeError):
         user_id = random_id()
         u_image = image_info
         del u_image["image_id"]
@@ -67,7 +67,7 @@ def test_add_image_no_image_id(database_obj, image_info):
 
 
 def test_add_image_bad_image_id(database_obj, image_info):
-    with pytest.raises(AttributeError):
+    with pytest.raises(ValueError):
         user_id = random_id()
         u_image = image_info
         u_image["image_id"] = 1234123
@@ -163,7 +163,7 @@ def test_update_user_uploads(database_obj):
     assert db_user.uploads["ID1"] == "ID2"
 
 
-def test_update_description(database_obj):
+def test_update_description(database_obj, image_info):
     user_id = random_id()
     u_image = image_info
     u_image["image_id"] = random_id()
@@ -173,7 +173,7 @@ def test_update_description(database_obj):
     assert image.description == "test"
 
 
-def test_remove_image(database_obj):
+def test_remove_image(database_obj, image_info):
     user_id = random_id()
     u_image = image_info
     u_image["image_id"] = random_id()
@@ -183,17 +183,16 @@ def test_remove_image(database_obj):
     assert image is None
 
 
-def test_find_image(database_obj):
+def test_find_image(database_obj, image_info):
     user_id = random_id()
     u_image = image_info
     u_image["image_id"] = random_id()
     database_obj.add_image(user_id, u_image)
-    database_obj.remove_image(u_image["image_id"])
     image = database_obj.find_image(u_image["image_id"])
     assert image.image_id == u_image["image_id"]
 
 
-def test_find_image_child(database_obj):
+def test_find_image_child(database_obj, image_info):
     user_id = random_id()
 
     parent_id = random_id()
@@ -210,7 +209,7 @@ def test_find_image_child(database_obj):
     assert database_obj.find_image_child(parent_id) == [child_id]
 
 
-def test_find_image_parent(database_obj):
+def test_find_image_parent(database_obj, image_info):
     user_id = random_id()
 
     parent_id = random_id()
@@ -224,7 +223,8 @@ def test_find_image_parent(database_obj):
     u_image["parent_id"] = parent_id
     database_obj.add_image(user_id, u_image)
 
-    assert database_obj.find_image_parent(child_id) == parent_id
+    parent_image = database_obj.find_image_parent(child_id)
+    assert parent_image.image_id == parent_id
 
 
 def test_find_user(database_obj):
