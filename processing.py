@@ -2,7 +2,7 @@ import skimage
 import matplotlib.pyplot as plt
 
 
-class Processing:
+class Processing(object):
     def __init__(self):
         pass
 

@@ -16,6 +16,7 @@ class Image(MongoModel):
     height = fields.IntegerField()
     format = fields.CharField()
     description = fields.CharField()
+    parent_id = fields.CharField()
     child_ids = fields.ListField()  # can have multiple children.
     process_history = fields.ListField()  # log of all previous IDs
     processing_time = fields.IntegerField()  # in milliseconds
@@ -35,8 +36,7 @@ class ImageProcessingDB(object):
             db_user = config_info["mongo_user"]
             db_pass = config_info["mongo_pass"]
 
-            url = "mongodb://{}:{}@mongodb://<dbuser>:<dbpassword>" \
-                  "@ds133378.mlab.com:33378/" \
+            url = "mongodb://{}:{}@ds133378.mlab.com:33378/" \
                   "image_processing".format(db_user, db_pass)
             connect(url)
 
@@ -49,7 +49,7 @@ class ImageProcessingDB(object):
             image_info: Information about the image.
 
         Returns:
-            object: Image database object  that was added.
+            object: Image database object that was added.
         """
         image_info = self._image_parameter_check(image_info)
         current_time = datetime.datetime.now()
@@ -59,11 +59,13 @@ class ImageProcessingDB(object):
             # look for the provided id in the database
             parent_image = self.find_image(image_info["parent_id"])
             process_history = parent_image.process_history
-            process_history.append(image_info["parent_id"])
+            process_history.append(image_info["image_id"])
             # relate the child to the parent
             self._add_child(image_info["image_id"], image_info["parent_id"])
+            parent_id = image_info["parent_id"]
         else:
-            process_history = []
+            process_history = [image_info["image_id"]]
+            parent_id = "None"
 
         # update user object as well.
         self.update_user_uploads(user_id, process_history)
@@ -83,9 +85,10 @@ class ImageProcessingDB(object):
                   processing_time=image_info["processing_time"],
                   process=image_info["process"],
                   description=description,
-                  process_history=process_history
+                  process_history=process_history,
+                  parent_id=parent_id
                   )
-        i.save()
+        return i.save()
 
     def _add_child(self, child_id, parent_id):
         """
@@ -120,11 +123,11 @@ class ImageProcessingDB(object):
         if "image_id" not in image_info.keys():
             raise AttributeError("image_info must have image_id.")
         if not isinstance(image_info["image_id"], str):
-            raise AttributeError("image_id must be type str.")
+            raise ValueError("image_id must be type str.")
         if "image" not in image_info.keys():
             raise AttributeError("image_info must have image data.")
-        if not self._is_base64(image_info["image"]):
-            raise TypeError("image must be type base64.")
+        if type(image_info["image"]) != str:
+            raise TypeError("image must be type str.")
         if "height" not in image_info.keys():
             raise AttributeError("image_info must have height.")
         if "width" not in image_info.keys():
@@ -135,7 +138,7 @@ class ImageProcessingDB(object):
             raise TypeError("height must be type int.")
         if "format" not in image_info.keys():
             raise AttributeError("image_info must have format.")
-        if image_info["format"] != str:
+        if type(image_info["format"]) != str:
             raise TypeError("format must be type str")
         if image_info["format"].lower() not in ["jpg", "jpeg", "png",
                                                 "tiff", "gif"]:
@@ -154,9 +157,17 @@ class ImageProcessingDB(object):
         return image_info
 
     def valid_process(self, process):
-        valid_processes = [method_name for method_name in dir(object)
-                           if callable(getattr(Processing, method_name))]
+        """
+        Determines if the process is valid based on Processing methods.
+        Args:
+            process (str): process to check.
 
+        Returns:
+            bool: Whether or not the process is valid.
+
+        """
+        valid_processes = [func for func in dir(Processing)
+                           if callable(getattr(Processing, func))]
         if process not in valid_processes:
             return False
         return True
@@ -176,8 +187,7 @@ class ImageProcessingDB(object):
             raise ValueError("User already exists!")
 
         u = User(user_id=user_id)
-        u.save()
-        return u
+        return u.save()
 
     def update_user_uploads(self, user_id, process_history: list):
         """
@@ -185,14 +195,18 @@ class ImageProcessingDB(object):
         Args:
             process_history: History of Image ids.
             user_id: User to update.
+
+        Returns:
+            object: updated user object.
         """
+
         root_id = process_history[0]
         recent_id = process_history[-1]
         user = self.find_user(user_id)
         if user is None:
             user = self.add_user(user_id)
         user.uploads[root_id] = recent_id
-        user.save()
+        return user.save()
 
     def update_description(self, image_id, description: str):
         """
@@ -202,32 +216,15 @@ class ImageProcessingDB(object):
             description: Description to update with.
 
         Returns:
-            bool: If the edit was successful.
+            object: Updated user object.
 
         """
-        image_exists = False
         # query = {"image_id": image_id}
         for image in Image.objects.all():
             if str(image.image_id) == image_id:
                 image.heart_rates = description
-                image.save()
-                image_exists = True
-        return image_exists
-
-    def _is_base64(self, image_data: str):
-        """
-        Determines if the image is base64.
-        Args:
-            image_data: Image to be tested.
-
-        Returns:
-            bool: Whether or not the image data is base64.
-
-        """
-        try:
-            return base64.b64encode(base64.b64decode(image_data)) == image_data
-        except Exception:
-            return False
+                return image.save()
+        return None
 
     def remove_image(self, image_id):
         """
@@ -267,9 +264,11 @@ class ImageProcessingDB(object):
             object: found image in the database.
         """
         image = self.find_image(image_id)
-        parent_id = image.process_history[-1]
-        parent_image = self.find_image(parent_id)
-        return parent_image
+        if image.parent_id is not None:
+            parent_id = image.parent_id
+            parent_image = self.find_image(parent_id)
+            return parent_image
+        return None
 
     def find_image_child(self, image_id):
         """
@@ -280,10 +279,10 @@ class ImageProcessingDB(object):
         Returns:
             object: found image in the database.
         """
-        for image in Image.objects.all():
-            if str(image.image_id) == image_id:
-                return image
-        return None
+        image = self.find_image(image_id)
+        if image.child_ids:
+            return image.child_ids
+        return []
 
     def find_user(self, user_id):
         """
