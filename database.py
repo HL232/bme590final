@@ -4,19 +4,22 @@ import datetime
 from pymodm import connect
 from pymodm import MongoModel, fields
 
+from processing import Processing
+
 
 class Image(MongoModel):
     image_id = fields.CharField(primary_key=True)
     image = fields.ImageField()
-    process_history = fields.ListField()  # log of all previous IDs
     user_id = fields.CharField()
     timestamp = fields.DateTimeField()
     width = fields.IntegerField()
     height = fields.IntegerField()
     format = fields.CharField()
     description = fields.CharField()
+    child_ids = fields.ListField()  # can have multiple children.
+    process_history = fields.ListField()  # log of all previous IDs
     processing_time = fields.IntegerField()  # in milliseconds
-    process = fields.CharField()
+    process = fields.CharField()  # the actual process that was done.
 
 
 class User(MongoModel):
@@ -57,8 +60,10 @@ class ImageProcessingDB(object):
             parent_image = self.find_image(image_info["parent_id"])
             process_history = parent_image.process_history
             process_history.append(image_info["parent_id"])
+            # relate the child to the parent
+            self._add_child(image_info["image_id"], image_info["parent_id"])
         else:
-            process_history = [image_info["image_id"]]
+            process_history = []
 
         # update user object as well.
         self.update_user_uploads(user_id, process_history)
@@ -81,6 +86,23 @@ class ImageProcessingDB(object):
                   process_history=process_history
                   )
         i.save()
+
+    def _add_child(self, child_id, parent_id):
+        """
+        Adds a child id to the parent image.
+        Args:
+            parent_id: id of the parent to add the child id to.
+            child_id: child id to add.
+
+        Returns:
+            str: child id of the image that was added.
+        """
+        parent_image = self.find_image(parent_id)
+        if parent_image is not None:
+            parent_image.child_ids.append(child_id)
+            parent_image.save()
+            return child_id
+        return None
 
     def _image_parameter_check(self, image_info):
         """
@@ -127,7 +149,17 @@ class ImageProcessingDB(object):
             raise AttributeError("image_info must have process.")
         if not isinstance(image_info["process"], str):
             raise TypeError("process must be type str.")
+        if not self.valid_process(image_info["process"]):
+            raise ValueError("process invalid.")
         return image_info
+
+    def valid_process(self, process):
+        valid_processes = [method_name for method_name in dir(object)
+                           if callable(getattr(Processing, method_name))]
+
+        if process not in valid_processes:
+            return False
+        return True
 
     def add_user(self, user_id):
         """
@@ -214,6 +246,34 @@ class ImageProcessingDB(object):
     def find_image(self, image_id):
         """
         Finds the image in the database based on image id.
+        Args:
+            image_id: ID of the image to find.
+
+        Returns:
+            object: found image in the database.
+        """
+        for image in Image.objects.all():
+            if str(image.image_id) == image_id:
+                return image
+        return None
+
+    def find_image_parent(self, image_id):
+        """
+        Finds the parent of the image in the database based on image id.
+        Args:
+            image_id: ID of the image to find.
+
+        Returns:
+            object: found image in the database.
+        """
+        image = self.find_image(image_id)
+        parent_id = image.process_history[-1]
+        parent_image = self.find_image(parent_id)
+        return parent_image
+
+    def find_image_child(self, image_id):
+        """
+        Finds the child of the image in the database based on image id.
         Args:
             image_id: ID of the image to find.
 
