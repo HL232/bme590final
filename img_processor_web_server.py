@@ -1,5 +1,7 @@
 import json
 import datetime
+from random import choice
+from string import ascii_uppercase
 from flask import Flask, request, jsonify
 
 from processing import Processing
@@ -24,7 +26,8 @@ def get_image(image_id):
     Args:
         image_id: ID of the image to get.
     """
-    pass
+    image = db.find_image(image_id)
+    return jsonify(image)
 
 
 @app.route("/api/image/get_image_parent/<image_id>", methods=["GET"])
@@ -34,7 +37,8 @@ def get_image_parent(image_id):
     Returns:
         object: history of the image.
     """
-    pass
+    image = db.find_image_parent(image_id)
+    return jsonify(image)
 
 
 @app.route("/api/image/get_image_child/<image_id>", methods=["GET"])
@@ -44,7 +48,8 @@ def get_image_child(image_id):
     Returns:
         object: parent image.
     """
-    pass
+    image = db.find_image_child(image_id)
+    return jsonify(image)
 
 
 @app.route("/api/image/get_image_history/<image_id>", methods=["GET"])
@@ -54,7 +59,8 @@ def get_image_history(image_id):
     Returns:
         object: history of the image.
     """
-    pass
+    image = db.find_image(image_id)
+    return jsonify(image.process_history)
 
 
 @app.route("/api/image/get_image_description/<image_id>", methods=["GET"])
@@ -65,7 +71,8 @@ def get_image_description(image_id):
     Returns:
         str: Description of the image.
     """
-    pass
+    image = db.find_image(image_id)
+    return jsonify(image.description)
 
 
 # ---------- get user stuff ----------
@@ -79,7 +86,8 @@ def get_user(user_id):
     Returns:
         dict: user in database.
     """
-    pass
+    user = db.find_user(user_id)
+    return jsonify(user)
 
 
 @app.route("/api/user/get_original_uploads/<user_id>", methods=["GET"])
@@ -92,7 +100,8 @@ def get_original_uploads(user_id):
     Returns:
         list: root image ids.
     """
-    pass
+    user = db.find_user(user_id)
+    return jsonify(list(user.uploads.keys()))
 
 
 @app.route("/api/user/get_updated_uploads/<user_id>", methods=["GET"])
@@ -105,7 +114,12 @@ def get_updated_uploads(user_id):
     Returns:
         list: updated image ids.
     """
-    pass
+    user = db.find_user(user_id)
+    updated_list = []
+    for root in user.uploads.keys():
+        updated_list.append(user.uploads[root])
+
+    return jsonify(updated_list)
 
 
 # ---------- post stuff ----------
@@ -125,20 +139,34 @@ def post_upload_image():
     """
     Uploads an image into the database.
     Returns:
-        object: uploaded iamge object.
+        object: uploaded image object.
     """
-    pass
+    content = request.get_json()
+    # you need to give the id you want to set?
+    # maybe it's best if the id is just randomly generated
+    # as long as the client provides a parent_id if any...
+    content["image_id"] = random_id()
+    image = db.add_image(content["user_id"], content)
+    return jsonify(image)
 
 
-@app.route("/api/image/add_description", methods=["POST"])
-def post_add_description():
+@app.route("/api/image/update_description", methods=["POST"])
+def post_update_description():
     """
     Adds or updates the description of the image.
 
     Returns:
         object: updated image object.
     """
-    pass
+    content = request.get_json()
+    if "image_id" not in content.keys():
+        raise AttributeError("must have image_id.")
+    if "description" not in content.keys():
+        raise AttributeError("must have description.")
+
+    image = db.update_description(content["image_id"],
+                                  content["description"])
+    return jsonify(image)
 
 
 @app.route("/api/process/hist_eq", methods=["POST"])
@@ -149,7 +177,11 @@ def post_hist_eq():
     Returns:
         object: New hist eq'd image.
     """
-    pass
+    # should take the current image with all info
+    content = request.get_json()
+    new_image = _get_new_image_obj(content, Processing.hist_eq)
+    added_image = db.add_image(content["user_id"], new_image)
+    return jsonify(added_image)
 
 
 @app.route("/api/process/contrast_stretch", methods=["POST"])
@@ -160,7 +192,10 @@ def post_image_contrast_stretch():
     Returns:
         object: New contrast stretched image.
     """
-    pass
+    content = request.get_json()
+    new_image = _get_new_image_obj(content, Processing.contrast_stretch)
+    added_image = db.add_image(content["user_id"], new_image)
+    return jsonify(added_image)
 
 
 @app.route("/api/process/reverse_video", methods=["POST"])
@@ -171,7 +206,10 @@ def post_image_rev_video():
     Returns:
         object: Reversed video.
     """
-    pass
+    content = request.get_json()
+    new_image = _get_new_image_obj(content, Processing.reverse_video)
+    added_image = db.add_image(content["user_id"], new_image)
+    return jsonify(added_image)
 
 
 @app.route("/api/process/sharpen", methods=["POST"])
@@ -181,7 +219,10 @@ def post_image_sharpen():
     Returns:
         object: sharpened image.
     """
-    pass
+    content = request.get_json()
+    new_image = _get_new_image_obj(content, Processing.sharpen)
+    added_image = db.add_image(content["user_id"], new_image)
+    return jsonify(added_image)
 
 
 @app.route("/api/process/blur", methods=["POST"])
@@ -191,7 +232,30 @@ def post_image_blur():
     Returns:
         object: blurred image.
     """
-    pass
+    content = request.get_json()
+    new_image = _get_new_image_obj(content, Processing.blur)
+    added_image = db.add_image(content["user_id"], new_image)
+    return jsonify(added_image)
+
+
+def _get_new_image_obj(old_image, process):
+    # change it + prepare the object for adding
+    """
+    Applies a process to the old image and returns addable object.
+    Args:
+        old_image: Old image to transform.
+        process: Processing process.
+
+    Returns:
+        dict: new image obj.
+
+    """
+    new_image = old_image
+    # TODO: Test these attributes
+    new_image["parent_id"] = old_image["image_id"]
+    new_image["image_id"] = random_id()
+    new_image["image"] = process(old_image["image"])
+    return new_image
 
 
 def error_handler(status_code, msg, error_type):
@@ -212,6 +276,15 @@ def error_handler(status_code, msg, error_type):
         "error_type": error_type
     }
     return jsonify(error_msg)
+
+
+def random_id(length=10):
+    """
+    Generates random alpha-numeric ID.
+    Returns:
+        str: alpha-numeric ID
+    """
+    return ''.join(choice(ascii_uppercase) for _ in range(length))
 
 
 def get_app():
