@@ -26,7 +26,7 @@ class Processing(object):
         """
         Creates a reverse video of given video (image/frame list).
         Args:
-            image: Image to perform contrast stretching on.
+            image: Image to perform inversion on.
         """
         pass
 

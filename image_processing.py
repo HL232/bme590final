@@ -39,6 +39,6 @@ plot(dog_image_log, 'Log Compression?')
 
 # Reverse Video
 # I think this is just inverting the image
-# TODO: Invert color images
+# to do: Invert color images
 dog_image_reverse = util.invert(dog_image)
 plot(dog_image_reverse, 'Reverse Video?')
