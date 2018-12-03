@@ -8,7 +8,8 @@ class Processing(object):
     def __init__(self):
         pass
 
-    def hist_eq(self, image):
+    @staticmethod
+    def hist_eq(image):
         """
         Employs histogram equalization on given image.
         Args:
@@ -17,18 +18,20 @@ class Processing(object):
         image_he = exposure.equalize_hist(image)
         return image_he
 
-    def contrast_stretch(self, image, percentile=(10, 90)):
+    @staticmethod
+    def contrast_stretch(image, percentile=(10, 90)):
         """
         Employs contrast stretching on given image.
         Args:
             image: Image to perform contrast stretching on.
             percentile: percentile range of pixel intensity to stretch
         """
-        p2, p98 = np.percentile(image, percentile)
-        image_rescale = exposure.rescale_intensity(image, in_range=(p2, p98))
+        p1, p2 = np.percentile(image, percentile)
+        image_rescale = exposure.rescale_intensity(image, in_range=(p1, p2))
         return image_rescale
 
-    def log_compression(self, image, base=10):
+    @staticmethod
+    def log_compression(image, base=10):
         """
         Performs log compression of the image.
         Args:
@@ -38,7 +41,8 @@ class Processing(object):
         image_log = np.log(image + 1) / np.log(base)
         return image_log
 
-    def reverse_video(self, image):
+    @staticmethod
+    def reverse_video(image):
         """
         Creates a reverse video of given video (image/frame list).
         Args:
@@ -47,7 +51,8 @@ class Processing(object):
         image_reverse = util.invert(image)
         return image_reverse
 
-    def blur(self, image, sigma=5):
+    @staticmethod
+    def blur(image, sigma=5):
         """
         Employs a blurring filter on given image.
         Args:
@@ -81,4 +86,5 @@ class Processing(object):
         Returns:
             bool: If the image is valid.
         """
+        # Image input should be an ARRAY.
         return True
