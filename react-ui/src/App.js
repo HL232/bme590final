@@ -2,10 +2,10 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import leftSideButtons from './leftSideButtons' ;
-import Button from '@material-ui/core/Button';
+import {Button, Typography} from '@material-ui/core';
 import axios from 'axios'
 
-import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import { withStyles, MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import red from '@material-ui/core/colors/green';
 
 const theme = createMuiTheme({
@@ -30,12 +30,16 @@ const theme = createMuiTheme({
 class App extends Component {
   render() {
 
-    document.body.style = 'background: gray;';
+    document.body.style = 'background: grey;';
     return (
       <MuiThemeProvider theme={theme}>
 
       <div>
         
+        <Typography component="h2" color="green[700]" variant="h1" gutterBottom>
+        X-Ray Enhancer
+      </Typography>
+
         <Button variant="contained" color="primary" style= {{margin: '5px'}} onClick={this.Upload}>
         Upload
         </Button>
@@ -73,10 +77,18 @@ class App extends Component {
 
 
 
-  Upload = () => {
+  Upload = (img) => {
 
-    axios.get('http://myAPI/upload')
-
+    axios.post('http://MYAPI/Upload', {
+    firstName: 'Fred',
+    lastName: 'Flintstone'
+  })
+  .then(function (response) {
+    console.log(response);
+  })
+  .catch(function (error) {
+    console.log(error);
+  });
 
   }
 
