@@ -1,8 +1,9 @@
-from skimage.io import imread
-import matplotlib.pyplot as plt
-from skimage import exposure
 import numpy as np
+import matplotlib.pyplot as plt
+from skimage.io import imread
+from skimage import exposure
 from skimage import util
+from skimage import filters
 
 
 def plot(image_array, title):
@@ -23,6 +24,7 @@ plot(dog_image, 'Normal, Grayscale Image')
 dog_image_HE = exposure.equalize_hist(dog_image)
 plot(dog_image_HE, 'Histogram Equilzation')
 
+
 # Contrast Stretching
 # Set what percentile of the contrast you want to eliminate below
 p2, p98 = np.percentile(dog_image, (10, 90))
@@ -42,3 +44,15 @@ plot(dog_image_log, 'Log Compression?')
 # to do: Invert color images
 dog_image_reverse = util.invert(dog_image)
 plot(dog_image_reverse, 'Reverse Video?')
+
+# Gaussian Blur
+dog_image_blur = filters.gaussian(dog_image, sigma=5)
+plot(dog_image_blur, 'Blurred')
+
+# Sharpen Image
+# dog_image_sharpened = filters.unsharp_mask(dog_image, radius=1, amount=1)
+# You're supposed to use unsharp_mask but it doesn't seem to exist in
+# skimage.filters anymore
+alpha = 1
+dog_image_sharpened = dog_image + alpha * (dog_image - dog_image_blur)
+plot(dog_image_sharpened, 'Sharpened')
