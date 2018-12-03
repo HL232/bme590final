@@ -8,21 +8,40 @@ import axios from 'axios'
 
 class App extends Component {
   render() {
+
+    document.body.style = 'background: gray;';
     return (
       <MuiThemeProvider>
+
       <div>
-
-        <Button variant="contained" color="primary" >
+        
+        <Button variant="contained" color="primary" style= {{margin: '5px'}} onClick={this.Upload}>
         Upload
         </Button>
 
-        <Button variant="contained" color="primary" >
-        Upload
+        <br />
+        
+        <Button variant="contained" color="primary" style= {{margin: '5px'}} >
+        Enhance
         </Button>
 
+        <br />
 
+        <Button variant="contained" color="primary" style= {{margin: '5px'}} >
+        Download
+        </Button>
 
+        <br />
 
+        <Button variant="contained" color="primary" style= {{margin: '5px'}}>
+        Image Data
+        </Button>
+
+        <br />
+
+        <Button variant="contained" color="primary" style= {{margin: '5px'}}>
+           Library
+        </Button>
 
         <leftSideButtons />
       
@@ -30,6 +49,24 @@ class App extends Component {
       </MuiThemeProvider>
     );
   }
+
+
+
+  Upload = () => {
+
+    axios.get('http://myAPI/upload')
+
+
+  }
+
+
+
+
+
+
+
+
 }
+
 
 export default App;

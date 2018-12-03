@@ -16,4 +16,4 @@ class leftSideButtons extends Component {
 	}
 }
 
-export default leftSideButtons ;
+export default leftSideButtons;
