@@ -2,16 +2,37 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import leftSideButtons from './leftSideButtons' ;
-import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import Button from '@material-ui/core/Button';
 import axios from 'axios'
+
+import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
+import red from '@material-ui/core/colors/green';
+
+const theme = createMuiTheme({
+  palette: {
+    primary: {
+      main: '#43a047'
+    },
+    secondary: {
+      main: '#00c853',
+    },
+    overrides: {
+      MuiButton: {
+        root: {
+          color: 'green'
+        },
+      },
+    },
+  },
+});
+
 
 class App extends Component {
   render() {
 
     document.body.style = 'background: gray;';
     return (
-      <MuiThemeProvider>
+      <MuiThemeProvider theme={theme}>
 
       <div>
         
