@@ -1,14 +1,23 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import leftSide from './leftSide' ;
+import LeftSide from './LeftSide' ;
 import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Button, Typography, Grid, Paper} from '@material-ui/core';
 import axios from 'axios'
 import { withStyles, MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import green from '@material-ui/core/colors/green';
-import { ThreeDRotationIcon } from '@material-ui/icons/ThreeDRotation';
-import tileData from './tileData';
+//import { ThreeDRotationIcon } from '@material-ui/icons/ThreeDRotation';
+//import {TileData} from './tileData';
+import image from './a.jpeg'
+const TileData = [
+  {
+    img: image,
+    title: 'Image',
+    author: 'author',
+  },
 
+
+  ];
 const theme = createMuiTheme({
   root: {
     display: 'flex',
@@ -62,35 +71,9 @@ class App extends Component {
     <Grid container direction='row' spacing={10} spacing={40}>
       
       <Grid item xs={1.5} color='gray'>
-        <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} onClick={this.Upload}>
-         Upload
-       </Button>
-
-          <br />
         
-        <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
-         Enhance 
-        </Button>
 
-         <br />
-
-        <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
-         Download
-       </Button>
-
-         <br />
-
-        <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
-          Image Data
-        </Button>
-
-         <br />
-
-        <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
-             Library
-        </Button>
-
-        <leftSideButtons />
+        <LeftSide />
         </Grid>
 
         <Grid xs={1}>
@@ -108,7 +91,7 @@ class App extends Component {
           <ListSubheader component="div"> Library </ListSubheader>
         </GridListTile>
 
-        {tileData.map(tile => (
+        {TileData.map(tile => (
           <GridListTile key={tile.img}>
           <img src={tile.img} alt={tile.tile} />
           <GridListTileBar
@@ -116,13 +99,14 @@ class App extends Component {
             subtitle={<span>by: {tile.author}</span>}
             actionIcon={
               <IconButton>
-                <ThreeDRotationIcon />
+                
               </IconButton>
             }
           />
 
           </GridListTile>
           ))}
+       
         </GridList>
 
 
@@ -133,30 +117,6 @@ class App extends Component {
       </MuiThemeProvider>
     );
   }
-
-
-
-  Upload = (img) => {
-
-    axios.post('http://MYAPI/Upload', {
-    firstName: 'Fred',
-    lastName: 'Flintstone'
-  })
-  .then(function (response) {
-    console.log(response);
-  })
-  .catch(function (error) {
-    console.log(error);
-  });
-
-  }
-
-
-
-
-
-
-
 
 }
 
