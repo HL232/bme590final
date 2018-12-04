@@ -39,7 +39,7 @@ class App extends Component {
 
       <div>
         
-      <Typography component="h2" color="green[700]" variant="h1" gutterBottom>
+      <Typography align='center' component="h2" color="green[700]" variant="h1" gutterBottom>
         X-Ray Enhancer
       </Typography>
 
