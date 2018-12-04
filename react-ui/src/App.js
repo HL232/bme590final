@@ -1,12 +1,12 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
-import leftSideButtons from './leftSideButtons' ;
+import leftSide from './leftSide' ;
 import {Button, Typography} from '@material-ui/core';
 import axios from 'axios'
 
 import { withStyles, MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
-import red from '@material-ui/core/colors/green';
+import green from '@material-ui/core/colors/green';
 
 const theme = createMuiTheme({
   palette: {
