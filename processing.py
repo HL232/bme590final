@@ -5,6 +5,11 @@ from skimage import filters
 
 
 class Processing(object):
+    """
+    Processing class contains all the methods needed to process the image.
+    Any image passed into an instance of Processing must be an
+    array-like object
+    """
     def __init__(self):
         pass
 
