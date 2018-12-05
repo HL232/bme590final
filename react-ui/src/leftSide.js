@@ -68,7 +68,7 @@ export default class leftSide extends Component {
         <Grid item xs={5}>
         
       <div>
-       {this.selector}
+       <MyUpload />
       </div>
 
         </Grid>
