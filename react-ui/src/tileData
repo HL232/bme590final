@@ -4,7 +4,7 @@ import image from './a.jpeg'
 const TileData = [
 	{
 		img: image,
-		title, 'Image',
+		title: 'Image',
 		author: 'author',
 	},
 
