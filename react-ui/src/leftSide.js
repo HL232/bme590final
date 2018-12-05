@@ -3,42 +3,80 @@ import Button from '@material-ui/core/Button';
 import { withStyles } from '@material-ui/core/styles';
 import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import axios from 'axios'
+import Library from './Library' ;
+import MyUpload from './MyUpload'
+import MyEnhance from './MyEnhance' 
+import MyDownload from './MyDownload'
+import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Typography, Grid, Paper} from '@material-ui/core';
 export default class leftSide extends Component {
+
+
+  state = {
+    "winDisplay": 1
+  };
+
+  selector = () => {
+    console.log(this.state.winDisplay)
+    if (this.state.winDisplay === 1){
+      return (<MyUpload />)
+    }
+    else if (this.state.winDisplay === 2){
+      return <MyEnhance />
+    }
+    else if (this.state.winDisplay === 3){
+      return <MyDownload />
+    }
+    else if (this.state.winDisplay === 4){
+      return <Library />
+    }
+  } ;
+
+  mySt = (myS) => {
+    this.setState({"winDisplay": myS})
+    
+  }
+
+
 	render() {
 		
 		return (
-			<MuiThemeProvider>
+		<MuiThemeProvider>
 			<div>
-				<Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} onClick={this.Upload}>
-         Upload
-       </Button>
 
-          <br />
-        
+      <Grid container direction='row' spacing={10} spacing={40}>
+      
+      <Grid item xs={1.5} color='gray'>
+
+				<Button onClick={() => this.mySt(1)} variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
+          Upload </Button> <br />
         <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
-         Enhance 
-        </Button>
-
-         <br />
-
+          Enhance </Button> <br />
         <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
-         Download
-       </Button>
-
-         <br />
+          Download </Button> <br />
 
         <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
-          Image Data
-        </Button>
-
-         <br />
-
+          Image Data </Button> <br />
+          
         <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
-             Library
-        </Button>
+          Library </Button>
 				
-      		</div>
-      		</MuiThemeProvider>
+        </Grid>
+
+        <Grid item xs={1}>
+        </Grid>
+
+        <Grid item xs={5}>
+        
+      <div>
+       {this.selector}
+      </div>
+
+        </Grid>
+      </Grid>
+
+
+      </div>
+    </MuiThemeProvider>
 		)
 	}
 

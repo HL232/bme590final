@@ -18,7 +18,16 @@ const TileData = [
     title: 'Image',
     author: 'author',
   },
-
+  {
+    img: image,
+    title: 'Image',
+    author: 'author',
+  },
+  {
+    img: image,
+    title: 'Image',
+    author: 'author',
+  },
 
 ];
 
@@ -26,7 +35,7 @@ export default class Library extends Component {
   render() {
 
     return(
-
+      <Paper>
       <GridList cellHeight={180} cols={3}>
 
         <GridListTile key="Subheader" cols={1} style={{height: 'auto'}}>
@@ -50,7 +59,7 @@ export default class Library extends Component {
           ))}
        
         </GridList>
-
+        </Paper>
     )
   }
 }
