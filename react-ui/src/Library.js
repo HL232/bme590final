@@ -7,36 +7,23 @@ const TileData = [
     img: image,
     title: 'Image',
     author: 'author',
-  },
-  {
-    img: image,
-    title: 'Image',
-    author: 'author',
-  },
-  {
-    img: image,
-    title: 'Image',
-    author: 'author',
-  },
-  {
-    img: image,
-    title: 'Image',
-    author: 'author',
-  },
-  {
-    img: image,
-    title: 'Image',
-    author: 'author',
-  },
-
-];
+  }]
 
 export default class Library extends Component {
+
+state = {
+    myData: null
+  }
+
+getData = () => {
+
+}
+
   render() {
 
     return(
-      <Paper>
-      <GridList cellHeight={180} cols={3}>
+      <Paper backgroundcolor= "primary">
+      <GridList cellHeight={500} cols={3}>
 
         <GridListTile key="Subheader" cols={1} style={{height: 'auto'}}>
           <ListSubheader component="div"> Library </ListSubheader>

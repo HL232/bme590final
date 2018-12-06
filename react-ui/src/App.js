@@ -15,7 +15,7 @@ const theme = createMuiTheme({
     flexWrap: 'wrap',
     justifyContent: 'space-around',
     overflow: 'hidden',
-    backgroundColor: 'white'
+    backgroundColor: 'primary'
   },
   gridList: {
     width: 800,
@@ -35,6 +35,12 @@ const theme = createMuiTheme({
       MuiButton: {
         root: {
           color: 'green'
+        },
+        MuiPaper: {
+          root: {
+          color: 'primary',
+          backgroundColor: 'primary',
+          }
         },
       },
     },

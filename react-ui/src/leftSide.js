@@ -49,15 +49,12 @@ export default class leftSide extends Component {
 
 				<Button onClick={() => this.mySt(1)} variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
           Upload </Button> <br />
-        <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
+        <Button onClick={() => this.mySt(2)}variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
           Enhance </Button> <br />
-        <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
+        <Button onClick={() => this.mySt(3)}variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
           Download </Button> <br />
-
-        <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
-          Image Data </Button> <br />
           
-        <Button variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
+        <Button onClick={() => this.mySt(4)} variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
           Library </Button>
 				
         </Grid>
@@ -65,10 +62,10 @@ export default class leftSide extends Component {
         <Grid item xs={1}>
         </Grid>
 
-        <Grid item xs={5}>
+        <Grid item xs={9}>
         
       <div>
-       <MyUpload />
+       {this.selector()}
       </div>
 
         </Grid>
