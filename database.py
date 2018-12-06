@@ -39,6 +39,9 @@ class ImageProcessingDB(object):
                   "image_processing".format(db_user, db_pass)
             connect(url)
 
+        # also will have to check if image folder exists
+        # will need to store image files because can't put in db.
+
     def add_image(self, user_id, image_info):
         """
         Adds image to the database. First checks if it is a child of
@@ -64,31 +67,34 @@ class ImageProcessingDB(object):
             parent_id = image_info["parent_id"]
         else:
             process_history = [image_info["image_id"]]
-            parent_id = "None"
+            parent_id = "root"
+
+        # see if there was a processing time.
+        if "processing_time" in image_info.keys():
+            processing_time = int(image_info["processing_time"])
+        else:
+            processing_time = -1
 
         # update user object as well.
         self.update_user_uploads(user_id, process_history)
 
-        # deal with tags
+        # deal with description
         if "description" not in image_info.keys():
             description = "None"
         else:
             description = image_info["description"]
 
-        i = Image(image_id=image_info["image_id"],
-                  image=image_info["image"],
-                  user_id=user_id,
-                  timestamp=current_time,
-                  width=image_info["width"],
-                  height=image_info["height"],
-                  format=image_info["format"],
-                  processing_time=image_info["processing_time"],
+        i = Image(user_id=user_id,
+                  image_id=image_info["image_id"],
+                  # image=image_info["image_data"],
                   process=image_info["process"],
+                  processing_time=processing_time,
+                  timestamp=current_time,
                   description=description,
                   process_history=process_history,
                   parent_id=parent_id
                   )
-        return i.save()
+        return self.image_to_json(i.save())
 
     def _add_child(self, child_id, parent_id):
         """
@@ -124,25 +130,18 @@ class ImageProcessingDB(object):
             raise AttributeError("image_info must have image_id.")
         if not isinstance(image_info["image_id"], str):
             raise ValueError("image_id must be type str.")
-        if "image" not in image_info.keys():
-            raise AttributeError("image_info must have image data.")
-        if type(image_info["image"]) != str:
-            raise TypeError("image must be type str.")
-        if "height" not in image_info.keys():
-            raise AttributeError("image_info must have height.")
-        if "width" not in image_info.keys():
-            raise AttributeError("image_info must have width.")
-        if not isinstance(image_info["height"], int):
-            raise TypeError("height must be type int.")
-        if not isinstance(image_info["width"], int):
-            raise TypeError("height must be type int.")
+        if "image_data" not in image_info.keys():
+            raise AttributeError("image_info must have image_data.")
+        if type(image_info["image_data"]) != str:
+            raise TypeError("image_data must be type str.")
+        """
         if "format" not in image_info.keys():
             raise AttributeError("image_info must have format.")
         if type(image_info["format"]) != str:
             raise TypeError("format must be type str")
         if image_info["format"].lower() not in ["jpg", "jpeg", "png",
                                                 "tiff", "gif"]:
-            raise ValueError("format invalid.")
+            raise ValueError("format invalid.")"""
         if "processing_time" not in image_info.keys():
             raise AttributeError("image_info must have processing_time.")
         if not isinstance(image_info["processing_time"], int):
@@ -168,6 +167,7 @@ class ImageProcessingDB(object):
         """
         valid_processes = [func for func in dir(Processing)
                            if callable(getattr(Processing, func))]
+        valid_processes.append('upload')
         if process not in valid_processes:
             return False
         return True
@@ -187,7 +187,7 @@ class ImageProcessingDB(object):
             raise ValueError("User already exists!")
 
         u = User(user_id=user_id)
-        return u.save()
+        return self.user_to_json(u.save())
 
     def update_user_uploads(self, user_id, process_history: list):
         """
@@ -206,7 +206,7 @@ class ImageProcessingDB(object):
         if user is None:
             user = self.add_user(user_id)
         user.uploads[root_id] = recent_id
-        return user.save()
+        return self.user_to_json(user.save())
 
     def update_description(self, image_id, description: str):
         """
@@ -238,7 +238,7 @@ class ImageProcessingDB(object):
             if str(image.image_id) == image_id:
                 removed = True
                 image.delete()
-        return removed
+        return self.image_to_json(removed)
 
     def find_image(self, image_id):
         """
@@ -298,3 +298,27 @@ class ImageProcessingDB(object):
             if str(user.user_id) == user_id:
                 return user
         return None
+
+    def image_to_json(self, image):
+        """
+        Gets returnable json format of image.
+        Args:
+            image:
+        """
+        ret_json = {
+            # "image_data": image.data,
+            "image_id": image.image_id,
+            "user_id": image.user_id
+        }
+        return ret_json
+
+    def user_to_json(self, user):
+        """
+        Gets returnable json format of user.
+        Args:
+            user:
+        """
+        ret_json = {
+            "user_id": user.user_id
+        }
+        return ret_json
