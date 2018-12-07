@@ -1,5 +1,4 @@
 import pytest
-import base64
 from random import choice
 from string import ascii_uppercase
 from database import ImageProcessingDB
@@ -31,9 +30,10 @@ def image_info():
 def test_add_image(database_obj, image_info):
     user_id = random_id()
     u_image = image_info
+    u_image["user_id"] = user_id
     u_image["image_id"] = random_id()
     image = database_obj.add_image(user_id, image_info)
-    assert image.image == "test"
+    assert image["image_data"] == "test"
 
 
 def test_add_image_with_parent(database_obj, image_info):
@@ -41,6 +41,7 @@ def test_add_image_with_parent(database_obj, image_info):
 
     parent_id = random_id()
     u_image = image_info
+    u_image["user_id"] = user_id
     u_image["image_id"] = parent_id
     database_obj.add_image(user_id, u_image)
 
@@ -50,18 +51,19 @@ def test_add_image_with_parent(database_obj, image_info):
     u_image["parent_id"] = parent_id
     database_obj.add_image(user_id, u_image)
 
-    image_1 = database_obj.find_image(parent_id)
-    image_2 = database_obj.find_image(child_id)
+    image_1 = database_obj.find_image(parent_id, user_id)
+    image_2 = database_obj.find_image(child_id, user_id)
 
     assert child_id in image_1.child_ids and \
-        image_2.parent_id == parent_id and \
-        image_1.process_history == [parent_id]
+           image_2.parent_id == parent_id and \
+           image_1.process_history == [parent_id]
 
 
 def test_add_image_no_image_id(database_obj, image_info):
     with pytest.raises(AttributeError):
         user_id = random_id()
         u_image = image_info
+        u_image["user_id"] = user_id
         del u_image["image_id"]
         database_obj.add_image(user_id, u_image)
 
@@ -70,6 +72,7 @@ def test_add_image_bad_image_id(database_obj, image_info):
     with pytest.raises(ValueError):
         user_id = random_id()
         u_image = image_info
+        u_image["user_id"] = user_id
         u_image["image_id"] = 1234123
         database_obj.add_image(user_id, u_image)
 
@@ -78,7 +81,8 @@ def test_add_image_bad_image(database_obj, image_info):
     with pytest.raises(TypeError):
         user_id = random_id()
         u_image = image_info
-        u_image["image"] = 1234123
+        u_image["user_id"] = user_id
+        u_image["image_data"] = 1234123
         database_obj.add_image(user_id, u_image)
 
 
@@ -86,6 +90,7 @@ def test_add_image_bad_dim(database_obj, image_info):
     with pytest.raises(TypeError):
         user_id = random_id()
         u_image = image_info
+        u_image["user_id"] = user_id
         u_image["image_id"] = random_id()
         u_image["width"] = "!23"
         database_obj.add_image(user_id, u_image)
@@ -98,6 +103,7 @@ def test_add_image_bad_format(database_obj, image_info, format):
     with pytest.raises(ValueError):
         user_id = random_id()
         u_image = image_info
+        u_image["user_id"] = user_id
         u_image["image_id"] = random_id()
         u_image["format"] = format
         database_obj.add_image(user_id, u_image)
@@ -107,6 +113,7 @@ def test_add_image_no_processing_time(database_obj, image_info):
     with pytest.raises(AttributeError):
         user_id = random_id()
         u_image = image_info
+        u_image["user_id"] = user_id
         del u_image["processing_time"]
         database_obj.add_image(user_id, u_image)
 
@@ -115,6 +122,7 @@ def test_add_image_bad_processing_time(database_obj, image_info):
     with pytest.raises(TypeError):
         user_id = random_id()
         u_image = image_info
+        u_image["user_id"] = user_id
         u_image["image_id"] = random_id()
         u_image["processing_time"] = 123.4
         database_obj.add_image(user_id, u_image)
@@ -127,6 +135,7 @@ def test_add_image_bad_process(database_obj, image_info, process):
     with pytest.raises(ValueError):
         user_id = random_id()
         u_image = image_info
+        u_image["user_id"] = user_id
         u_image["process"] = process
         u_image["image_id"] = random_id()
         database_obj.add_image(user_id, u_image)
@@ -141,6 +150,7 @@ def test_add_user(database_obj):
 def test_add_user_with_image(database_obj, image_info):
     user_id = random_id()
     u_image = image_info
+    u_image["user_id"] = user_id
     u_image["image_id"] = random_id()
     database_obj.add_image(user_id, u_image)
 
@@ -155,9 +165,9 @@ def test_add_bad_user(database_obj, image_info):
         database_obj.add_user(user_id)
 
 
-def test_update_user_uploads(database_obj):
+def test_update_user(database_obj):
     user_id = random_id()
-    database_obj.update_user_uploads(user_id, ["ID1", "ID2"])
+    database_obj.update_user(user_id, ["ID1", "ID2"])
 
     db_user = database_obj.find_user(user_id)
     assert db_user.uploads["ID1"] == "ID2"
@@ -166,29 +176,32 @@ def test_update_user_uploads(database_obj):
 def test_update_description(database_obj, image_info):
     user_id = random_id()
     u_image = image_info
+    u_image["user_id"] = user_id
     u_image["image_id"] = random_id()
     database_obj.add_image(user_id, u_image)
     database_obj.update_description(u_image["image_id"], "test")
-    image = database_obj.find_image(u_image["image_id"])
+    image = database_obj.find_image(u_image["image_id"], user_id)
     assert image.description == "test"
 
 
 def test_remove_image(database_obj, image_info):
     user_id = random_id()
     u_image = image_info
+    u_image["user_id"] = user_id
     u_image["image_id"] = random_id()
     database_obj.add_image(user_id, u_image)
     database_obj.remove_image(u_image["image_id"])
-    image = database_obj.find_image(u_image["image_id"])
+    image = database_obj.find_image(u_image["image_id"], user_id)
     assert image is None
 
 
 def test_find_image(database_obj, image_info):
     user_id = random_id()
     u_image = image_info
+    u_image["user_id"] = user_id
     u_image["image_id"] = random_id()
     database_obj.add_image(user_id, u_image)
-    image = database_obj.find_image(u_image["image_id"])
+    image = database_obj.find_image(u_image["image_id"], user_id)
     assert image.image_id == u_image["image_id"]
 
 
@@ -197,6 +210,7 @@ def test_find_image_child(database_obj, image_info):
 
     parent_id = random_id()
     u_image = image_info
+    u_image["user_id"] = user_id
     u_image["image_id"] = parent_id
     database_obj.add_image(user_id, u_image)
 
@@ -206,7 +220,8 @@ def test_find_image_child(database_obj, image_info):
     u_image["parent_id"] = parent_id
     database_obj.add_image(user_id, u_image)
 
-    assert database_obj.find_image_child(parent_id) == [child_id]
+    assert database_obj.find_image_child(
+        parent_id, user_id) == [child_id]
 
 
 def test_find_image_parent(database_obj, image_info):
@@ -214,6 +229,7 @@ def test_find_image_parent(database_obj, image_info):
 
     parent_id = random_id()
     u_image = image_info
+    u_image["user_id"] = user_id
     u_image["image_id"] = parent_id
     database_obj.add_image(user_id, u_image)
 

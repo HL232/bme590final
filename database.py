@@ -48,37 +48,27 @@ class ImageProcessingDB(object):
         Args:
             user_id: User who is adding the image.
             image_info: Information about the image.
-
         Returns:
             object: Image database object that was added.
         """
-        image_info = self._image_parameter_check(image_info)
         current_time = datetime.datetime.now()
-
+        image_info = self._image_parameter_check(image_info)
         # see if there is a parent-child relationship for the image.
         if "parent_id" in image_info.keys():
             # look for the provided id in the database
-            parent_image = self.find_image(
-                image_info["parent_id"], user_id)
-            process_history = parent_image.process_history
-            process_history.append(image_info["image_id"])
+            parent_image = self.get_current_image(user_id)
+            image_info["process_history"] = parent_image.process_history
+            image_info["process_history"].append(image_info["image_id"])
             # relate the child to the parent
             self._add_child(image_info["image_id"],
                             image_info["parent_id"],
                             user_id)
-            parent_id = image_info["parent_id"]
         else:
-            process_history = [image_info["image_id"]]
-            parent_id = "root"
-
-        # see if there was a processing time.
-        if "processing_time" in image_info.keys():
-            processing_time = int(image_info["processing_time"])
-        else:
-            processing_time = -1
+            image_info["process_history"] = [image_info["image_id"]]
+            image_info["parent_id"] = "root"
 
         # update user object as well.
-        self.update_user(user_id, process_history)
+        self.update_user(user_id, image_info["process_history"])
 
         # deal with description
         if "description" not in image_info.keys():
@@ -86,31 +76,26 @@ class ImageProcessingDB(object):
         else:
             description = image_info["description"]
 
+        # add image to db
         i = Image(user_id=user_id,
                   image_id=image_info["image_id"],
                   process=image_info["process"],
                   image_data=image_info["image_data"],
-                  processing_time=processing_time,
+                  processing_time=image_info["processing_time"],
+                  process_history=image_info["process_history"],
+                  parent_id=image_info["parent_id"],
+                  width=image_info["width"],
+                  height=image_info["height"],
                   timestamp=current_time,
-                  description=description,
-                  process_history=process_history,
-                  parent_id=parent_id
+                  description=description
                   )
         db_image = i.save()
 
-        # save image in file
-        """
-        self.save_64(image_info["image_id"],
-                     image_info["image_data"],
-                     user_id)"""
-
-        image = self.image_to_json(db_image)
-        image["image_data"] = image_info["image_data"]
-        return image
+        return self.image_to_json(db_image)
 
     def get_current_image_id(self, user_id):
         """
-        Obtains the user's current image.
+        Obtains the user's current image id.
         Args:
 
         Returns:
@@ -121,6 +106,24 @@ class ImageProcessingDB(object):
         if user is None:
             return None
         return user.current_image
+
+    def get_current_image(self, user_id):
+        """
+        Obtains the user's current image.
+        Args:
+            user_id: user to get current image of.
+
+        Returns:
+            dict: user's current image.
+
+        """
+        image_id = self.get_current_image_id(user_id)
+        if not image_id:
+            return None
+        image = self.find_image(image_id, user_id)
+        if not image:
+            return None
+        return image
 
     def _add_child(self, child_id, parent_id, user_id):
         """
@@ -156,18 +159,21 @@ class ImageProcessingDB(object):
             raise AttributeError("image_info must have image_id.")
         if not isinstance(image_info["image_id"], str):
             raise ValueError("image_id must be type str.")
+        if "user_id" not in image_info.keys():
+            raise AttributeError("image_info must have user_id.")
+        if not isinstance(image_info["user_id"], str):
+            raise ValueError("user_id must be type str.")
         if "image_data" not in image_info.keys():
             raise AttributeError("image_info must have image_data.")
         if type(image_info["image_data"]) != str:
             raise TypeError("image_data must be type str.")
-        """
         if "format" not in image_info.keys():
             raise AttributeError("image_info must have format.")
         if type(image_info["format"]) != str:
             raise TypeError("format must be type str")
         if image_info["format"].lower() not in ["jpg", "jpeg", "png",
-                                                "tiff", "gif"]:
-            raise ValueError("format invalid.")"""
+                                                "tiff", "gif", "None"]:
+            raise ValueError("format invalid.")
         if "processing_time" not in image_info.keys():
             raise AttributeError("image_info must have processing_time.")
         if not isinstance(image_info["processing_time"], int):
@@ -275,14 +281,11 @@ class ImageProcessingDB(object):
         Args:
             image_id: ID of the image to remove.
         """
-        removed = False
         for image in Image.objects.all():
             if str(image.image_id) == image_id:
-                removed = True
-                image.delete()
-
-        self.remove_64(image_id)
-        return self.image_to_json(removed)
+                removed = image.delete()
+                return self.image_to_json(removed)
+        return None
 
     def find_image(self, image_id, user_id):
         """

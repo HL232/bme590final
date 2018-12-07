@@ -33,6 +33,8 @@ class Processing(object):
         # convert to grayscale for them.
         b = Benchmark()
         image_he = exposure.equalize_hist(self.image)
+        image_he = exposure.rescale_intensity(image_he,
+                                              out_range=(0, 255))
         return image_he, b.stop()
 
     def contrast_stretch(self, percentile=(10, 90)):
