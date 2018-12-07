@@ -179,7 +179,6 @@ def post_upload_image():
     content["image_id"] = random_id()
     content["process"] = "upload"
     image = db.add_image(content["user_id"], content)
-    image["image_data"] = content["image_data"]
     return jsonify(image)  # with included ID
 
 

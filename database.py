@@ -1,3 +1,4 @@
+import os
 import json
 import datetime
 from pymodm import connect
@@ -29,7 +30,7 @@ class User(MongoModel):
 
 
 class ImageProcessingDB(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         with open("config.json", 'r') as f:
             config_info = json.load(f)
             db_user = config_info["mongo_user"]
@@ -41,6 +42,9 @@ class ImageProcessingDB(object):
 
         # also will have to check if image folder exists
         # will need to store image files because can't put in db.
+        self.image_path = kwargs.get("image_path", "images")
+        if not os.path.exists(self.image_path):
+            os.makedirs(self.image_path)
 
     def add_image(self, user_id, image_info):
         """
@@ -86,7 +90,6 @@ class ImageProcessingDB(object):
 
         i = Image(user_id=user_id,
                   image_id=image_info["image_id"],
-                  # image=image_info["image_data"],
                   process=image_info["process"],
                   processing_time=processing_time,
                   timestamp=current_time,
@@ -94,7 +97,55 @@ class ImageProcessingDB(object):
                   process_history=process_history,
                   parent_id=parent_id
                   )
-        return self.image_to_json(i.save())
+        db_image = i.save()
+
+        # save image in file
+        self.save_64(image_info["image_id"],
+                     image_info["image_data"],
+                     user_id)
+
+        image = self.image_to_json(db_image)
+        image["image_data"] = image_info["image_data"]
+        return image
+
+    def save_64(self, image_id, image_data, user_id):
+        """
+        Encrypts and saves base 64 file.
+        Args:
+            image_id:
+            image_data:
+        """
+        file_path = self.image_path + '/' + str(image_id)
+        with open(file_path, "w") as text_file:
+            text_file.write(image_data)
+        # cryptoshop.encryptfile(filename=file_path,
+        # # passphrase=user_id, algo="srp")
+        return image_data
+
+    def get_64(self, image_id, user_id):
+        """
+        Decrypts and gets base 64 file.
+        Args:
+            image_id:
+            user_id:
+        """
+        file_path = self.image_path + '/' + str(image_id)
+        # cryptoshop.decryptfile(filename=file_path, passphrase=user_id)
+        with open(file_path, 'r') as b64text:
+            return b64text.read()
+
+    def remove_64(self, image_id, user_id):
+        """
+        Removes base 64 file.
+        Args:
+            user_id:
+            image_id:
+        """
+        file_path = self.image_path + '/' + str(image_id)
+        if os.path.exists(file_path):
+            image_data = self.get_64(file_path, user_id)
+            os.remove(self.image_path + image_id)
+            return image_data
 
     def _add_child(self, child_id, parent_id):
         """
@@ -238,6 +289,8 @@ class ImageProcessingDB(object):
             if str(image.image_id) == image_id:
                 removed = True
                 image.delete()
+
+        self.remove_64(image_id)
         return self.image_to_json(removed)
 
     def find_image(self, image_id):
