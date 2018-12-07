@@ -1,3 +1,4 @@
+import os
 import json
 import datetime
 from pymodm import connect
@@ -8,7 +9,7 @@ from processing import Processing
 
 class Image(MongoModel):
     image_id = fields.CharField(primary_key=True)
-    image = fields.CharField()
+    image_data = fields.CharField()
     user_id = fields.CharField()
     timestamp = fields.DateTimeField()
     width = fields.IntegerField()
@@ -26,10 +27,11 @@ class User(MongoModel):
     user_id = fields.CharField(primary_key=True)
     # the structure of this will be key (upload id): most recent_id
     uploads = fields.DictField()
+    current_image = fields.CharField()
 
 
 class ImageProcessingDB(object):
-    def __init__(self):
+    def __init__(self, **kwargs):
         with open("config.json", 'r') as f:
             config_info = json.load(f)
             db_user = config_info["mongo_user"]
@@ -56,41 +58,71 @@ class ImageProcessingDB(object):
         # see if there is a parent-child relationship for the image.
         if "parent_id" in image_info.keys():
             # look for the provided id in the database
-            parent_image = self.find_image(image_info["parent_id"])
+            parent_image = self.find_image(
+                image_info["parent_id"], user_id)
             process_history = parent_image.process_history
             process_history.append(image_info["image_id"])
             # relate the child to the parent
-            self._add_child(image_info["image_id"], image_info["parent_id"])
+            self._add_child(image_info["image_id"],
+                            image_info["parent_id"],
+                            user_id)
             parent_id = image_info["parent_id"]
         else:
             process_history = [image_info["image_id"]]
-            parent_id = "None"
+            parent_id = "root"
+
+        # see if there was a processing time.
+        if "processing_time" in image_info.keys():
+            processing_time = int(image_info["processing_time"])
+        else:
+            processing_time = -1
 
         # update user object as well.
-        self.update_user_uploads(user_id, process_history)
+        self.update_user(user_id, process_history)
 
-        # deal with tags
+        # deal with description
         if "description" not in image_info.keys():
             description = "None"
         else:
             description = image_info["description"]
 
-        i = Image(image_id=image_info["image_id"],
-                  image=image_info["image"],
-                  user_id=user_id,
-                  timestamp=current_time,
-                  width=image_info["width"],
-                  height=image_info["height"],
-                  format=image_info["format"],
-                  processing_time=image_info["processing_time"],
+        i = Image(user_id=user_id,
+                  image_id=image_info["image_id"],
                   process=image_info["process"],
+                  image_data=image_info["image_data"],
+                  processing_time=processing_time,
+                  timestamp=current_time,
                   description=description,
                   process_history=process_history,
                   parent_id=parent_id
                   )
-        return i.save()
+        db_image = i.save()
 
-    def _add_child(self, child_id, parent_id):
+        # save image in file
+        """
+        self.save_64(image_info["image_id"],
+                     image_info["image_data"],
+                     user_id)"""
+
+        image = self.image_to_json(db_image)
+        image["image_data"] = image_info["image_data"]
+        return image
+
+    def get_current_image_id(self, user_id):
+        """
+        Obtains the user's current image.
+        Args:
+
+        Returns:
+            object:
+
+        """
+        user = self.find_user(user_id)
+        if user is None:
+            return None
+        return user.current_image
+
+    def _add_child(self, child_id, parent_id, user_id):
         """
         Adds a child id to the parent image.
         Args:
@@ -100,7 +132,7 @@ class ImageProcessingDB(object):
         Returns:
             str: child id of the image that was added.
         """
-        parent_image = self.find_image(parent_id)
+        parent_image = self.find_image(parent_id, user_id)
         if parent_image is not None:
             parent_image.child_ids.append(child_id)
             parent_image.save()
@@ -124,25 +156,18 @@ class ImageProcessingDB(object):
             raise AttributeError("image_info must have image_id.")
         if not isinstance(image_info["image_id"], str):
             raise ValueError("image_id must be type str.")
-        if "image" not in image_info.keys():
-            raise AttributeError("image_info must have image data.")
-        if type(image_info["image"]) != str:
-            raise TypeError("image must be type str.")
-        if "height" not in image_info.keys():
-            raise AttributeError("image_info must have height.")
-        if "width" not in image_info.keys():
-            raise AttributeError("image_info must have width.")
-        if not isinstance(image_info["height"], int):
-            raise TypeError("height must be type int.")
-        if not isinstance(image_info["width"], int):
-            raise TypeError("height must be type int.")
+        if "image_data" not in image_info.keys():
+            raise AttributeError("image_info must have image_data.")
+        if type(image_info["image_data"]) != str:
+            raise TypeError("image_data must be type str.")
+        """
         if "format" not in image_info.keys():
             raise AttributeError("image_info must have format.")
         if type(image_info["format"]) != str:
             raise TypeError("format must be type str")
         if image_info["format"].lower() not in ["jpg", "jpeg", "png",
                                                 "tiff", "gif"]:
-            raise ValueError("format invalid.")
+            raise ValueError("format invalid.")"""
         if "processing_time" not in image_info.keys():
             raise AttributeError("image_info must have processing_time.")
         if not isinstance(image_info["processing_time"], int):
@@ -168,6 +193,7 @@ class ImageProcessingDB(object):
         """
         valid_processes = [func for func in dir(Processing)
                            if callable(getattr(Processing, func))]
+        valid_processes.append('upload')
         if process not in valid_processes:
             return False
         return True
@@ -189,7 +215,7 @@ class ImageProcessingDB(object):
         u = User(user_id=user_id)
         return u.save()
 
-    def update_user_uploads(self, user_id, process_history: list):
+    def update_user(self, user_id, process_history: list):
         """
         Updates user uploads for an image.
         Args:
@@ -206,7 +232,23 @@ class ImageProcessingDB(object):
         if user is None:
             user = self.add_user(user_id)
         user.uploads[root_id] = recent_id
-        return user.save()
+        user.current_image = recent_id
+        return self.user_to_json(user.save())
+
+    def update_user_current_image(self, user_id, image_id):
+        """
+        Updates user current_image.
+        Args:
+            user_id: User to update.
+            image_id: Id to update with
+
+        """
+        user = self.find_user(user_id)
+        image = self.find_image(image_id, user_id)
+        if image is not None:
+            user.current_image = image.image_id
+            return self.user_to_json(user.save())
+        return None
 
     def update_description(self, image_id, description: str):
         """
@@ -238,23 +280,27 @@ class ImageProcessingDB(object):
             if str(image.image_id) == image_id:
                 removed = True
                 image.delete()
-        return removed
 
-    def find_image(self, image_id):
+        self.remove_64(image_id)
+        return self.image_to_json(removed)
+
+    def find_image(self, image_id, user_id):
         """
         Finds the image in the database based on image id.
         Args:
+            user_id: user ID for the image.
             image_id: ID of the image to find.
 
         Returns:
             object: found image in the database.
         """
         for image in Image.objects.all():
-            if str(image.image_id) == image_id:
+            if str(image.image_id) == image_id \
+                    and str(image.user_id) == user_id:
                 return image
         return None
 
-    def find_image_parent(self, image_id):
+    def find_image_parent(self, image_id, user_id):
         """
         Finds the parent of the image in the database based on image id.
         Args:
@@ -263,14 +309,14 @@ class ImageProcessingDB(object):
         Returns:
             object: found image in the database.
         """
-        image = self.find_image(image_id)
+        image = self.find_image(image_id, user_id)
         if image.parent_id is not None:
             parent_id = image.parent_id
-            parent_image = self.find_image(parent_id)
-            return parent_image
+            parent_image = self.find_image(parent_id, user_id)
+            return self.image_to_json(parent_image)
         return None
 
-    def find_image_child(self, image_id):
+    def find_image_child(self, image_id, user_id):
         """
         Finds the child of the image in the database based on image id.
         Args:
@@ -279,7 +325,7 @@ class ImageProcessingDB(object):
         Returns:
             object: found image in the database.
         """
-        image = self.find_image(image_id)
+        image = self.find_image(image_id, user_id)
         if image.child_ids:
             return image.child_ids
         return []
@@ -298,3 +344,40 @@ class ImageProcessingDB(object):
             if str(user.user_id) == user_id:
                 return user
         return None
+
+    def image_to_json(self, image):
+        """
+        Gets returnable json format of image.
+        Args:
+            image:
+        """
+
+        ret_json = {
+            "image_id": image.image_id,
+            "user_id": image.user_id,
+            "parent_id": image.parent_id,
+            "processing_history": image.process_history,
+            "description": image.description,
+            "image_data": image.image_data,
+            "processing_time": image.processing_time,
+            "width": image.width,
+            "height": image.height,
+            "format": image.format,
+            "child_ids": image.child_ids,
+            "process": image.process,
+            "timestamp": image.timestamp
+        }
+        return ret_json
+
+    def user_to_json(self, user):
+        """
+        Gets returnable json format of user.
+        Args:
+            user:
+        """
+        ret_json = {
+            "user_id": user.user_id,
+            "uploads": user.uploads,
+            "current_image": user.current_image
+        }
+        return ret_json

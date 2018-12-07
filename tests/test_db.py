@@ -18,7 +18,7 @@ def database_obj():
 def image_info():
     image_i = {
         "image_id": "0",
-        "image": "test",
+        "image_data": "test",
         "height": 100,
         "width": 100,
         "format": "png",
