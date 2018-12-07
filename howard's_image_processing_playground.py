@@ -56,3 +56,16 @@ plot(dog_image_blur, 'Blurred')
 alpha = 1
 dog_image_sharpened = dog_image + alpha * (dog_image - dog_image_blur)
 plot(dog_image_sharpened, 'Sharpened')
+
+# Histogram
+plt.hist(dog_image.ravel(), bins=256, range=(0.0, 1.0), color='black')
+plt.xlabel('Normalized Pixel Intensity')
+plt.ylabel('Number of Pixels')
+plt.xlim(0, 1)
+plt.savefig ( "./temp.png")
+plt.show()
+
+temp = imread('temp.png')
+plt.imshow(temp)
+plt.axis('off')
+plt.show()

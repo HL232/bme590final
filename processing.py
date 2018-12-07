@@ -2,6 +2,8 @@ import numpy as numpy
 from skimage import exposure
 from skimage import util
 from skimage import filters
+import matplotlib.pyplot as plt
+from skimage.io import imread
 
 
 class Processing(object):
@@ -18,6 +20,8 @@ class Processing(object):
         Employs histogram equalization on given image.
         Args:
             image: Image to perform histogram equalization on.
+        Returns:
+            Numpy.Array representation of histogram equilization image
         """
         self._check_valid_image(image)
         self._check_grayscale(image)  # Only works for grayscale images
@@ -30,6 +34,8 @@ class Processing(object):
         Args:
             image: Image to perform contrast stretching on.
             percentile: percentile range of pixel intensity to stretch
+        Returns:
+            Numpy.Array representation of contrast stretched image
         """
         self._check_valid_image(image)
         p1, p2 = numpy.percentile(image, percentile)
@@ -42,6 +48,8 @@ class Processing(object):
         Args:
             image: Image to perform inversion on.
             base: base of the log which is applied to the image
+        Returns:
+            Numpy.Array representation of log compressed image
         """
         self._check_valid_image(image)
         image_log = numpy.log(image + 1) / numpy.log(base)
@@ -53,6 +61,8 @@ class Processing(object):
         Only works for grayscale images
         Args:
             image: Image to perform inversion on.
+        Returns:
+            Numpy.Array representation of reversed image
         """
         self._check_valid_image(image)
         self._check_grayscale(image)
@@ -65,6 +75,8 @@ class Processing(object):
         Args:
             image: Image to perform blurring on.
             sigma: Standard deviation for Gaussian blur kernel
+        Returns:
+            Numpy.Array representation of blurred image
         """
         self._check_valid_image(image)
         image_blur = filters.gaussian(image, sigma)
@@ -76,6 +88,8 @@ class Processing(object):
         Args:
             image: Image to perform sharpening on.
             filter_type: The type of the filter to use.
+        Returns:
+            Numpy.Array representation of sharpened image
         """
         self._check_valid_image(image)
         # image_sharpened = filters.unsharp_mask(image, radius=1, amount=1)
@@ -87,6 +101,25 @@ class Processing(object):
         alpha = 1
         image_sharpened = image + alpha * (image - image_blur)
         return image_sharpened
+
+    def histogram_gray(self, image):
+        """
+        Returns a histogram of the image
+        Args:
+            image: Image to find histogram of
+        Returns:
+            Numpy.Array representation of histogram of image
+        """
+        plt.hist(image.ravel(), bins=256, range=(0.0, 1.0), color='black')
+        plt.xlabel('Normalized Pixel Intensity')
+        plt.ylabel('Number of Pixels')
+        plt.xlim(0, 1)
+        plt.savefig("./temp.png")
+        plt.close()
+
+        # this is a very crude method returning a numpy array
+        temp = imread('temp.png')
+        return temp
 
     def _check_valid_image(self, image):
         """
