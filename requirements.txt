@@ -15,4 +15,4 @@ pytest-cov
 pytest-pudb
 pymodm
 imageio
-cryptoshop
+opencv-python

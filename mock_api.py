@@ -1,4 +1,5 @@
 import base64
+import imageio
 import json
 import io
 from matplotlib import pyplot as plt
@@ -8,6 +9,7 @@ from io import BytesIO
 import numpy as np
 from skimage.io import imread
 import base64
+import cv2
 
 ip = "http://127.0.0.1:5000"
 
@@ -55,13 +57,13 @@ def error_catcher(json_resp: dict):
 def b64str_to_numpy(b64_img):
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
-    i = imread(image_buf, format='JPG')
+    i = mpimg.imread(image_buf, format='JPG')
     return i
 
 
 def numpy_to_b64str(img):
     image_base64 = base64.b64encode(img)
-    base64_string = image_base64.decode('utf-8') # convert to string
+    base64_string = image_base64.decode('utf-8')  # convert to string
     return base64_string
 
 
@@ -74,7 +76,8 @@ dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
              'sites/default/files/legacy/images/' \
              'resource-centre/IFAW%20Northern%20Dog.JPG'
 
-dog_image = imread(dog_source)
+dog_image = imageio.imread(dog_source)
+_, dog_image = cv2.imencode('.jpg', dog_image)
 image_obj = {
     "user_id": "test",
     "image_data": numpy_to_b64str(dog_image)
@@ -83,5 +86,4 @@ image_obj = {
 # resp = requests.post("http://127.0.0.1:5000/api/image/upload_image", json=image_obj)
 # content = byte_2_json(resp)
 test = b64str_to_numpy(image_obj["image_data"])
-print(test)
-# view_b64_image(test)
+view_image(test)
