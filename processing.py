@@ -1,9 +1,6 @@
-import io
-import base64
-import imageio
-import numpy as np
 import datetime
-import matplotlib.pyplot as plt
+import skimage
+import numpy as np
 from skimage import exposure, util, filters
 
 
@@ -24,7 +21,7 @@ class Processing(object):
     """
 
     def __init__(self, image):
-        self.image = self.b64_to_numpy(image)
+        self.image = image
 
     def hist_eq(self):
         """
@@ -32,9 +29,11 @@ class Processing(object):
         Args:
             image: Image to perform histogram equalization on.
         """
+        # TODO: Make sure you raise exceptions if not grayscale/
+        # convert to grayscale for them.
         b = Benchmark()
         image_he = exposure.equalize_hist(self.image)
-        return self.numpy_to_b64(image_he), b.stop()
+        return image_he, b.stop()
 
     def contrast_stretch(self, percentile=(10, 90)):
         """
@@ -55,8 +54,14 @@ class Processing(object):
             base: base of the log which is applied to the image
         """
         b = Benchmark()
-        image_log = np.log(self.image + 1) / np.log(base)
-        return self.numpy_to_b64(image_log), b.stop()
+        if len(self.image.shape) == 3 and self.image.shape[2] != 3:
+            image_gray = skimage.color.rgb2grey(self.image)
+        else:
+            image_gray = self.image
+        image_log = np.log(image_gray + 1) / np.log(base)
+        rgb_image_log = skimage.color.gray2rgb(image_log)
+        # print(rgb_image_log.shape, rgb_image_log[0][0])
+        return rgb_image_log.astype(int), b.stop()
 
     def reverse_video(self):
         """
@@ -64,9 +69,11 @@ class Processing(object):
         Args:
             image: Image to perform inversion on.
         """
+        # TODO: Please check inputs here!
+
         b = Benchmark()
         image_reverse = util.invert(self.image)
-        return self.numpy_to_b64(image_reverse), b.stop()
+        return image_reverse, b.stop()
 
     def blur(self, sigma=5):
         """
@@ -76,10 +83,11 @@ class Processing(object):
             sigma: Standard deviation for Gaussian blur kernel
         """
         b = Benchmark()
-        image_blur = filters.gaussian(self.image, sigma)
-        return self.numpy_to_b64(image_blur), b.stop()
+        image_blur = filters.gaussian(self.image, sigma,
+                                      preserve_range=True)
+        return image_blur.astype(int), b.stop()
 
-    def sharpen(self, filter_type=None):
+    def sharpen(self):
         """
         Employs a sharpening filter on given image.
         Args:
@@ -92,31 +100,7 @@ class Processing(object):
         # This is the mathematical method of sharpening:
         # sharp_image = original + alpha * (original - blurred)
         b = Benchmark()
-        image_blur = self.blur(self.image, 5)
+        image_blur = Processing(self.image).blur(5)[0]
         alpha = 1
         image_sharpened = self.image + alpha * (self.image - image_blur)
-        return self.numpy_to_b64(image_sharpened), b.stop()
-
-    def b64_to_numpy(self, img_bytes):
-        """
-        Converts bytes into numpy array.
-        Args:
-            img_bytes: Bytes of the image to convert.
-
-        Returns:
-
-        """
-        if type(img_bytes) == np.ndarray:
-            return img_bytes
-        return imageio.imread(io.BytesIO(base64.b64decode(img_bytes)))
-
-    def numpy_to_b64(self, img):
-        """
-        Converts numpy into bytes.
-        Args:
-            img: Image to convert.
-
-        Returns:
-            str: Base64 string.
-        """
-        return base64.b64encode(img)
+        return image_sharpened, b.stop()

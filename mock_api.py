@@ -1,15 +1,13 @@
+import io
+import cv2
+import json
 import base64
 import imageio
-import json
-import io
-from matplotlib import pyplot as plt
-import matplotlib.image as mpimg
 import requests
-from io import BytesIO
-import numpy as np
-from skimage.io import imread
-import base64
-import cv2
+from random import choice
+from processing import Processing
+from string import ascii_uppercase
+from matplotlib import pyplot as plt
 
 ip = "http://127.0.0.1:5000"
 
@@ -57,12 +55,13 @@ def error_catcher(json_resp: dict):
 def b64str_to_numpy(b64_img):
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
-    np_img = mpimg.imread(image_buf, format='JPG')
+    np_img = imageio.imread(image_buf, format='JPG')
     i = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
     return i
 
 
-def numpy_to_b64str(img):
+def numpy_to_b64str(img, format=".jpg"):
+    _, img = cv2.imencode(format, img)  # strips header
     image_base64 = base64.b64encode(img)
     base64_string = image_base64.decode('utf-8')  # convert to string
     return base64_string
@@ -73,21 +72,71 @@ def view_image(image):
     plt.show()
 
 
+def random_id(length=10):
+    """
+    Generates random alpha-numeric ID.
+    Returns:
+        str: alpha-numeric ID
+    """
+    return ''.join(choice(ascii_uppercase) for _ in range(length))
+
+
+user_id = "test"
 dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
              'sites/default/files/legacy/images/' \
              'resource-centre/IFAW%20Northern%20Dog.JPG'
 
-dog_image = imread(dog_source)
-# iew_image(dog_image)
-# print(dog_image.shape, dog_image[0][0])
-_, dog_image = cv2.imencode('.jpg', dog_image)  # strips header
+dog_image = imageio.imread(dog_source)
+# print("Original", dog_image.shape, dog_image[0][0])
+
 image_obj = {
-    "user_id": "test",
+    "user_id": user_id,
     "image_data": numpy_to_b64str(dog_image)
 }
-np_img = b64str_to_numpy(image_obj["image_data"])
-# print(test.shape, test[0][0])
 
-#resp = requests.post("http://127.0.0.1:5000/api/image/upload_image", json=image_obj)
-# content = byte_2_json(resp)
-view_image(np_img)
+resp = requests.post("http://127.0.0.1:5000/api/image/upload_image", json=image_obj)
+content = byte_2_json(resp)
+db_image = b64str_to_numpy(content["image_data"])
+# print("From DB", db_image.shape, db_image[0][0])
+
+"""
+blurred_image = Processing(db_image).blur()[0]
+view_image(blurred_image)
+print("Blurred Image", blurred_image.shape, blurred_image[0][0])
+image_obj = {
+    "user_id": user_id,
+    "image_data": numpy_to_b64str(blurred_image, format=".jpg")
+}
+resp = requests.post("http://127.0.0.1:5000/api/image/upload_image", json=image_obj)
+content = byte_2_json(resp)
+db_blur_image = b64str_to_numpy(content["image_data"])
+view_image(db_blur_image)
+print("DB Blurred", db_blur_image.shape, db_blur_image[0][0])
+"""
+
+image_obj_2 = {"user_id": user_id}
+resp = requests.post("http://127.0.0.1:5000/api/process/blur", json=image_obj)
+content = byte_2_json(resp)
+view_image(b64str_to_numpy(content["image_data"]))
+
+image_obj_3 = {"user_id": user_id}
+resp = requests.post("http://127.0.0.1:5000/api/process/sharpen", json=image_obj)
+content = byte_2_json(resp)
+view_image(b64str_to_numpy(content["image_data"]))
+
+"""
+image_obj_4 = {"user_id": user_id}
+resp = requests.post("http://127.0.0.1:5000/api/process/log_compression", json=image_obj)
+content = byte_2_json(resp)
+view_image(b64str_to_numpy(content["image_data"]))"""
+
+image_obj_5 = {"user_id": user_id}
+resp = requests.post("http://127.0.0.1:5000/api/process/contrast_stretch", json=image_obj)
+content = byte_2_json(resp)
+view_image(b64str_to_numpy(content["image_data"]))
+
+"""
+# get previous image
+resp = requests.post("http://127.0.0.1:5000/api/image/get_previous_image/{}".format(user_id), json=image_obj)
+content = byte_2_json(resp)
+view_image(b64str_to_numpy(content["image_data"]))"""

@@ -17,9 +17,9 @@ def plot(image_array, title):
 dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
           'sites/default/files/legacy/images/' \
           'resource-centre/IFAW%20Northern%20Dog.JPG'
-dog_image = imread(dog_source, as_gray=True)
+dog_image = imread(dog_source)
 plot(dog_image, 'Normal, Grayscale Image')
-
+"""
 # Histogram Equilzation
 dog_image_HE = exposure.equalize_hist(dog_image)
 plot(dog_image_HE, 'Histogram Equilzation')
@@ -44,15 +44,18 @@ plot(dog_image_log, 'Log Compression?')
 # to do: Invert color images
 dog_image_reverse = util.invert(dog_image)
 plot(dog_image_reverse, 'Reverse Video?')
-
+"""
+print(dog_image[0][0])
 # Gaussian Blur
 dog_image_blur = filters.gaussian(dog_image, sigma=5)
 plot(dog_image_blur, 'Blurred')
+
 
 # Sharpen Image
 # dog_image_sharpened = filters.unsharp_mask(dog_image, radius=1, amount=1)
 # You're supposed to use unsharp_mask but it doesn't seem to exist in
 # skimage.filters anymore
+"""
 alpha = 1
 dog_image_sharpened = dog_image + alpha * (dog_image - dog_image_blur)
-plot(dog_image_sharpened, 'Sharpened')
+plot(dog_image_sharpened, 'Sharpened')"""

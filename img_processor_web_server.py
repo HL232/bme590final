@@ -1,4 +1,7 @@
-import binascii
+import io
+import cv2
+import base64
+import imageio
 from random import choice
 from string import ascii_uppercase
 from flask import Flask, request, jsonify
@@ -15,80 +18,56 @@ db = ImageProcessingDB()
 
 # ---------- get stuff ----------
 # ---------- get image stuff ----------
-@app.route("/api/image/get_image", methods=["GET"])
-def get_image():
+@app.route("/api/image/get_image?id=<image_id>", methods=["GET"])
+def get_image(image_id):
     """
     Obtains image from database based on ID.
     Args:
         image_id: ID of the image to get.
     """
-    image_id = request.args.get('id', default=None, type=str)
     if not image_id:
-        return error_handler(400, "Must have include id.", "AttributeError")
+        return error_handler(400, "Must include image id.", "AttributeError")
     image = db.find_image(image_id)
     return jsonify(image)
 
 
-@app.route("/api/image/get_image_parent", methods=["GET"])
-def get_image_parent():
+@app.route("/api/image/get_previous_image/<user_id>", methods=["GET"])
+def get_previous_image(user_id):
     """
     Obtains the parent of the image given an ID.
     Returns:
         object: history of the image.
     """
-    image_id = request.args.get('id', default=None, type=str)
-    if not image_id:
-        return error_handler(400, "Must have include id.", "AttributeError")
-    image = db.find_image_parent(image_id)
+    if not user_id:
+        return error_handler(400, "Must include user id.", "AttributeError")
+    current_image = db.get_current_image_id(user_id)
+    image = db.find_image_parent(current_image["image_id"], user_id)
     return jsonify(image)
 
 
-@app.route("/api/image/get_image_child", methods=["GET"])
-def get_image_child():
+@app.route("/api/image/get_next_image?id=<user_id>", methods=["GET"])
+def get_next_image(user_id):
     """
     Obtains the child of the image given an ID.
     Returns:
         object: parent image.
     """
-    image_id = request.args.get('id', default=None, type=str)
-    if not image_id:
-        return error_handler(400, "Must have include id.", "AttributeError")
-    image = db.find_image_child(image_id)
+    if not user_id:
+        return error_handler(400, "Must include user id.", "AttributeError")
+    current_image = db.get_current_image_id(user_id)
+    child_ids = db.find_image_child(current_image["image_id"], user_id)
+
+    # if there are multiple, just pick the first one?
+    if not child_ids:
+        return None
+
+    image = db.find_image(child_ids[0], user_id)
     return jsonify(image)
 
 
-@app.route("/api/image/get_image_history", methods=["GET"])
-def get_image_history():
-    """
-    Obtains the entire history of the image in terms of IDs.
-    Returns:
-        object: history of the image.
-    """
-    image_id = request.args.get('id', default=None, type=str)
-    if not image_id:
-        return error_handler(400, "Must have include id.", "AttributeError")
-    image = db.find_image(image_id)
-    return jsonify(image.process_history)
-
-
-@app.route("/api/image/get_image_description", methods=["GET"])
-def get_image_description():
-    """
-    Obtains the description of the image.
-    Less expensive than getting whole image.
-    Returns:
-        str: Description of the image.
-    """
-    image_id = request.args.get('id', default=None, type=str)
-    if not image_id:
-        return error_handler(400, "Must have include id.", "AttributeError")
-    image = db.find_image(image_id)
-    return jsonify(image.description)
-
-
 # ---------- get user stuff ----------
-@app.route("/api/user/get_user", methods=["GET"])
-def get_user():
+@app.route("/api/user/get_user?id=<user_id>", methods=["GET"])
+def get_user(user_id):
     """
     Gets the user based on id
     Args:
@@ -104,8 +83,8 @@ def get_user():
     return jsonify(user)
 
 
-@app.route("/api/user/get_original_uploads", methods=["GET"])
-def get_original_uploads():
+@app.route("/api/user/get_original_uploads?id=<user_id>", methods=["GET"])
+def get_original_uploads(user_id):
     """
     Gets all root image ids from a user.
     Args:
@@ -114,14 +93,13 @@ def get_original_uploads():
     Returns:
         list: root image ids.
     """
-    user_id = request.args.get('id', default=None, type=str)
     if not user_id:
         return error_handler(400, "Must have include id.", "AttributeError")
     user = db.find_user(user_id)
     return jsonify(list(user.uploads.keys()))
 
 
-@app.route("/api/user/get_updated_uploads", methods=["GET"])
+@app.route("/api/user/get_updated_uploads?id=<user_id>", methods=["GET"])
 def get_updated_uploads(user_id):
     """
     Gets all updated image ids from a user.
@@ -131,7 +109,6 @@ def get_updated_uploads(user_id):
     Returns:
         list: updated image ids.
     """
-    user_id = request.args.get('id', default=None, type=str)
     if not user_id:
         return error_handler(400, "Must have include id.", "AttributeError")
 
@@ -210,20 +187,23 @@ def post_hist_eq():
     """
     Takes CURRENT image and performs histogram eq on image.
     Args:
-        image_id: ID of the current image to be processed.
         user_id: ID of the current user.
-        image_data: base64 representation of image.
 
     Returns:
         object: New hist eq'd image.
     """
     # should take the current image with all info
     content = request.get_json()
-    new_image = _process_image_post(content)
-    new_image["image_data"], new_image["processing_time"] = \
-        Processing(content["image_data"]).hist_eq
+    # grab the user's current image.
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)).hist_eq()
+    new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "hist_eq"
-    added_image = db.add_image(content["user_id"], new_image)
+    added_image = db.add_image(current_image.user_id, new_image)
     return jsonify(added_image)
 
 
@@ -240,11 +220,46 @@ def post_image_contrast_stretch():
         object: New contrast stretched image.
     """
     content = request.get_json()
-    new_image = _process_image_post(content)
-    new_image["image_data"], new_image["processing_time"] = \
-        Processing(content["image_bytes"]).contrast_stretch
+    p_low = request.args.get("l", 10)
+    p_high = request.args.get("h", 90)
+    percentile = (p_low, p_high)
+
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)).contrast_stretch(percentile)
+    # print("CSshape", image_data.shape, image_data[0][0])
+    new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "contrast_stretch"
-    added_image = db.add_image(content["user_id"], new_image)
+    added_image = db.add_image(current_image.user_id, new_image)
+    return jsonify(added_image)
+
+
+@app.route("/api/process/log_compression", methods=["POST"])
+def post_image_log_compression():
+    """
+    Takes CURRENT image and performs log compression on image.
+    Args:
+        user_id: ID of the current user.
+
+    Returns:
+        object: New log compressed image.
+    """
+    content = request.get_json()
+
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)).log_compression()
+    print("Logged shape", image_data.shape, image_data[0][0])
+
+    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["process"] = "log_compression"
+    added_image = db.add_image(current_image.user_id, new_image)
     return jsonify(added_image)
 
 
@@ -253,19 +268,22 @@ def post_image_rev_video():
     """
     Does rev video? lolidk
     Args:
-        image_id: ID of the current image to be processed.
         user_id: ID of the current user.
-        image_data: base64 representation of image.
 
     Returns:
         object: Reversed video.
     """
     content = request.get_json()
-    new_image = _process_image_post(content)
-    new_image["image_data"], new_image["processing_time"] = \
-        Processing(content["image_data"]).reverse_video
+
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)).reverse_video()
+    new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "reverse_video"
-    added_image = db.add_image(content["user_id"], new_image)
+    added_image = db.add_image(current_image.user_id, new_image)
     return jsonify(added_image)
 
 
@@ -274,19 +292,22 @@ def post_image_sharpen():
     """
     Takes CURRENT image and performs image sharpen on whole image.
     Args:
-        image_id: ID of the current image to be processed.
         user_id: ID of the current user.
-        image_data: base64 representation of image.
 
     Returns:
         object: sharpened image.
     """
     content = request.get_json()
-    new_image = _process_image_post(content)
-    new_image["image_data"], new_image["processing_time"] = \
-        Processing(content["image_data"]).sharpen
+
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)).sharpen()
+    new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "sharpen"
-    added_image = db.add_image(content["user_id"], new_image)
+    added_image = db.add_image(current_image.user_id, new_image)
     return jsonify(added_image)
 
 
@@ -295,42 +316,54 @@ def post_image_blur():
     """
     Takes CURRENT image and performs image blur on whole image.
     Args:
-        image_id: ID of the current image to be processed.
         user_id: ID of the current user.
-        image_data: base64 representation of image.
 
     Returns:
         object: blurred image.
     """
     content = request.get_json()
-    new_image = _process_image_post(content)
-    new_image["image_data"], new_image["processing_time"] = \
-        Processing(content["image_data"]).blur
+    sigma = request.args.get("s", 5)
+
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)).blur(sigma)
+    new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "blur"
-    added_image = db.add_image(content["user_id"], content)
+    added_image = db.add_image(current_image.user_id, new_image)
     return jsonify(added_image)
 
 
-def _process_image_post(content):
+def _link_new_image(current_image):
     """
-    Checks if the post content is correct and makes associated links.
+    Makes associated links.
     Args:
         content: User post data.
 
     Returns:
 
     """
-    if not content:
-        return error_handler(400, "Insufficient post.", "ValueError")
-    if "image_id" not in content.keys():
-        return error_handler(400, "must contain image_id", "AttributeError")
-    if "image_data" not in content.keys():
-        return error_handler(400, "must contain image_data", "AttributeError")
-
-    new_image = content
-    new_image["parent_id"] = content["image_id"]
+    new_image = db.image_to_json(current_image)
+    new_image["parent_id"] = current_image.image_id
     new_image["image_id"] = random_id()
     return new_image
+
+
+def b64str_to_numpy(b64_img):
+    byte_image = base64.b64decode(b64_img)
+    image_buf = io.BytesIO(byte_image)
+    np_img = imageio.imread(image_buf, format='JPG')
+    i = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
+    return i
+
+
+def numpy_to_b64str(img):
+    _, img = cv2.imencode('.jpg', img)  # strips header
+    image_base64 = base64.b64encode(img)
+    base64_string = image_base64.decode('utf-8')  # convert to string
+    return base64_string
 
 
 def error_handler(status_code, msg, error_type):
