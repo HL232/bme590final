@@ -57,7 +57,8 @@ def error_catcher(json_resp: dict):
 def b64str_to_numpy(b64_img):
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
-    i = mpimg.imread(image_buf, format='JPG')
+    np_img = mpimg.imread(image_buf, format='JPG')
+    i = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
     return i
 
 
@@ -76,14 +77,17 @@ dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
              'sites/default/files/legacy/images/' \
              'resource-centre/IFAW%20Northern%20Dog.JPG'
 
-dog_image = imageio.imread(dog_source)
-_, dog_image = cv2.imencode('.jpg', dog_image)
+dog_image = imread(dog_source)
+# iew_image(dog_image)
+# print(dog_image.shape, dog_image[0][0])
+_, dog_image = cv2.imencode('.jpg', dog_image)  # strips header
 image_obj = {
     "user_id": "test",
     "image_data": numpy_to_b64str(dog_image)
 }
+np_img = b64str_to_numpy(image_obj["image_data"])
+# print(test.shape, test[0][0])
 
-# resp = requests.post("http://127.0.0.1:5000/api/image/upload_image", json=image_obj)
+#resp = requests.post("http://127.0.0.1:5000/api/image/upload_image", json=image_obj)
 # content = byte_2_json(resp)
-test = b64str_to_numpy(image_obj["image_data"])
-view_image(test)
+view_image(np_img)
