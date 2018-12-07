@@ -55,8 +55,8 @@ def test_add_image_with_parent(database_obj, image_info):
     image_2 = database_obj.find_image(child_id, user_id)
 
     assert child_id in image_1.child_ids and \
-           image_2.parent_id == parent_id and \
-           image_1.process_history == [parent_id]
+        image_2.parent_id == parent_id and \
+        image_1.process_history == [parent_id]
 
 
 def test_add_image_no_image_id(database_obj, image_info):
@@ -239,8 +239,8 @@ def test_find_image_parent(database_obj, image_info):
     u_image["parent_id"] = parent_id
     database_obj.add_image(user_id, u_image)
 
-    parent_image = database_obj.find_image_parent(child_id)
-    assert parent_image.image_id == parent_id
+    parent_image = database_obj.find_image_parent(child_id, user_id)
+    assert parent_image["image_id"] == parent_id
 
 
 def test_find_user(database_obj):

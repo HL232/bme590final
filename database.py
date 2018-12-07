@@ -167,8 +167,14 @@ class ImageProcessingDB(object):
             raise AttributeError("image_info must have image_data.")
         if type(image_info["image_data"]) != str:
             raise TypeError("image_data must be type str.")
-        if "format" not in image_info.keys():
-            raise AttributeError("image_info must have format.")
+        if "width" not in image_info.keys():
+            raise AttributeError("image_info must have width.")
+        if type(image_info["width"]) != int:
+            raise TypeError("format must be type int")
+        if "height" not in image_info.keys():
+            raise AttributeError("image_info must have height.")
+        if type(image_info["width"]) != int:
+            raise TypeError("format must be type int")
         if type(image_info["format"]) != str:
             raise TypeError("format must be type str")
         if image_info["format"].lower() not in ["jpg", "jpeg", "png",
@@ -283,8 +289,9 @@ class ImageProcessingDB(object):
         """
         for image in Image.objects.all():
             if str(image.image_id) == image_id:
-                removed = image.delete()
-                return self.image_to_json(removed)
+                removed_image = image
+                image.delete()
+                return self.image_to_json(removed_image)
         return None
 
     def find_image(self, image_id, user_id):

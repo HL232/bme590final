@@ -84,12 +84,14 @@ image_obj = {
     "image_data": numpy_to_b64str(dog_image)
 }
 
-resp = requests.post("http://127.0.0.1:5000/api/image/upload_image", json=image_obj)
+resp = requests.post("http://127.0.0.1:5000/api/image/upload_image",
+                     json=image_obj)
 content = byte_2_json(resp)
 
 # blur
 image_obj_2 = {"user_id": user_id}
-resp = requests.post("http://127.0.0.1:5000/api/process/blur", json=image_obj)
+resp = requests.post("http://127.0.0.1:5000/api/process/blur",
+                     json=image_obj)
 content = byte_2_json(resp)
 # attempt to confirm
 resp = requests.post("http://127.0.0.1:5000/api/process/confirm", json=content)
@@ -98,12 +100,14 @@ view_image(b64str_to_numpy(content["image_data"]))
 
 # should use the blurred image
 image_obj_3 = {"user_id": user_id}
-resp = requests.post("http://127.0.0.1:5000/api/process/sharpen", json=image_obj)
+resp = requests.post("http://127.0.0.1:5000/api/process/sharpen",
+                     json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 
 # should use the non-sharpened blurred image, since not confirmed.
 image_obj_5 = {"user_id": user_id}
-resp = requests.post("http://127.0.0.1:5000/api/process/contrast_stretch", json=image_obj)
+resp = requests.post("http://127.0.0.1:5000/api/process/contrast_stretch",
+                     json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))

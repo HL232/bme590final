@@ -29,8 +29,6 @@ class Processing(object):
         Args:
             image: Image to perform histogram equalization on.
         """
-        # TODO: Make sure you raise exceptions if not grayscale/
-        # convert to grayscale for them.
         b = Benchmark()
         image_he = exposure.equalize_hist(self.image)
         image_he = exposure.rescale_intensity(image_he,
@@ -46,7 +44,8 @@ class Processing(object):
         """
         b = Benchmark()
         p1, p2 = np.percentile(self.image, percentile)
-        image_rescale = exposure.rescale_intensity(self.image, in_range=(p1, p2))
+        image_rescale = exposure.rescale_intensity(
+            self.image, in_range=(p1, p2))
         return image_rescale, b.stop()
 
     def log_compression(self, base=10):

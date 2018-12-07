@@ -244,7 +244,8 @@ def post_image_contrast_stretch():
     new_image = _link_new_image(current_image)
 
     image_data, new_image["processing_time"] = \
-        Processing(b64str_to_numpy(current_image.image_data)).contrast_stretch(percentile)
+        Processing(b64str_to_numpy(current_image.image_data)
+                   ).contrast_stretch(percentile)
     new_image = populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "contrast_stretch"
