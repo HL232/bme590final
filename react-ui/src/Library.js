@@ -4,9 +4,10 @@ import axios from 'axios'
 import image from './a.jpeg'
 import { CloudDownload } from '@material-ui/icons'
 import Picture from './Picture'
+import imageB64 from './b64img'
 const TileData = [
   {
-    img: image,
+    img: imageB64,
     title: 'Image',
     author: 'author',
   },
@@ -37,6 +38,7 @@ containData = () => {
   if (this.state.myData.length === 0){
     {this.getData()}
   }
+  {console.log(image)}
 }
 
 down = () => {
@@ -51,7 +53,7 @@ down = () => {
       {this.containData()}
 
       <Paper className='paper'>
-      <GridList background='white' cellHeight={500} cols={3}>
+      <GridList background='white' cellHeight={400} cols={3}>
 
         <GridListTile key="Subheader" cols={1} style={{height: 'auto'}}>
           <ListSubheader component="div"> Library </ListSubheader>
