@@ -1,9 +1,10 @@
-import numpy as numpy
+import numpy
 from skimage import exposure
 from skimage import util
 from skimage import filters
 import matplotlib.pyplot as plt
 from skimage.io import imread
+import custom_errors
 
 
 class Processing(object):
@@ -23,7 +24,8 @@ class Processing(object):
         Returns:
             Numpy.Array representation of histogram equilization image
         """
-        self._check_valid_image(image)
+        self._check_image_type(image)
+        self._check_image_shape(image)
         self._check_grayscale(image)  # Only works for grayscale images
         image_he = exposure.equalize_hist(image)
         return image_he
@@ -37,7 +39,8 @@ class Processing(object):
         Returns:
             Numpy.Array representation of contrast stretched image
         """
-        self._check_valid_image(image)
+        self._check_image_type(image)
+        self._check_image_shape(image)
         p1, p2 = numpy.percentile(image, percentile)
         image_rescale = exposure.rescale_intensity(image, in_range=(p1, p2))
         return image_rescale
@@ -51,7 +54,8 @@ class Processing(object):
         Returns:
             Numpy.Array representation of log compressed image
         """
-        self._check_valid_image(image)
+        self._check_image_type(image)
+        self._check_image_shape(image)
         image_log = numpy.log(image + 1) / numpy.log(base)
         return image_log
 
@@ -64,7 +68,8 @@ class Processing(object):
         Returns:
             Numpy.Array representation of reversed image
         """
-        self._check_valid_image(image)
+        self._check_image_type(image)
+        self._check_image_shape(image)
         self._check_grayscale(image)
         image_reverse = util.invert(image)
         return image_reverse
@@ -78,7 +83,8 @@ class Processing(object):
         Returns:
             Numpy.Array representation of blurred image
         """
-        self._check_valid_image(image)
+        self._check_image_type(image)
+        self._check_image_shape(image)
         image_blur = filters.gaussian(image, sigma)
         return image_blur
 
@@ -91,7 +97,8 @@ class Processing(object):
         Returns:
             Numpy.Array representation of sharpened image
         """
-        self._check_valid_image(image)
+        self._check_image_type(image)
+        self._check_image_shape(image)
         # image_sharpened = filters.unsharp_mask(image, radius=1, amount=1)
         # unsharp_mask but it doesn't seem to exist in
         # skimage.filters anymore
@@ -110,6 +117,8 @@ class Processing(object):
         Returns:
             Numpy.Array representation of histogram of image
         """
+        self._check_image_type(image)
+        self._check_image_shape(image)
         plt.hist(image.ravel(), bins=256, range=(0.0, 1.0), color='black')
         plt.xlabel('Normalized Pixel Intensity')
         plt.ylabel('Number of Pixels')
@@ -121,7 +130,7 @@ class Processing(object):
         temp = imread('temp.png')
         return temp
 
-    def _check_valid_image(self, image):
+    def _check_image_type(self, image):
         """
         Checks if the input image is valid to be processed.
 
@@ -131,9 +140,12 @@ class Processing(object):
         # Image input should be an ARRAY.
         if type(image) != numpy.ndarray:
             raise TypeError("Image is not a numpy array")
+        return True
+
+    def _check_image_shape(self, image):
         # Image array should be grayscale or color (length = 2 or 3)
         if len(image.shape) != 2 and len(image.shape) != 3:
-            raise TypeError("Dimensions of input array incorrect")
+            raise ValueError("Dimensions of input array incorrect")
         return True
 
     def _check_grayscale(self, image):
@@ -145,5 +157,5 @@ class Processing(object):
         """
         # Image array length should not be 3 (color).
         if len(image.shape) == 3:
-            raise TypeError("Image is a color image")
+            raise custom_errors.GrayscaleError("Image is a color image")
         return True
