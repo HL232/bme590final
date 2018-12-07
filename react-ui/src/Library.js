@@ -2,18 +2,27 @@
 import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Button, Typography, Grid, Paper} from '@material-ui/core';
 import axios from 'axios'
 import image from './a.jpeg'
+import { CloudDownload } from '@material-ui/icons'
+import Picture from './Picture'
 const TileData = [
   {
     img: image,
     title: 'Image',
     author: 'author',
-  }]
+  },
+  {
+    img: image,
+    title: 'Image',
+    author: 'author',
+  }
+
+]
 
 export default class Library extends Component {
 
 state = {
     myData: []
-    
+
   }
 
 getData = () => {
@@ -23,23 +32,26 @@ getData = () => {
     this.setState({myData: res.data})
   })
 }
-  
+
 containData = () => {
   if (this.state.myData.length === 0){
     {this.getData()}
   }
 }
 
+down = () => {
+
+}
 
 
   render() {
-    
+
     return(
       <div>
       {this.containData()}
 
-      <Paper backgroundcolor= "primary">
-      <GridList cellHeight={500} cols={3}>
+      <Paper className='paper'>
+      <GridList background='white' cellHeight={500} cols={3}>
 
         <GridListTile key="Subheader" cols={1} style={{height: 'auto'}}>
           <ListSubheader component="div"> Library </ListSubheader>
@@ -47,27 +59,14 @@ containData = () => {
         // All I have to do here is change this to myData.map and make sure
         // that the '.' parts match the data type
         // probably need a little tweaking to pull the thing out of the state though
-        {this.state.myData.map(tile => (
-          <GridListTile key={tile.img}>
-          <img src={tile.img} alt={tile.tile} />
-          <GridListTileBar
-            title={tile.title}
-            subtitle={<span>by: {tile.author}</span>}
-            actionIcon={
-              <IconButton>
-                
-              </IconButton>
-            }
-          />
+        {TileData.map(tile => (
+          <Picture tile={tile}/>
 
-          </GridListTile>
           ))}
-       
+
         </GridList>
         </Paper>
         </div>
     )
   }
 }
-
-

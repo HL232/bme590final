@@ -28,7 +28,7 @@ export default class MyUpload extends Component {
 		return (
 
 			<div>
-			<Paper>
+			<Paper className='paper'>
 				<input type="file" onChange={this.fileSelectedHandler}/>
 
 				

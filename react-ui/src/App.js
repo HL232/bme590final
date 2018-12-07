@@ -22,7 +22,7 @@ const theme = createMuiTheme({
     height: 500,
   },
   icon: {
-    color: 'rgba(255, 255, 255, 0.54)',
+    color: 'rgba(0, 0, 0, 0.54)',
   },
   palette: {
     primary: {
@@ -35,12 +35,6 @@ const theme = createMuiTheme({
       MuiButton: {
         root: {
           color: 'green'
-        },
-        MuiPaper: {
-          root: {
-          color: 'primary',
-          backgroundColor: 'primary',
-          }
         },
       },
     },
@@ -56,7 +50,7 @@ class App extends Component {
       <MuiThemeProvider theme={theme}>
 
       <div>
-        
+
       <Typography align='center' component="h2" color="primary" variant="h1" gutterBottom>
         X-Ray Enhancer
       </Typography>
