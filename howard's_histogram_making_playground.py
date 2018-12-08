@@ -22,7 +22,7 @@ plt.hist(dog_image.ravel(), bins=256, range=(0.0, 1.0), color='black')
 plt.xlabel('Normalized Pixel Intensity')
 plt.ylabel('Number of Pixels')
 plt.xlim(0, 1)
-plt.savefig ( "./temp.png")
+plt.savefig("./temp.png")
 plt.show()
 
 temp = imread('temp.png')
