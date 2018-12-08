@@ -131,7 +131,7 @@ class Processing(object):
         rbg_original_image = output_0_to_255_as_int(self.image)
         alpha = 1
         image_sharpened = rbg_original_image + \
-                          alpha * (rbg_original_image - image_blur)
+            alpha * (rbg_original_image - image_blur)
         image_sharpened_output = output_0_to_255_as_int(image_sharpened)
         return image_sharpened_output, b.stop()
 
