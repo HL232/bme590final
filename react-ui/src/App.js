@@ -21,6 +21,9 @@ const theme = createMuiTheme({
     width: 500,
     height: 500,
   },
+  gridListTileBar: {
+    width:500,
+  },
   icon: {
     color: 'rgba(0, 0, 0, 0.54)',
   },
