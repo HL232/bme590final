@@ -68,7 +68,8 @@ class ImageProcessingDB(object):
             image_info["parent_id"] = "root"
 
         # update user object as well.
-        self.update_user(user_id, image_info["process_history"])
+        self.update_process_history(user_id, image_info["process_history"])
+        self.update_user_current(user_id, image_info["image_id"])
 
         # deal with description
         if "description" not in image_info.keys():
@@ -118,11 +119,7 @@ class ImageProcessingDB(object):
 
         """
         image_id = self.get_current_image_id(user_id)
-        if not image_id:
-            return None
         image = self.find_image(image_id, user_id)
-        if not image:
-            return None
         return image
 
     def _add_child(self, child_id, parent_id, user_id):
@@ -178,7 +175,7 @@ class ImageProcessingDB(object):
         if type(image_info["format"]) != str:
             raise TypeError("format must be type str")
         if image_info["format"].lower() not in ["jpg", "jpeg", "png",
-                                                "tiff", "gif", "None"]:
+                                                "tiff", "gif", "none"]:
             raise ValueError("format invalid.")
         if "processing_time" not in image_info.keys():
             raise AttributeError("image_info must have processing_time.")
@@ -227,7 +224,7 @@ class ImageProcessingDB(object):
         u = User(user_id=user_id)
         return u.save()
 
-    def update_user(self, user_id, process_history: list):
+    def update_process_history(self, user_id, process_history: list):
         """
         Updates user uploads for an image.
         Args:
@@ -244,10 +241,9 @@ class ImageProcessingDB(object):
         if user is None:
             user = self.add_user(user_id)
         user.uploads[root_id] = recent_id
-        user.current_image = recent_id
-        return self.user_to_json(user.save())
+        return user.save()
 
-    def update_user_current_image(self, user_id, image_id):
+    def update_user_current(self, user_id, image_id):
         """
         Updates user current_image.
         Args:
@@ -255,30 +251,12 @@ class ImageProcessingDB(object):
             image_id: Id to update with
 
         """
+        # image is not yet in the database
         user = self.find_user(user_id)
-        image = self.find_image(image_id, user_id)
-        if image is not None:
-            user.current_image = image.image_id
-            return self.user_to_json(user.save())
-        return None
-
-    def update_description(self, image_id, description: str):
-        """
-        Updates description of the image.
-        Args:
-            image_id: ID of image to update.
-            description: Description to update with.
-
-        Returns:
-            object: Updated user object.
-
-        """
-        # query = {"image_id": image_id}
-        for image in Image.objects.all():
-            if str(image.image_id) == image_id:
-                image.description = description
-                return image.save()
-        return None
+        if user is None:
+            user = self.add_user(user_id)
+        user.current_image = image_id
+        return user.save()
 
     def remove_image(self, image_id):
         """
@@ -291,7 +269,7 @@ class ImageProcessingDB(object):
             if str(image.image_id) == image_id:
                 removed_image = image
                 image.delete()
-                return self.image_to_json(removed_image)
+                return removed_image
         return None
 
     def find_image(self, image_id, user_id):
@@ -323,7 +301,7 @@ class ImageProcessingDB(object):
         if image.parent_id is not None:
             parent_id = image.parent_id
             parent_image = self.find_image(parent_id, user_id)
-            return self.image_to_json(parent_image)
+            return parent_image
         return None
 
     def find_image_child(self, image_id, user_id):
@@ -336,7 +314,7 @@ class ImageProcessingDB(object):
             object: found image in the database.
         """
         image = self.find_image(image_id, user_id)
-        if image.child_ids:
+        if image is not None:
             return image.child_ids
         return []
 

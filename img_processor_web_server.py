@@ -18,16 +18,17 @@ db = ImageProcessingDB()
 
 # ---------- get stuff ----------
 # ---------- get image stuff ----------
-@app.route("/api/image/get_image?id=<image_id>", methods=["GET"])
-def get_image(image_id):
+@app.route("/api/image/get_current_image/<user_id>", methods=["GET"])
+def get_current_image(user_id):
     """
     Obtains image from database based on ID.
     Args:
-        image_id: ID of the image to get.
+        user_id: ID of the image to get.
     """
-    if not image_id:
-        return error_handler(400, "Must include image id.", "AttributeError")
-    image = db.find_image(image_id)
+    if not user_id:
+        return error_handler(400, "Must include user id.", "AttributeError")
+    image = db.get_current_image(user_id)
+    image = db.image_to_json(image)
     return jsonify(image)
 
 
@@ -41,11 +42,13 @@ def get_previous_image(user_id):
     if not user_id:
         return error_handler(400, "Must include user id.", "AttributeError")
     current_image = db.get_current_image_id(user_id)
-    image = db.find_image_parent(current_image["image_id"], user_id)
+    image = db.find_image_parent(current_image, user_id)
+    image = db.image_to_json(image)
+    db.update_user_current(image["user_id"], image["image_id"])
     return jsonify(image)
 
 
-@app.route("/api/image/get_next_image?id=<user_id>", methods=["GET"])
+@app.route("/api/image/get_next_image/<user_id>", methods=["GET"])
 def get_next_image(user_id):
     """
     Obtains the child of the image given an ID.
@@ -54,19 +57,21 @@ def get_next_image(user_id):
     """
     if not user_id:
         return error_handler(400, "Must include user id.", "AttributeError")
-    current_image = db.get_current_image_id(user_id)
-    child_ids = db.find_image_child(current_image["image_id"], user_id)
+    curr_image_id = db.get_current_image_id(user_id)
+    child_ids = db.find_image_child(curr_image_id, user_id)
 
     # if there are multiple, just pick the first one?
     if not child_ids:
         return None
-
     image = db.find_image(child_ids[0], user_id)
+    image = db.image_to_json(image)
+    db.update_user_current(image["user_id"], image["image_id"])
+
     return jsonify(image)
 
 
 # ---------- get user stuff ----------
-@app.route("/api/user/get_user?id=<user_id>", methods=["GET"])
+@app.route("/api/user/get_user/<user_id>", methods=["GET"])
 def get_user(user_id):
     """
     Gets the user based on id
@@ -76,14 +81,13 @@ def get_user(user_id):
     Returns:
         dict: user in database.
     """
-    user_id = request.args.get('id', default=None, type=str)
     if not user_id:
         return error_handler(400, "Must have include id.", "AttributeError")
     user = db.find_user(user_id)
     return jsonify(user)
 
 
-@app.route("/api/user/get_original_uploads?id=<user_id>", methods=["GET"])
+@app.route("/api/user/get_original_uploads/<user_id>", methods=["GET"])
 def get_original_uploads(user_id):
     """
     Gets all root image ids from a user.
@@ -99,7 +103,7 @@ def get_original_uploads(user_id):
     return jsonify(list(user.uploads.keys()))
 
 
-@app.route("/api/user/get_updated_uploads?id=<user_id>", methods=["GET"])
+@app.route("/api/user/get_updated_uploads/<user_id>", methods=["GET"])
 def get_updated_uploads(user_id):
     """
     Gets all updated image ids from a user.
@@ -122,7 +126,7 @@ def get_updated_uploads(user_id):
 
 # ----------------------------- post stuff ---------------------------
 
-@app.route("/api/image/upload_image", methods=["POST"])
+@app.route("/api/process/upload_image", methods=["POST"])
 def post_upload_image():
     """
     Uploads a NEW image into the database to process.
@@ -148,6 +152,7 @@ def post_upload_image():
     content["image_id"] = random_id()
     content["process"] = "upload"
     content["processing_time"] = -1
+    content["format"] = "None"
 
     image = db.add_image(content["user_id"], content)
     return jsonify(image)  # with included ID
@@ -158,7 +163,7 @@ def post_confirm_image():
     """
     Adds the image to the user.
     Returns:
-
+        dict: Image that as associated with user.
     """
     content = request.get_json()
     if not _verify_confirm_image(content):
@@ -169,6 +174,14 @@ def post_confirm_image():
 
 
 def _verify_confirm_image(image):
+    """
+    Confirms that all necessary attributes are present at image add.
+    Args:
+        image (dict): Image object to be added.
+
+    Returns:
+        bool: Whether or not the image object is valid.
+    """
     req = ['child_ids', 'processing_history', 'parent_id',
            'description', 'processing_time', 'format', 'process',
            'user_id', 'width', 'image_id', 'height', 'image_data']
@@ -181,10 +194,10 @@ def _link_new_image(current_image):
     """
     Makes associated links.
     Args:
-        content: User post data.
+        current_image: current image of the user/post data.
 
     Returns:
-
+        dict: Dict with linked ids.
     """
     new_image = db.image_to_json(current_image)
     new_image["user_id"] = current_image.user_id
@@ -193,7 +206,17 @@ def _link_new_image(current_image):
     return new_image
 
 
-def populate_image_meta(new_image, image_data):
+def _populate_image_meta(new_image, image_data):
+    """
+    Populates an existing dict with image meta information.
+    Args:
+        new_image (dict):
+        image_data (np.ndarray): image data in RGB
+
+    Returns:
+        dict: dict with image meta information
+
+    """
     new_image["width"] = image_data.shape[0]
     new_image["height"] = image_data.shape[1]
     new_image["format"] = "None"
@@ -218,7 +241,7 @@ def post_hist_eq():
     new_image = _link_new_image(current_image)
     image_data, new_image["processing_time"] = \
         Processing(b64str_to_numpy(current_image.image_data)).hist_eq()
-    new_image = populate_image_meta(new_image, image_data)
+    new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "hist_eq"
     return jsonify(new_image)
@@ -246,7 +269,7 @@ def post_image_contrast_stretch():
     image_data, new_image["processing_time"] = \
         Processing(b64str_to_numpy(current_image.image_data)
                    ).contrast_stretch(percentile)
-    new_image = populate_image_meta(new_image, image_data)
+    new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "contrast_stretch"
     return jsonify(new_image)
@@ -270,7 +293,7 @@ def post_image_log_compression():
 
     image_data, new_image["processing_time"] = \
         Processing(b64str_to_numpy(current_image.image_data)).log_compression()
-    new_image = populate_image_meta(new_image, image_data)
+    new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "log_compression"
     return jsonify(new_image)
@@ -279,12 +302,12 @@ def post_image_log_compression():
 @app.route("/api/process/reverse_video", methods=["POST"])
 def post_image_rev_video():
     """
-    Does rev video? lolidk
+    Inverse the intensities of a grayscale image.
     Args:
         user_id: ID of the current user.
 
     Returns:
-        object: Reversed video.
+        dict: image with inverted intensities.
     """
     content = request.get_json()
 
@@ -294,7 +317,7 @@ def post_image_rev_video():
 
     image_data, new_image["processing_time"] = \
         Processing(b64str_to_numpy(current_image.image_data)).reverse_video()
-    new_image = populate_image_meta(new_image, image_data)
+    new_image = _populate_image_meta(new_image, image_data)
     # maybe something e lse
     new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "reverse_video"
@@ -319,7 +342,7 @@ def post_image_sharpen():
 
     image_data, new_image["processing_time"] = \
         Processing(b64str_to_numpy(current_image.image_data)).sharpen()
-    new_image = populate_image_meta(new_image, image_data)
+    new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "sharpen"
     return jsonify(new_image)
@@ -344,33 +367,10 @@ def post_image_blur():
 
     image_data, new_image["processing_time"] = \
         Processing(b64str_to_numpy(current_image.image_data)).blur(sigma)
-    new_image = populate_image_meta(new_image, image_data)
+    new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "blur"
     return jsonify(new_image)
-
-
-@app.route("/api/image/update_description", methods=["POST"])
-def post_update_description():
-    """
-    Adds or updates the description of the image.
-    Args:
-        image_id: Image to update description of.
-        description: Description of the image.
-
-    Returns:
-        object: updated image object.
-    """
-    content = request.get_json()
-    if not content:
-        return error_handler(400, "Insufficient post.", "ValueError")
-    if "image_id" not in content.keys():
-        return error_handler(400, "must have image_id.", "AttributeError")
-    if "description" not in content.keys():
-        return error_handler(400, "must have description.", "AttributeError")
-
-    image = db.update_description(content["image_id"], content["description"])
-    return jsonify(image)
 
 
 @app.route("/api/image/search_image", methods=["POST"])
@@ -393,6 +393,15 @@ def b64str_to_numpy(b64_img):
 
 
 def numpy_to_b64str(img):
+    """
+    Converts a numpy array into a base 64 string
+    Args:
+        img (np.array):
+
+    Returns:
+        str: base 64 representation of the numpy array/image.
+
+    """
     _, img = cv2.imencode('.jpg', img)  # strips header
     image_base64 = base64.b64encode(img)
     base64_string = image_base64.decode('utf-8')  # convert to string

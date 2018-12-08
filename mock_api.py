@@ -11,11 +11,6 @@ from matplotlib import pyplot as plt
 ip = "http://127.0.0.1:5000"
 
 
-def read_file_as_b64(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read())
-
-
 def byte_2_json(resp):
     """
     Converts bytes to json. Raises exception if necessary.
@@ -72,10 +67,7 @@ def view_image(image):
 
 
 user_id = "test"
-dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
-             'sites/default/files/legacy/images/' \
-             'resource-centre/IFAW%20Northern%20Dog.JPG'
-
+dog_source = 'https://i.imgur.com/B15ubOP.jpg'
 dog_image = imageio.imread(dog_source)
 # print("Original", dog_image.shape, dog_image[0][0])
 
