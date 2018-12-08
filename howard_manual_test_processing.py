@@ -24,7 +24,6 @@ plot(dog_image, 'Original Image')
 
 P = Processing(dog_image)
 
-'''
 plot(P.hist_eq()[0], 'Hist Equalization')
 blah = P.hist_eq()[0]
 print(np.amax(blah))
@@ -68,7 +67,6 @@ plot(P.sharpen()[0], 'Sharpen')
 blah = P.sharpen()[0]
 print(np.amax(blah))
 print(type(blah))
-'''
 
 plot(P.histogram(dog_image), 'Histogram of original')
 blah = P.histogram(dog_image)

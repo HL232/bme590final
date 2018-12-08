@@ -61,11 +61,9 @@ class Processing(object):
             # This method of histogram equalization for color images
             # equilizes the Y channel of RBG converted to YUV images
             # YUV is equivalent to YCbCr in our case
-            img_yuv = cv2.cvtColor(self.image, cv2.COLOR_RGB2YUV)
-            # equalize the histogram of the Y channel
-            img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
-            # convert the YUV image back to RGB format
-            img_output = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
+            yuv_image = cv2.cvtColor(self.image, cv2.COLOR_RGB2YUV)
+            yuv_image[:, :, 0] = cv2.equalizeHist(yuv_image[:, :, 0])
+            img_output = cv2.cvtColor(yuv_image, cv2.COLOR_YUV2RGB)
             image_he_output = output_0_to_255_as_int(img_output)
             return image_he_output, b.stop()
 
@@ -190,6 +188,7 @@ class Processing(object):
                 plt.ylabel('Number of Pixels')
                 plt.xlim([0, 256])
                 plt.savefig("./temp.png")
+            plt.close()
             hist_np_array = imread('temp.png')
             # os.remove("temp.png")
             hist_np_array_output = output_0_to_255_as_int(output_to_rgb(hist_np_array))
