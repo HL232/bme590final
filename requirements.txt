@@ -1,5 +1,6 @@
 numpy
 scipy
+flask
 pandas
 ipython
 jupyter
@@ -13,3 +14,5 @@ pytest-pep8
 pytest-cov
 pytest-pudb
 pymodm
+imageio
+opencv-python
