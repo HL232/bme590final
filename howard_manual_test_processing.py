@@ -2,7 +2,6 @@ import pytest
 from processing import Processing
 import matplotlib.pyplot as plt
 from skimage.io import imread
-import custom_errors
 import numpy as np
 
 
@@ -21,10 +20,11 @@ dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
           'sites/default/files/legacy/images/' \
           'resource-centre/IFAW%20Northern%20Dog.JPG'
 dog_image = imread(dog_source, as_gray=False)
+plot(dog_image, 'Original Image')
 
 P = Processing(dog_image)
 
-
+'''
 plot(P.hist_eq()[0], 'Hist Equalization')
 blah = P.hist_eq()[0]
 print(np.amax(blah))
@@ -50,27 +50,27 @@ blah = P.log_compression(100)[0]
 print(np.amax(blah))
 print(type(blah))
 
-plot(P.reverse_video()[0], 'Reverse Video')
-blah = P.reverse_video()[0]
-print(np.amax(blah))
-print(type(blah))
+try:
+    plot(P.reverse_video()[0], 'Reverse Video')
+    blah = P.reverse_video()[0]
+    print(np.amax(blah))
+    print(type(blah))
+except ValueError:
+    print('Reverse video is grayscale only!')
 
-plot(P.blur()[0], 'Blur default')
+plot(P.blur()[0], 'Blur')
 blah = P.blur()[0]
 print(np.amax(blah))
 print(type(blah))
 
-plot(P.blur(10)[0], 'Blur Sigma = 10')
-blah = P.blur()[0]
-print(np.amax(blah))
-print(type(blah))
 
 plot(P.sharpen()[0], 'Sharpen')
 blah = P.sharpen()[0]
 print(np.amax(blah))
 print(type(blah))
+'''
 
-plot(P.histogram_gray(), 'Histogram of original')
-blah = P.histogram_gray()
+plot(P.histogram(dog_image), 'Histogram of original')
+blah = P.histogram(dog_image)
 print(np.amax(blah))
 print(type(blah))

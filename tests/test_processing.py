@@ -2,7 +2,6 @@ import pytest
 from processing import Processing
 import matplotlib.pyplot as plt
 from skimage.io import imread
-import custom_errors
 import numpy as np
 
 

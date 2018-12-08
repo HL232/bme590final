@@ -1,16 +1,26 @@
 import datetime
 import skimage
 import numpy as np
-from skimage import exposure, util, filters
-import custom_errors
+from skimage import exposure, util, filters, color
 import matplotlib.pyplot as plt
 from skimage.io import imread
+import cv2
+import os
+
+# This converts 3D RBG to 2D grayscale
+# image_gray = skimage.color.rgb2grey(self.image)
+# This converts 3D RBG to 2D grayscale
+# output_as_rgb = skimage.color.gray2rgb(img_array)
+
+
+def output_to_rgb(img_array: np.array):
+    output_as_rgb = skimage.color.gray2rgb(img_array)
+    return output_as_rgb
 
 
 def output_0_to_255_as_int(img_array: np.array):
-    output_as_rgb = skimage.color.gray2rgb(img_array)
     output_as_0_255 = exposure.rescale_intensity(
-        output_as_rgb, out_range=(0, 255))
+        img_array, out_range=(0, 255))
     output_as_int = output_as_0_255.astype(int)
     return output_as_int
 
@@ -43,9 +53,21 @@ class Processing(object):
             Numpy.Array representation of histogram equilization image
         """
         b = Benchmark()
-        image_he = exposure.equalize_hist(self.image)
-        image_he_output = output_0_to_255_as_int(image_he)
-        return image_he_output, b.stop()
+        if self._check_grayscale() == 'GRAY':
+            image_he = exposure.equalize_hist(self.image)
+            image_he_output = output_0_to_255_as_int(output_to_rgb(image_he))
+            return image_he_output, b.stop()
+        if self._check_grayscale() == 'COLOR':
+            # This method of histogram equalization for color images
+            # equilizes the Y channel of RBG converted to YUV images
+            # YUV is equivalent to YCbCr in our case
+            img_yuv = cv2.cvtColor(self.image, cv2.COLOR_RGB2YUV)
+            # equalize the histogram of the Y channel
+            img_yuv[:, :, 0] = cv2.equalizeHist(img_yuv[:, :, 0])
+            # convert the YUV image back to RGB format
+            img_output = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
+            image_he_output = output_0_to_255_as_int(img_output)
+            return image_he_output, b.stop()
 
     def contrast_stretch(self, percentile=(10, 90)):
         """
@@ -56,11 +78,12 @@ class Processing(object):
         Returns:
             Numpy.Array representation of contrast stretched image
         """
+        # This same method should work for both color and grayscale images
         b = Benchmark()
         p1, p2 = np.percentile(self.image, percentile)
         image_rescale = exposure.rescale_intensity(
             self.image, in_range=(p1, p2))
-        image_rescale_output = output_0_to_255_as_int(image_rescale)
+        image_rescale_output = output_0_to_255_as_int(output_to_rgb(image_rescale))
         return image_rescale_output, b.stop()
 
     def log_compression(self, base=10):
@@ -73,13 +96,21 @@ class Processing(object):
             Numpy.Array representation of log compressed image
         """
         b = Benchmark()
-        if len(self.image.shape) == 3 and self.image.shape[2] != 3:
-            image_gray = skimage.color.rgb2grey(self.image)
-        else:
-            image_gray = self.image
-        image_log = np.log(image_gray + 1) / np.log(base)
-        image_log_output = output_0_to_255_as_int(image_log)
-        return image_log_output, b.stop()
+
+        if self._check_grayscale() == 'GRAY':
+            image_log = np.log(self.image + 1) / np.log(base)
+            image_log_output = output_0_to_255_as_int(output_to_rgb(image_log))
+            return image_log_output, b.stop()
+        if self._check_grayscale() == 'COLOR':
+            # TODO: Haven't figured out how to log compress color images yet.
+            '''
+            img_yuv = cv2.cvtColor(self.image, cv2.COLOR_RGB2YUV)
+            img_yuv[:, :, 0] = np.log(img_yuv[:, :, 0] + 1) / np.log(base)
+            img_output = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
+            image_log_output = output_0_to_255_as_int(img_output)
+            return image_log_output, b.stop()
+            '''
+            return self.image, b.stop()
 
     def reverse_video(self):
         """
@@ -93,23 +124,25 @@ class Processing(object):
         # TODO: Please check inputs here!
 
         b = Benchmark()
-        image_reverse = util.invert(self.image)
-        image_reverse_output = output_0_to_255_as_int(image_reverse)
-        return image_reverse_output, b.stop()
+        if self._check_grayscale() == 'GRAY':
+            image_reverse = util.invert(self.image)
+            image_reverse_output = output_0_to_255_as_int(output_to_rgb(image_reverse))
+            return image_reverse_output, b.stop()
+        if self._check_grayscale() == 'COLOR':
+            raise ValueError("Can only use reverse video for grayscale images")
 
-    def blur(self, sigma=5):
+    def blur(self):
         """
         Employs a blurring filter on given image.
         Args:
             image: Image to perform blurring on.
-            sigma: Standard deviation for Gaussian blur kernel
         Returns:
             Numpy.Array representation of blurred image
         """
+        # Blur should be the same for grayscale and color images
         b = Benchmark()
-        image_blur = filters.gaussian(self.image, sigma,
-                                      preserve_range=True)
-        image_blur_output = output_0_to_255_as_int(image_blur)
+        image_blur = cv2.GaussianBlur(self.image, (19, 19), 10)
+        image_blur_output = output_0_to_255_as_int(output_to_rgb(image_blur))
         return image_blur_output, b.stop()
 
     def sharpen(self):
@@ -121,21 +154,14 @@ class Processing(object):
         Returns:
             Numpy.Array representation of sharpened image
         """
-        # image_sharpened = filters.unsharp_mask(image, radius=1, amount=1)
-        # unsharp_mask but it doesn't seem to exist in
-        # skimage.filters anymore
-        # This is the mathematical method of sharpening:
-        # sharp_image = original + alpha * (original - blurred)
+        # Sharpen should be the same for grayscale and color images
         b = Benchmark()
-        image_blur = Processing(self.image).blur(5)[0]
-        rbg_original_image = output_0_to_255_as_int(self.image)
-        alpha = 1
-        image_sharpened = rbg_original_image + \
-            alpha * (rbg_original_image - image_blur)
-        image_sharpened_output = output_0_to_255_as_int(image_sharpened)
-        return image_sharpened_output, b.stop()
+        image_blur = cv2.GaussianBlur(self.image, (19, 19), 10)
+        unsharp_image = cv2.addWeighted(self.image, 1.5, image_blur, -0.5, 0, self.image)
+        image_sharpen_output = output_0_to_255_as_int(output_to_rgb(unsharp_image))
+        return image_sharpen_output, b.stop()
 
-    def histogram_gray(self):
+    def histogram(self, image):
         """
         Returns a histogram of the image
         Args:
@@ -143,17 +169,31 @@ class Processing(object):
         Returns:
             Numpy.Array representation of histogram of image
         """
-        plt.hist(self.image.ravel(), bins=256, range=(0.0, 1.0), color='black')
-        plt.xlabel('Normalized Pixel Intensity')
-        plt.ylabel('Number of Pixels')
-        plt.xlim(0, 1)
-        plt.savefig("./temp.png")
-        plt.close()
-
-        # this is a very crude method returning a numpy array
-        hist_np_array = imread('temp.png')
-        hist_np_array_output = output_0_to_255_as_int(hist_np_array)
-        return hist_np_array_output
+        if Processing(image)._check_grayscale() == 'GRAY':
+            plt.hist(image.ravel(), bins=256, range=(0.0, 1.0), color='black')
+            plt.xlabel('Normalized Pixel Intensity')
+            plt.ylabel('Number of Pixels')
+            plt.xlim(0, 1)
+            plt.savefig("./temp.png")
+            plt.close()
+            # this is a very crude method returning a numpy array
+            hist_np_array = imread('temp.png')
+            os.remove("temp.png")
+            hist_np_array_output = output_0_to_255_as_int(output_to_rgb(hist_np_array))
+            return hist_np_array_output
+        if Processing(image)._check_grayscale() == 'COLOR':
+            color = ('r', 'g', 'b')
+            for i, col in enumerate(color):
+                histr = cv2.calcHist([image], [i], None, [256], [0, 255])
+                plt.plot(histr, color=col)
+                plt.xlabel('Pixel Intensity')
+                plt.ylabel('Number of Pixels')
+                plt.xlim([0, 256])
+                plt.savefig("./temp.png")
+            hist_np_array = imread('temp.png')
+            # os.remove("temp.png")
+            hist_np_array_output = output_0_to_255_as_int(output_to_rgb(hist_np_array))
+            return hist_np_array_output
 
     def _check_image_type(self):
         """
@@ -179,6 +219,7 @@ class Processing(object):
             bool: True if the image is grayscale.
         """
         # Image array length should not be 3 (color).
+        if len(self.image.shape) == 2:
+            return 'GRAY'
         if len(self.image.shape) == 3:
-            raise custom_errors.GrayscaleError("Image is a color image")
-        return True
+            return 'COLOR'
