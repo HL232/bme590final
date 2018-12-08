@@ -1,0 +1,2 @@
+class GrayscaleError(TypeError):
+    pass
