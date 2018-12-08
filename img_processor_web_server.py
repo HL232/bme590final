@@ -121,16 +121,6 @@ def get_updated_uploads(user_id):
 
 
 # ----------------------------- post stuff ---------------------------
-@app.route("/api/image/search_image", methods=["POST"])
-def post_search_image():
-    """
-    Looks for an image that the user uploaded. Filters can be included.
-    Returns:
-        object:
-    """
-    # TODO: Still not implemented in database!
-    pass
-
 
 @app.route("/api/image/upload_image", methods=["POST"])
 def post_upload_image():
@@ -152,11 +142,212 @@ def post_upload_image():
     if type(content["user_id"]) != str:
         return error_handler(400, "user_id must be type str", "TypeError")
 
-    content["processing_time"] = -1
+    image = b64str_to_numpy(content["image_data"])
+    content["width"] = image.shape[0]
+    content["height"] = image.shape[1]
     content["image_id"] = random_id()
     content["process"] = "upload"
+    content["processing_time"] = -1
+
     image = db.add_image(content["user_id"], content)
     return jsonify(image)  # with included ID
+
+
+@app.route("/api/process/confirm", methods=["POST"])
+def post_confirm_image():
+    """
+    Adds the image to the user.
+    Returns:
+
+    """
+    content = request.get_json()
+    if not _verify_confirm_image(content):
+        return error_handler(400, "Insufficient Inputs", "AttributeError")
+    # must contain image_data, user_id
+    added_image = db.add_image(content["user_id"], content)
+    return jsonify(added_image)
+
+
+def _verify_confirm_image(image):
+    req = ['child_ids', 'processing_history', 'parent_id',
+           'description', 'processing_time', 'format', 'process',
+           'user_id', 'width', 'image_id', 'height', 'image_data']
+    if set(req).issubset(set(image.keys())):
+        return True
+    return False
+
+
+def _link_new_image(current_image):
+    """
+    Makes associated links.
+    Args:
+        content: User post data.
+
+    Returns:
+
+    """
+    new_image = db.image_to_json(current_image)
+    new_image["user_id"] = current_image.user_id
+    new_image["parent_id"] = current_image.image_id
+    new_image["image_id"] = random_id()
+    return new_image
+
+
+def populate_image_meta(new_image, image_data):
+    new_image["width"] = image_data.shape[0]
+    new_image["height"] = image_data.shape[1]
+    new_image["format"] = "None"
+    return new_image
+
+
+@app.route("/api/process/hist_eq", methods=["POST"])
+def post_hist_eq():
+    """
+    Takes CURRENT image and performs histogram eq on image.
+    Args:
+        user_id: ID of the current user.
+
+    Returns:
+        object: New hist eq'd image.
+    """
+    # should take the current image with all info
+    content = request.get_json()
+    # grab the user's current image.
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)).hist_eq()
+    new_image = populate_image_meta(new_image, image_data)
+    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["process"] = "hist_eq"
+    return jsonify(new_image)
+
+
+@app.route("/api/process/contrast_stretch", methods=["POST"])
+def post_image_contrast_stretch():
+    """
+    Takes CURRENT image and performs contrast stretch on image.
+    Args:
+        user_id: ID of the current user.
+
+    Returns:
+        object: New contrast stretched image.
+    """
+    content = request.get_json()
+    p_low = request.args.get("l", 10)
+    p_high = request.args.get("h", 90)
+    percentile = (p_low, p_high)
+
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)
+                   ).contrast_stretch(percentile)
+    new_image = populate_image_meta(new_image, image_data)
+    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["process"] = "contrast_stretch"
+    return jsonify(new_image)
+
+
+@app.route("/api/process/log_compression", methods=["POST"])
+def post_image_log_compression():
+    """
+    Takes CURRENT image and performs log compression on image.
+    Args:
+        user_id: ID of the current user.
+
+    Returns:
+        object: New log compressed image.
+    """
+    content = request.get_json()
+
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)).log_compression()
+    new_image = populate_image_meta(new_image, image_data)
+    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["process"] = "log_compression"
+    return jsonify(new_image)
+
+
+@app.route("/api/process/reverse_video", methods=["POST"])
+def post_image_rev_video():
+    """
+    Does rev video? lolidk
+    Args:
+        user_id: ID of the current user.
+
+    Returns:
+        object: Reversed video.
+    """
+    content = request.get_json()
+
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)).reverse_video()
+    new_image = populate_image_meta(new_image, image_data)
+    # maybe something e lse
+    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["process"] = "reverse_video"
+    return jsonify(new_image)
+
+
+@app.route("/api/process/sharpen", methods=["POST"])
+def post_image_sharpen():
+    """
+    Takes CURRENT image and performs image sharpen on whole image.
+    Args:
+        user_id: ID of the current user.
+
+    Returns:
+        object: sharpened image.
+    """
+    content = request.get_json()
+
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)).sharpen()
+    new_image = populate_image_meta(new_image, image_data)
+    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["process"] = "sharpen"
+    return jsonify(new_image)
+
+
+@app.route("/api/process/blur", methods=["POST"])
+def post_image_blur():
+    """
+    Takes CURRENT image and performs image blur on whole image.
+    Args:
+        user_id: ID of the current user.
+
+    Returns:
+        object: blurred image.
+    """
+    content = request.get_json()
+    sigma = request.args.get("s", 5)
+
+    user_image_id = db.get_current_image_id(content["user_id"])
+    current_image = db.find_image(user_image_id, content["user_id"])
+    new_image = _link_new_image(current_image)
+
+    image_data, new_image["processing_time"] = \
+        Processing(b64str_to_numpy(current_image.image_data)).blur(sigma)
+    new_image = populate_image_meta(new_image, image_data)
+    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["process"] = "blur"
+    return jsonify(new_image)
 
 
 @app.route("/api/image/update_description", methods=["POST"])
@@ -182,173 +373,15 @@ def post_update_description():
     return jsonify(image)
 
 
-@app.route("/api/process/hist_eq", methods=["POST"])
-def post_hist_eq():
+@app.route("/api/image/search_image", methods=["POST"])
+def post_search_image():
     """
-    Takes CURRENT image and performs histogram eq on image.
-    Args:
-        user_id: ID of the current user.
-
+    Looks for an image that the user uploaded. Filters can be included.
     Returns:
-        object: New hist eq'd image.
+        object:
     """
-    # should take the current image with all info
-    content = request.get_json()
-    # grab the user's current image.
-    user_image_id = db.get_current_image_id(content["user_id"])
-    current_image = db.find_image(user_image_id, content["user_id"])
-    new_image = _link_new_image(current_image)
-
-    image_data, new_image["processing_time"] = \
-        Processing(b64str_to_numpy(current_image.image_data)).hist_eq()
-    new_image["image_data"] = numpy_to_b64str(image_data)
-    new_image["process"] = "hist_eq"
-    added_image = db.add_image(current_image.user_id, new_image)
-    return jsonify(added_image)
-
-
-@app.route("/api/process/contrast_stretch", methods=["POST"])
-def post_image_contrast_stretch():
-    """
-    Takes CURRENT image and performs contrast stretch on image.
-    Args:
-        image_id: ID of the current image to be processed.
-        user_id: ID of the current user.
-        image_data: base64 representation of image.
-
-    Returns:
-        object: New contrast stretched image.
-    """
-    content = request.get_json()
-    p_low = request.args.get("l", 10)
-    p_high = request.args.get("h", 90)
-    percentile = (p_low, p_high)
-
-    user_image_id = db.get_current_image_id(content["user_id"])
-    current_image = db.find_image(user_image_id, content["user_id"])
-    new_image = _link_new_image(current_image)
-
-    image_data, new_image["processing_time"] = \
-        Processing(b64str_to_numpy(current_image.image_data)).contrast_stretch(percentile)
-    # print("CSshape", image_data.shape, image_data[0][0])
-    new_image["image_data"] = numpy_to_b64str(image_data)
-    new_image["process"] = "contrast_stretch"
-    added_image = db.add_image(current_image.user_id, new_image)
-    return jsonify(added_image)
-
-
-@app.route("/api/process/log_compression", methods=["POST"])
-def post_image_log_compression():
-    """
-    Takes CURRENT image and performs log compression on image.
-    Args:
-        user_id: ID of the current user.
-
-    Returns:
-        object: New log compressed image.
-    """
-    content = request.get_json()
-
-    user_image_id = db.get_current_image_id(content["user_id"])
-    current_image = db.find_image(user_image_id, content["user_id"])
-    new_image = _link_new_image(current_image)
-
-    image_data, new_image["processing_time"] = \
-        Processing(b64str_to_numpy(current_image.image_data)).log_compression()
-    print("Logged shape", image_data.shape, image_data[0][0])
-
-    new_image["image_data"] = numpy_to_b64str(image_data)
-    new_image["process"] = "log_compression"
-    added_image = db.add_image(current_image.user_id, new_image)
-    return jsonify(added_image)
-
-
-@app.route("/api/process/reverse_video", methods=["POST"])
-def post_image_rev_video():
-    """
-    Does rev video? lolidk
-    Args:
-        user_id: ID of the current user.
-
-    Returns:
-        object: Reversed video.
-    """
-    content = request.get_json()
-
-    user_image_id = db.get_current_image_id(content["user_id"])
-    current_image = db.find_image(user_image_id, content["user_id"])
-    new_image = _link_new_image(current_image)
-
-    image_data, new_image["processing_time"] = \
-        Processing(b64str_to_numpy(current_image.image_data)).reverse_video()
-    new_image["image_data"] = numpy_to_b64str(image_data)
-    new_image["process"] = "reverse_video"
-    added_image = db.add_image(current_image.user_id, new_image)
-    return jsonify(added_image)
-
-
-@app.route("/api/process/sharpen", methods=["POST"])
-def post_image_sharpen():
-    """
-    Takes CURRENT image and performs image sharpen on whole image.
-    Args:
-        user_id: ID of the current user.
-
-    Returns:
-        object: sharpened image.
-    """
-    content = request.get_json()
-
-    user_image_id = db.get_current_image_id(content["user_id"])
-    current_image = db.find_image(user_image_id, content["user_id"])
-    new_image = _link_new_image(current_image)
-
-    image_data, new_image["processing_time"] = \
-        Processing(b64str_to_numpy(current_image.image_data)).sharpen()
-    new_image["image_data"] = numpy_to_b64str(image_data)
-    new_image["process"] = "sharpen"
-    added_image = db.add_image(current_image.user_id, new_image)
-    return jsonify(added_image)
-
-
-@app.route("/api/process/blur", methods=["POST"])
-def post_image_blur():
-    """
-    Takes CURRENT image and performs image blur on whole image.
-    Args:
-        user_id: ID of the current user.
-
-    Returns:
-        object: blurred image.
-    """
-    content = request.get_json()
-    sigma = request.args.get("s", 5)
-
-    user_image_id = db.get_current_image_id(content["user_id"])
-    current_image = db.find_image(user_image_id, content["user_id"])
-    new_image = _link_new_image(current_image)
-
-    image_data, new_image["processing_time"] = \
-        Processing(b64str_to_numpy(current_image.image_data)).blur(sigma)
-    new_image["image_data"] = numpy_to_b64str(image_data)
-    new_image["process"] = "blur"
-    added_image = db.add_image(current_image.user_id, new_image)
-    return jsonify(added_image)
-
-
-def _link_new_image(current_image):
-    """
-    Makes associated links.
-    Args:
-        content: User post data.
-
-    Returns:
-
-    """
-    new_image = db.image_to_json(current_image)
-    new_image["parent_id"] = current_image.image_id
-    new_image["image_id"] = random_id()
-    return new_image
+    # TODO: Still not implemented in database!
+    pass
 
 
 def b64str_to_numpy(b64_img):
