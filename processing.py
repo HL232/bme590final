@@ -7,6 +7,14 @@ import matplotlib.pyplot as plt
 from skimage.io import imread
 
 
+def output_0_to_255_as_int(img_array: np.array):
+    output_as_rgb = skimage.color.gray2rgb(img_array)
+    output_as_0_255 = exposure.rescale_intensity(
+        output_as_rgb, out_range=(0, 255))
+    output_as_int = output_as_0_255.astype(int)
+    return output_as_int
+
+
 class Benchmark(object):
     def __init__(self):
         self.start_time = datetime.datetime.now()
@@ -36,9 +44,8 @@ class Processing(object):
         """
         b = Benchmark()
         image_he = exposure.equalize_hist(self.image)
-        image_he = exposure.rescale_intensity(image_he,
-                                              out_range=(0, 255))
-        return image_he, b.stop()
+        image_he_output = output_0_to_255_as_int(image_he)
+        return image_he_output, b.stop()
 
     def contrast_stretch(self, percentile=(10, 90)):
         """
@@ -53,7 +60,8 @@ class Processing(object):
         p1, p2 = np.percentile(self.image, percentile)
         image_rescale = exposure.rescale_intensity(
             self.image, in_range=(p1, p2))
-        return image_rescale, b.stop()
+        image_rescale_output = output_0_to_255_as_int(image_rescale)
+        return image_rescale_output, b.stop()
 
     def log_compression(self, base=10):
         """
@@ -70,9 +78,8 @@ class Processing(object):
         else:
             image_gray = self.image
         image_log = np.log(image_gray + 1) / np.log(base)
-        rgb_image_log = skimage.color.gray2rgb(image_log)
-        # print(rgb_image_log.shape, rgb_image_log[0][0])
-        return rgb_image_log.astype(int), b.stop()
+        image_log_output = output_0_to_255_as_int(image_log)
+        return image_log_output, b.stop()
 
     def reverse_video(self):
         """
@@ -87,7 +94,8 @@ class Processing(object):
 
         b = Benchmark()
         image_reverse = util.invert(self.image)
-        return image_reverse, b.stop()
+        image_reverse_output = output_0_to_255_as_int(image_reverse)
+        return image_reverse_output, b.stop()
 
     def blur(self, sigma=5):
         """
@@ -101,7 +109,8 @@ class Processing(object):
         b = Benchmark()
         image_blur = filters.gaussian(self.image, sigma,
                                       preserve_range=True)
-        return image_blur.astype(int), b.stop()
+        image_blur_output = output_0_to_255_as_int(image_blur)
+        return image_blur_output, b.stop()
 
     def sharpen(self):
         """
@@ -119,9 +128,12 @@ class Processing(object):
         # sharp_image = original + alpha * (original - blurred)
         b = Benchmark()
         image_blur = Processing(self.image).blur(5)[0]
+        rbg_original_image = output_0_to_255_as_int(self.image)
         alpha = 1
-        image_sharpened = self.image + alpha * (self.image - image_blur)
-        return image_sharpened, b.stop()
+        image_sharpened = rbg_original_image + \
+                          alpha * (rbg_original_image - image_blur)
+        image_sharpened_output = output_0_to_255_as_int(image_sharpened)
+        return image_sharpened_output, b.stop()
 
     def histogram_gray(self):
         """
@@ -139,8 +151,9 @@ class Processing(object):
         plt.close()
 
         # this is a very crude method returning a numpy array
-        temp = imread('temp.png')
-        return temp
+        hist_np_array = imread('temp.png')
+        hist_np_array_output = output_0_to_255_as_int(hist_np_array)
+        return hist_np_array_output
 
     def _check_image_type(self):
         """

@@ -27,7 +27,7 @@ P = Processing(dog_image)
 
 plot(P.hist_eq()[0], 'Hist Equalization')
 plot(P.contrast_stretch()[0], 'Contrast Streching Default')
-plot(P.contrast_stretch((35, 65))[0], 'Contrast Streching (35,65)')
+plot(P.contrast_stretch((50, 75))[0], 'Contrast Streching (dif numbers)')
 plot(P.log_compression()[0], 'Log Compression Default')
 plot(P.log_compression(100)[0], 'Log Compression Log=100')
 plot(P.reverse_video()[0], 'Reverse Video')
