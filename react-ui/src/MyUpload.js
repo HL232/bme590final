@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import Button from '@material-ui/core/Button';
 import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Typography, Grid, Paper} from '@material-ui/core';
 import axios from 'axios'
+import { UploadField } from '@navjobs/upload'
 export default class MyUpload extends Component {
 
 
@@ -19,7 +20,7 @@ export default class MyUpload extends Component {
 		.then(res => {
 			console.log(res)
 		})
-		
+
 
 	}
 
@@ -31,7 +32,7 @@ export default class MyUpload extends Component {
 			<Paper className='paper'>
 				<input type="file" onChange={this.fileSelectedHandler}/>
 
-				
+
 				<br /> <br />
 				<Button color="primary" variant="contained" onClick={this.uploadhand}> Upload </Button>
 			</Paper>
