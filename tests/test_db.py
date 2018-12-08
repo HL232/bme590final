@@ -167,22 +167,10 @@ def test_add_bad_user(database_obj, image_info):
 
 def test_update_user(database_obj):
     user_id = random_id()
-    database_obj.update_user(user_id, ["ID1", "ID2"])
+    database_obj.update_process_history(user_id, ["ID1", "ID2"])
 
     db_user = database_obj.find_user(user_id)
     assert db_user.uploads["ID1"] == "ID2"
-
-
-def test_update_description(database_obj, image_info):
-    user_id = random_id()
-    u_image = image_info
-    u_image["user_id"] = user_id
-    u_image["image_id"] = random_id()
-    database_obj.add_image(user_id, u_image)
-    database_obj.update_description(u_image["image_id"], "test")
-    image = database_obj.find_image(u_image["image_id"], user_id)
-    assert image.description == "test"
-
 
 def test_remove_image(database_obj, image_info):
     user_id = random_id()
@@ -240,6 +228,7 @@ def test_find_image_parent(database_obj, image_info):
     database_obj.add_image(user_id, u_image)
 
     parent_image = database_obj.find_image_parent(child_id, user_id)
+    parent_image = database_obj.image_to_json(parent_image)
     assert parent_image["image_id"] == parent_id
 
 
