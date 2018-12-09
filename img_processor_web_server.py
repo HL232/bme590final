@@ -395,11 +395,14 @@ def b64str_to_numpy(b64_img):
         np.ndarray: numpy array of image.
 
     """
-    b64_img = b64_img.split("base64,")[1] # get rid of header
+    split = b64_img.split("base64,")  # get rid of header
+    if len(split) == 2:
+        b64_img = split[1]
+    else:
+        b64_img = split[0]
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
     np_img = imageio.imread(image_buf, format="JPG")
-    # np_img = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
     return np_img
 
 
@@ -413,6 +416,7 @@ def numpy_to_b64str(img):
         str: base 64 representation of the numpy array/image.
 
     """
+    img = img[..., ::-1]  # flip for cv conversion
     _, img = cv2.imencode('.jpg', img)  # strips header
     image_base64 = base64.b64encode(img)
     base64_string = image_base64.decode('utf-8')  # convert to string
