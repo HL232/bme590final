@@ -50,7 +50,7 @@ def b64str_to_numpy(b64_img):
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
     np_img = imageio.imread(image_buf, format='JPG')
-    i = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
+    # i = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
     return i
 
 

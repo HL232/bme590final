@@ -1,4 +1,5 @@
 import io
+import re
 import cv2
 import base64
 import imageio
@@ -385,11 +386,21 @@ def post_search_image():
 
 
 def b64str_to_numpy(b64_img):
+    """
+    Converts a b64str to numpy. Strips headers.
+    Args:
+        b64_img (str): base 64 representation of an image.
+
+    Returns:
+        np.ndarray: numpy array of image.
+
+    """
+    b64_img = b64_img.split("base64,")[1] # get rid of header
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
-    np_img = imageio.imread(image_buf, format='JPG')
-    i = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
-    return i
+    np_img = imageio.imread(image_buf, format="JPG")
+    # np_img = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
+    return np_img
 
 
 def numpy_to_b64str(img):
