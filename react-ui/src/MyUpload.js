@@ -43,7 +43,8 @@ export default class MyUpload extends Component {
 	 //iStr = iStr.split(";").pop();
 		 myob['image_data'] = iStr;
 		 myob['user_id'] = 'myID';
-		 
+		 myob['filename'] = 'stevenisaTWAT'
+
 
 	 axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
 	 .then(res => {
