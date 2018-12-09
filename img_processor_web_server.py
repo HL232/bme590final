@@ -88,8 +88,8 @@ def get_user(user_id):
     return jsonify(user)
 
 
-@app.route("/api/user/get_original_uploads/<user_id>", methods=["GET"])
-def get_original_uploads(user_id):
+@app.route("/api/user/get_original_upload_ids/<user_id>", methods=["GET"])
+def get_original_upload_ids(user_id):
     """
     Gets all root image ids from a user.
     Args:
@@ -104,8 +104,8 @@ def get_original_uploads(user_id):
     return jsonify(list(user.uploads.keys()))
 
 
-@app.route("/api/user/get_updated_uploads/<user_id>", methods=["GET"])
-def get_updated_uploads(user_id):
+@app.route("/api/user/get_updated_upload_ids/<user_id>", methods=["GET"])
+def get_updated_upload_ids(user_id):
     """
     Gets all updated image ids from a user.
     Args:
@@ -123,6 +123,63 @@ def get_updated_uploads(user_id):
         updated_list.append(user.uploads[root])
 
     return jsonify(updated_list)
+
+
+@app.route("/api/user/get_upload_filenames/<user_id>", methods=["GET"])
+def get_upload_filenames(user_id):
+    """
+    Gets all root image names from a user.
+    Args:
+        user_id: user to find.
+
+    Returns:
+        dict: image names associated with root image.
+    """
+    if not user_id:
+        return error_handler(400, "Must have include id.", "AttributeError")
+    user = db.find_user(user_id)
+    names = {}
+    for image in user.uploads.keys():
+        names[image.id] = image.name
+    return jsonify(names)
+
+
+@app.route("/api/user/get_original_uploads/<user_id>", methods=["GET"])
+def get_original_uploads(user_id):
+    """
+    Gets all root/original images from a user.
+    Args:
+        user_id: user to find.
+
+    Returns:
+        list: root images.
+    """
+    if not user_id:
+        return error_handler(400, "Must have include id.", "AttributeError")
+    original_uploads = db.get_all_original_images(user_id)
+    original_upload_json = []
+    for upload in original_uploads:
+        original_upload_json.append(db.image_to_json(upload))
+    return jsonify(original_upload_json)
+
+
+@app.route("/api/user/get_updated_uploads/<user_id>", methods=["GET"])
+def get_updated_uploads(user_id):
+    """
+    Gets all updated images from a user.
+    Args:
+        user_id: user to find.
+
+    Returns:
+        list: updated images.
+    """
+    if not user_id:
+        return error_handler(400, "Must have include id.", "AttributeError")
+    updated_uploads = db.get_all_original_images(user_id)
+    updated_json = []
+    for upload in updated_uploads:
+        updated_json.append(db.image_to_json(upload))
+    return jsonify(updated_json)
 
 
 # ----------------------------- post stuff ---------------------------
@@ -146,6 +203,10 @@ def post_upload_image():
         return error_handler(400, "must include user_id", "AttributeError")
     if type(content["user_id"]) != str:
         return error_handler(400, "user_id must be type str", "TypeError")
+    if "filename" not in content.keys():
+        return error_handler(400, "must include filename", "AttributeError")
+    if type(content["filename"]) != str:
+        return error_handler(400, "filename must be type str", "TypeError")
 
     image = b64str_to_numpy(content["image_data"])
     content["width"] = image.shape[0]

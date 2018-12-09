@@ -16,6 +16,7 @@ def database_obj():
 @pytest.fixture()
 def image_info():
     image_i = {
+        "filename": "test_name",
         "image_id": "0",
         "image_data": "test",
         "height": 100,

@@ -9,6 +9,7 @@ from processing import Processing
 
 class Image(MongoModel):
     image_id = fields.CharField(primary_key=True)
+    filename = fields.CharField()
     image_data = fields.CharField()
     user_id = fields.CharField()
     timestamp = fields.DateTimeField()
@@ -28,6 +29,7 @@ class User(MongoModel):
     # the structure of this will be key (upload id): most recent_id
     uploads = fields.DictField()
     current_image = fields.CharField()
+    process_count = fields.DictField()
 
 
 class ImageProcessingDB(object):
@@ -79,6 +81,7 @@ class ImageProcessingDB(object):
 
         # add image to db
         i = Image(user_id=user_id,
+                  filename=image_info["filename"],
                   image_id=image_info["image_id"],
                   process=image_info["process"],
                   image_data=image_info["image_data"],
@@ -87,6 +90,7 @@ class ImageProcessingDB(object):
                   parent_id=image_info["parent_id"],
                   width=image_info["width"],
                   height=image_info["height"],
+                  format=image_info["format"],
                   timestamp=current_time,
                   description=description
                   )
@@ -121,6 +125,43 @@ class ImageProcessingDB(object):
         image_id = self.get_current_image_id(user_id)
         image = self.find_image(image_id, user_id)
         return image
+
+    def get_all_updated_images(self, user_id):
+        """
+        Gets all updated/recent images of a user.
+        Args:
+            user_id: User to get.
+
+        Returns:
+            list: All images as stored in database.
+
+        """
+        user = self.find_user(user_id)
+        updated_list = []
+        for root in user.uploads.keys():
+            image_id = user.uploads[root]
+            image = self.find_image(image_id, user_id)
+            updated_list.append(image)
+
+        return updated_list
+
+    def get_all_original_images(self, user_id):
+        """
+        Gets all original images of a user.
+        Args:
+            user_id: User to get.
+
+        Returns:
+            list: All original images as stored in database.
+
+        """
+        user = self.find_user(user_id)
+        original_list = []
+        for image_id in user.uploads.keys():
+            image = self.find_image(image_id, user_id)
+            original_list.append(image)
+
+        return original_list
 
     def _add_child(self, child_id, parent_id, user_id):
         """
@@ -160,6 +201,10 @@ class ImageProcessingDB(object):
             raise AttributeError("image_info must have user_id.")
         if not isinstance(image_info["user_id"], str):
             raise ValueError("user_id must be type str.")
+        if "filename" not in image_info.keys():
+            raise AttributeError("image_info must have filename.")
+        if not isinstance(image_info["filename"], str):
+            raise ValueError("filename must be type str.")
         if "image_data" not in image_info.keys():
             raise AttributeError("image_info must have image_data.")
         if type(image_info["image_data"]) != str:
@@ -186,11 +231,11 @@ class ImageProcessingDB(object):
             raise AttributeError("image_info must have process.")
         if not isinstance(image_info["process"], str):
             raise TypeError("process must be type str.")
-        if not self.valid_process(image_info["process"]):
+        if not self._valid_process(image_info["process"]):
             raise ValueError("process invalid.")
         return image_info
 
-    def valid_process(self, process):
+    def _valid_process(self, process):
         """
         Determines if the process is valid based on Processing methods.
         Args:
@@ -256,6 +301,24 @@ class ImageProcessingDB(object):
         if user is None:
             user = self.add_user(user_id)
         user.current_image = image_id
+        return user.save()
+
+    def update_user_process(self, user_id: str, process: str):
+        """
+        Increments the count on the process performed.
+        Args:
+            user_id (str): User to update.
+            process (str): Id to update with
+
+        """
+        # image is not yet in the database
+        if not self._valid_process(process):
+            raise ValueError("process invalid.")
+
+        user = self.find_user(user_id)
+        if process not in user.process_count.keys():
+            user.process_count[process] = 0
+        user.process_count[process] += 1
         return user.save()
 
     def remove_image(self, image_id):
@@ -341,6 +404,7 @@ class ImageProcessingDB(object):
         """
 
         ret_json = {
+            "filename": image.filename,
             "image_id": image.image_id,
             "user_id": image.user_id,
             "parent_id": image.parent_id,
@@ -366,6 +430,7 @@ class ImageProcessingDB(object):
         ret_json = {
             "user_id": user.user_id,
             "uploads": user.uploads,
-            "current_image": user.current_image
+            "current_image": user.current_image,
+            "process_count": user.process_count
         }
         return ret_json
