@@ -1,0 +1,19 @@
+import image from './a.jpeg'
+
+
+const TileData = [
+	{
+		img: image,
+		title: 'Image',
+		author: 'author',
+	},
+
+
+
+
+
+
+
+
+	];
+export default tileData ;
