@@ -46,9 +46,7 @@ class Processing(object):
 
     def hist_eq(self):
         """
-        Employs histogram equalization on given image.
-        Args:
-            image: Image to perform histogram equalization on.
+        Employs histogram equalization on self.image.
         Returns:
             Numpy.Array representation of histogram equilization image
         """
@@ -69,9 +67,8 @@ class Processing(object):
 
     def contrast_stretch(self, percentile=(10, 90)):
         """
-        Employs contrast stretching on given image.
+        Employs contrast stretching on self.image.
         Args:
-            image: Image to perform contrast stretching on.
             percentile: percentile range of pixel intensity to stretch
         Returns:
             Numpy.Array representation of contrast stretched image
@@ -86,9 +83,8 @@ class Processing(object):
 
     def log_compression(self, base=10):
         """
-        Performs log compression of the image.
+        Performs log compression of self.image.
         Args:
-            image: Image to perform inversion on.
             base: base of the log which is applied to the image
         Returns:
             Numpy.Array representation of log compressed image
@@ -112,10 +108,8 @@ class Processing(object):
 
     def reverse_video(self):
         """
-        Creates a reverse video of given video (image/frame list).
+        Inverts the black/white pixels of an image.
         Only works for grayscale images
-        Args:
-            image: Image to perform inversion on.
         Returns:
             Numpy.Array representation of reversed image
         """
@@ -131,9 +125,7 @@ class Processing(object):
 
     def blur(self):
         """
-        Employs a blurring filter on given image.
-        Args:
-            image: Image to perform blurring on.
+        Employs a Gaussian blurring filter on given image.
         Returns:
             Numpy.Array representation of blurred image
         """
@@ -146,9 +138,6 @@ class Processing(object):
     def sharpen(self):
         """
         Employs a sharpening filter on given image.
-        Args:
-            image: Image to perform sharpening on.
-            filter_type: The type of the filter to use.
         Returns:
             Numpy.Array representation of sharpened image
         """
@@ -196,7 +185,7 @@ class Processing(object):
 
     def _check_image_type(self):
         """
-        Checks if the input image is valid to be processed.
+        Checks if the input image is a numpy array.
         Returns:
             bool: If the image is valid.
         """
@@ -206,6 +195,11 @@ class Processing(object):
         return True
 
     def _check_image_shape(self):
+        """
+        Checks if image numpy array has valid dimensions
+        Returns:
+            bool: If the image is valid.
+        """
         # Image array should be grayscale or color (length = 2 or 3)
         if len(self.image.shape) != 2 and len(self.image.shape) != 3:
             raise ValueError("Dimensions of input array incorrect")
@@ -215,7 +209,8 @@ class Processing(object):
         """
         Checks if the input image is grayscale.
         Returns:
-            bool: True if the image is grayscale.
+            GRAY: If the image is grayscale
+            COLOR: if the image is color
         """
         # Image array length should not be 3 (color).
         if len(self.image.shape) == 2:
