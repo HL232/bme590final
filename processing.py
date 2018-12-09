@@ -62,8 +62,7 @@ class Processing(object):
             yuv_image = cv2.cvtColor(self.image, cv2.COLOR_RGB2YUV)
             yuv_image[:, :, 0] = cv2.equalizeHist(yuv_image[:, :, 0])
             img_output = cv2.cvtColor(yuv_image, cv2.COLOR_YUV2RGB)
-            image_he_output = output_0_to_255_as_int(img_output)
-            return image_he_output, b.stop()
+            return img_output, b.stop()
 
     def contrast_stretch(self, percentile=(10, 90)):
         """
@@ -143,8 +142,9 @@ class Processing(object):
         """
         # Sharpen should be the same for grayscale and color images
         b = Benchmark()
-        image_blur = cv2.GaussianBlur(self.image, (19, 19), 10)
-        unsharp_image = cv2.addWeighted(self.image, 1.5, image_blur, -0.5, 0, self.image)
+        temp_self_image = self.image
+        image_blur = cv2.GaussianBlur(temp_self_image, (19, 19), 10)
+        unsharp_image = cv2.addWeighted(temp_self_image, 1.5, image_blur, -0.5, 0)
         image_sharpen_output = output_0_to_255_as_int(output_to_rgb(unsharp_image))
         return image_sharpen_output, b.stop()
 
@@ -156,19 +156,19 @@ class Processing(object):
         Returns:
             Numpy.Array representation of histogram of image
         """
-        if Processing(image)._check_grayscale() == 'GRAY':
+        if self._check_grayscale() == 'GRAY':
             plt.hist(image.ravel(), bins=256, range=(0.0, 1.0), color='black')
             plt.xlabel('Normalized Pixel Intensity')
             plt.ylabel('Number of Pixels')
             plt.xlim(0, 1)
+            plt.ylim([0, 75000])
             plt.savefig("./temp.png")
             plt.close()
-            # this is a very crude method returning a numpy array
             hist_np_array = imread('temp.png')
             os.remove("temp.png")
             hist_np_array_output = output_0_to_255_as_int(output_to_rgb(hist_np_array))
             return hist_np_array_output
-        if Processing(image)._check_grayscale() == 'COLOR':
+        if self._check_grayscale() == 'COLOR':
             color = ('r', 'g', 'b')
             for i, col in enumerate(color):
                 histr = cv2.calcHist([image], [i], None, [256], [0, 255])
@@ -176,6 +176,7 @@ class Processing(object):
                 plt.xlabel('Pixel Intensity')
                 plt.ylabel('Number of Pixels')
                 plt.xlim([0, 256])
+                plt.ylim([0, 75000])
                 plt.savefig("./temp.png")
             plt.close()
             hist_np_array = imread('temp.png')
