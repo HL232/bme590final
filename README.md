@@ -1,12 +1,12 @@
 # Image Processor
 This image processor is meant to combine the functionality and scripting _prowess_ of python with the modularity and adaptability of cloud computing. The project is split into 3 primary components: image processing, web api, and a GUI, generally following the typical Model/View/Controller paradigm.
 
-# Usage
+## Usage
 The GUI can be accessed via...
 ## Supported Formats
 
 
-# Setup
+## Setup
 In order to set up your own instance of the webserver, it would be best to set up a virtual environment on a linux-based OS server such as Ubuntu 16.04. Using a combination of `screen`, `guicorn`, and virtual environments, deployment should take very few steps.
 ## Installation
 First run `sudo apt-get update` and `sudo apt-get upgrade` to update all packages. Ensure that `pip` and `python3` are installed on the system, if not, run `sudo apt-get install python-pip`. To create a virtual environment, run `python3 -m venv (env)` where `(env)` is a name of your choosing. Change to the virtual environment by running `source env/bin/activate` and then run `python3 install -r requirements.txt`. After this, all necessary modules should be installed.
@@ -32,7 +32,9 @@ There are several different image processes performed by the web server. Each wi
 | Sharpen | are neat      |
 | Blur | are neat      |
 
-## GUI
+# GUI
+Can talk about the GUI stuff here.
+
 At a minimum, you image processor should do the following:
 * Provide a [graphical] user interface that will allow a user to select an image, list of
   images, or a zip archive of images that will be uploaded to your web-server,
