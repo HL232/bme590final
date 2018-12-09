@@ -111,8 +111,11 @@ class Processing(object):
         b = Benchmark()
 
         if self._check_grayscale() == 'GRAY':
-            image_log = np.log10(self.image + 1)
-            image_log_output = output_0_to_255_as_int(output_to_rgb(image_log))
+            image_rgb = cv2.cvtColor(self.image, cv2.COLOR_GRAY2RGB)
+            image_hsv = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2HSV)
+            image_hsv[:, :, 1] = np.log(image_hsv[:, :, 1] + 1)
+            image_output = cv2.cvtColor(image_hsv, cv2.COLOR_HSV2RGB)
+            image_log_output = output_0_to_255_as_int(image_output)
             return image_log_output, b.stop()
         if self._check_grayscale() == 'COLOR':
             image_hsv = cv2.cvtColor(self.image, cv2.COLOR_RGB2HSV)

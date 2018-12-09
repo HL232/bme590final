@@ -47,7 +47,6 @@ plot(P.blur()[0], 'Blur')
 
 plot(P.sharpen()[0], 'Sharpen')
 
-'''
 dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
           'sites/default/files/legacy/images/' \
           'resource-centre/IFAW%20Northern%20Dog.JPG'
@@ -81,4 +80,3 @@ except ValueError:
 plot(P.blur()[0], 'Blur')
 
 plot(P.sharpen()[0], 'Sharpen')
-'''
