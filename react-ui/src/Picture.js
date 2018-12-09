@@ -7,12 +7,12 @@ export default class Picture extends Component {
 
     return (
 
-<GridListTile cellHeight={400} cellWidth={400} key={this.props.tile.img}>
-<img src={"data:image/jpeg;" + this.props.tile.img} alt={this.props.tile.title} />
+<GridListTile key={this.props.tile.image_data}>
+<img src={"data:image/jpeg;" + this.props.tile.image_data} alt={this.props.tile.user_id} />
 //{console.log(this.props.tile.img)}
 <GridListTileBar
-  title={this.props.tile.title}
-  subtitle={<span>by: {this.props.tile.author}</span>}
+  title={this.props.tile.user_id}
+  subtitle={<span>by: {this.props.tile.format}</span>}
   actionIcon={
     <IconButton color='primary'>
       <CloudDownload />
