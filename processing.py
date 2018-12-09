@@ -1,7 +1,7 @@
 import datetime
 import skimage
 import numpy as np
-from skimage import exposure, util, filters, color
+from skimage import exposure, util, color
 import matplotlib.pyplot as plt
 from skimage.io import imread
 import cv2
@@ -25,6 +25,23 @@ def output_0_to_255_as_int(img_array: np.array):
     return output_as_int
 
 
+def _check_grayscale(image):
+        """
+        Checks if the input image is grayscale.
+        Returns:
+            GRAY: If the image is grayscale
+            COLOR: if the image is color
+        """
+        # Image array length should not be 3 (color).
+        a = image[:, :, 0] == image[:, :, 1]
+        b = image[:, :, 1] == image[:, :, 2]
+        c = a == b
+        if c.all():
+            return 'GRAY'
+        else:
+            return 'COLOR'
+
+
 class Benchmark(object):
     def __init__(self):
         self.start_time = datetime.datetime.now()
@@ -42,7 +59,10 @@ class Processing(object):
     """
 
     def __init__(self, image):
-        self.image = image
+        if _check_grayscale(image) == 'COLOR':
+            self.image = image
+        if _check_grayscale(image) == 'GRAY':
+            self.image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
     def hist_eq(self):
         """
@@ -80,7 +100,7 @@ class Processing(object):
         image_rescale_output = output_0_to_255_as_int(output_to_rgb(image_rescale))
         return image_rescale_output, b.stop()
 
-    def log_compression(self, base=10):
+    def log_compression(self):
         """
         Performs log compression of self.image.
         Args:
@@ -91,19 +111,15 @@ class Processing(object):
         b = Benchmark()
 
         if self._check_grayscale() == 'GRAY':
-            image_log = np.log(self.image + 1) / np.log(base)
+            image_log = np.log10(self.image + 1)
             image_log_output = output_0_to_255_as_int(output_to_rgb(image_log))
             return image_log_output, b.stop()
         if self._check_grayscale() == 'COLOR':
-            # TODO: Haven't figured out how to log compress color images yet.
-            '''
-            img_yuv = cv2.cvtColor(self.image, cv2.COLOR_RGB2YUV)
-            img_yuv[:, :, 0] = np.log(img_yuv[:, :, 0] + 1) / np.log(base)
-            img_output = cv2.cvtColor(img_yuv, cv2.COLOR_YUV2RGB)
-            image_log_output = output_0_to_255_as_int(img_output)
+            image_hsv = cv2.cvtColor(self.image, cv2.COLOR_RGB2HSV)
+            image_hsv[:, :, 0] = np.log(image_hsv[:, :, 0] + 1)
+            image_output = cv2.cvtColor(image_hsv, cv2.COLOR_HSV2RGB)
+            image_log_output = output_0_to_255_as_int(image_output)
             return image_log_output, b.stop()
-            '''
-            return self.image, b.stop()
 
     def reverse_video(self):
         """
@@ -157,10 +173,10 @@ class Processing(object):
             Numpy.Array representation of histogram of image
         """
         if self._check_grayscale() == 'GRAY':
-            plt.hist(image.ravel(), bins=256, range=(0.0, 1.0), color='black')
-            plt.xlabel('Normalized Pixel Intensity')
+            plt.hist(image.ravel(), 256, [0, 256], color='black')
+            plt.xlabel('Pixel Intensity')
             plt.ylabel('Number of Pixels')
-            plt.xlim(0, 1)
+            plt.xlim(0, 256)
             plt.ylim([0, 75000])
             plt.savefig("./temp.png")
             plt.close()
@@ -210,8 +226,7 @@ class Processing(object):
         """
         Checks if the input image is grayscale.
         Returns:
-            GRAY: If the image is grayscale
-            COLOR: if the image is color
+            bool: True if the image is grayscale.
         """
         # Image array length should not be 3 (color).
         if len(self.image.shape) == 2:

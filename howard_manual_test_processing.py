@@ -6,6 +6,7 @@ import numpy as np
 
 # Manually testing processing.py
 
+
 def plot(image_array, title):
     plt.imshow(image_array)
     plt.title(title)
@@ -17,8 +18,11 @@ def plot(image_array, title):
 dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
           'sites/default/files/legacy/images/' \
           'resource-centre/IFAW%20Northern%20Dog.JPG'
-dog_image = imread(dog_source, as_gray=False)
-plot(dog_image, 'Original Image')
+dog_image = imread(dog_source, as_gray=True)
+plt.imshow(dog_image, cmap='gray')
+plt.title('Original Image')
+plt.axis('off')
+plt.show()
 P = Processing(dog_image)
 
 
@@ -27,15 +31,13 @@ plot(hist_image, 'Hist Equalization')
 
 contrast_stretch_image = P.contrast_stretch()[0]
 
-plot(contrast_stretch_image, 'contrast_stretch_image')
+plot(contrast_stretch_image, 'Contrast Stretch Default')
 
 contrast_stretch_image = P.contrast_stretch((35,65))[0]
 
-plot(contrast_stretch_image, 'contrast_stretch_image')
+plot(contrast_stretch_image, 'Contrast Stretch Different')
 
 plot(P.log_compression()[0], 'Log Compression Default')
-
-plot(P.log_compression(100)[0], 'Log Compression Log=100')
 
 try:
     plot(P.reverse_video()[0], 'Reverse Video')
@@ -46,5 +48,3 @@ except ValueError:
 plot(P.blur()[0], 'Blur')
 
 plot(P.sharpen()[0], 'Sharpen')
-
-plot(P.histogram(dog_image), 'Histogram of original')
