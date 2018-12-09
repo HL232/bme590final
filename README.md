@@ -1,35 +1,38 @@
-# Final-Project
-BME590 Final Project
+# Image Processor
+This image processor is meant to combine the functionality and scripting _prowess_ of python with the modularity and adaptability of cloud computing. The project is split into 3 primary components: image processing, web api, and a GUI, generally following the typical Model/View/Controller paradigm.
 
-# Image Processor Final Project (Fall 2018)
+# Usage
+The GUI can be accessed via...
+## Supported Formats
 
-**Final Project DUE:** Thursday, Dec 13, 2018 05:00PM EST 
 
-## Overview
-The final project in this class will require your team to leverage the
-industry-standard skills you've learned over this semester to design and
-implement a software system to upload an image or an archive of images to a
-web-server, perform image-processing tasks on the web-server, and then display
-/ download your processed image(s).  You will be required to work in your
-groups for this projects.
+# Setup
+In order to set up your own instance of the webserver, it would be best to set up a virtual environment on a linux-based OS server such as Ubuntu 16.04. Using a combination of `screen`, `guicorn`, and virtual environments, deployment should take very few steps.
+## Installation
+First run `sudo apt-get update` and `sudo apt-get upgrade` to update all packages. Ensure that `pip` and `python3` are installed on the system, if not, run `sudo apt-get install python-pip`. To create a virtual environment, run `python3 -m venv (env)` where `(env)` is a name of your choosing. Change to the virtual environment by running `source env/bin/activate` and then run `python3 install -r requirements.txt`. After this, all necessary modules should be installed.
+## Run web server
+To run the `flask` web server, it's best to do so on a screen. The most painless way is to do:
+```
+screen -S test -d -m gunicorn --workers 4 img_processing_web_server:main
+```
+which creates the screen and then immediately detaches it.
 
-This final project is somewhat open-ended to allow groups to tailor this to
-their areas of interest; however, recommended datasets and project requirements
-are provided below.  If you plan to stray away from the recommended projects
-and datasets, please submit a one-page project proposal to Dr. Palmeri and Mr.
-Kumar by *Friday, April, 13, 2018* for evaluation to ensure the proposed
-project meets the requirements for the class. Be sure to include motivations,
-technologies, functional specifications, and anticipated deliverables.
+# Web Server API Endpoints
+Generally, in order to use an API endpoint, append something like `/api/endpoint_name` to the domain. In general, there are three categories for endpoints: `user`, `image`, and `process` which are fairly self-explanatory. The GUI primarily uses the `/api/process/upload`, `/api/process/next_image`, and `/api/process/previous_image` endpoints for navigation through the image history. It uses the endpoints such as `/api/process/blur` to get a blurred image, which also tells the web server that the user's current image is this blurred image.
 
-It is expected that your team will follow proper professional software
-development and design conventions taught in this class, including:
-* git feature-branch workflow
-* continuous integration
-* unit testing
-* PEP8
-* docstrings / Sphinx documentation
+# Image Processing
+There are several different image processes performed by the web server. Each will be described in the table below. The library used is __ which generally takes things in ---- talk about how it's processed.
 
-## Functional Specifications
+| Name          | Function      |
+| ------------- | ------------- |
+| Histogram Equalization         | right-aligned |
+| Contrast Stretching      | centered      |
+| Log Compression | are neat      |
+| Reverse Video | are neat      |
+| Sharpen | are neat      |
+| Blur | are neat      |
+
+## GUI
 At a minimum, you image processor should do the following:
 * Provide a [graphical] user interface that will allow a user to select an image, list of
   images, or a zip archive of images that will be uploaded to your web-server,
@@ -63,54 +66,3 @@ At a minimum, you image processor should do the following:
     - Timestamp when uploaded
     - Time to process the image(s)
     - Image size (e.g., X x Y pixels)
-
-## Deliverables
-* A detailed `README` describing the final performance and state of your
-  project.
-* Recorded video demo of your image processor in action.
-* All project code (in the form of a tagged GitHub repository named
-  `bme590final`)
-* Link to deployed web service 
-
-## Recommended Datasets
-Your project can utilize some existing databases of image (or you can choose to
-use your own images).  Here are some example datasets that you can access for
-this project:
-
-* Over 13000 annotated skin lesion images are available from the International
-  Skin Imaging Collaboration (ISIC) project that can be used to develop machine
-  learning models to classify new images. This dataset can be accessed here:
-  https://isic-archive.com. A zip of all annotated images can be downloaded by
-  navigating to the Gallery and then clicking "Download as Zip" in the upper
-  right hand corner. All data can also be accessed through a RESTful API
-  provided by the ISIC.
-* http://www.vision.caltech.edu/Image_Datasets/Caltech101/
-* https://www.cs.toronto.edu/~kriz/cifar.html
-* https://github.com/beamandrew/medical-data
-
-## Grading
-**You should approach this final project as an opportunity to show a potential
-future employer an example of your software development skills.**
-
-* Git Repository
-  + Issues/Milestones
-  + Commits are discrete, logical changesets
-  + Feature-branch workflow
-* Software best practices
-  + Modularity of software code
-  + Handling and raising exceptions
-  + Language convention and style (PEP8)
-  + Sphinx documentation for all modules/functions
-* Testing and CI
-  + Unit test coverage of all functions (except Flask handler)
-  + Travis CI passing build
-* Cloud-based Web Service
-  + RESTful API Design 
-  + Validation Logic 
-  + Returning proper error codes
-  + Robust deployment on virtual machine 
-  + Image processing functionality
-* Proper use of a database 
-* User interface functionality
-* Demo of the final working project
-* Robust README
