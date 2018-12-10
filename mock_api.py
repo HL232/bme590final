@@ -11,11 +11,6 @@ from matplotlib import pyplot as plt
 ip = "http://127.0.0.1:5000"
 
 
-def read_file_as_b64(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read())
-
-
 def byte_2_json(resp):
     """
     Converts bytes to json. Raises exception if necessary.
@@ -52,15 +47,38 @@ def error_catcher(json_resp: dict):
 
 
 def b64str_to_numpy(b64_img):
+    """
+    Converts a b64str to numpy. Strips headers.
+    Args:
+        b64_img (str): base 64 representation of an image.
+
+    Returns:
+        np.ndarray: numpy array of image.
+
+    """
+    split = b64_img.split("base64,")  # get rid of header
+    if len(split) == 2:
+        b64_img = split[1]
+    else:
+        b64_img = split[0]
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
-    np_img = imageio.imread(image_buf, format='JPG')
-    i = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
-    return i
+    np_img = imageio.imread(image_buf, format="JPG")
+    return np_img
 
 
-def numpy_to_b64str(img, format=".jpg"):
-    _, img = cv2.imencode(format, img)  # strips header
+def numpy_to_b64str(img):
+    """
+    Converts a numpy array into a base 64 string
+    Args:
+        img (np.array):
+
+    Returns:
+        str: base 64 representation of the numpy array/image.
+
+    """
+    img = img[..., ::-1]  # flip for cv conversion
+    _, img = cv2.imencode('.jpg', img)  # strips header
     image_base64 = base64.b64encode(img)
     base64_string = image_base64.decode('utf-8')  # convert to string
     return base64_string
@@ -72,10 +90,7 @@ def view_image(image):
 
 
 user_id = "test"
-dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
-             'sites/default/files/legacy/images/' \
-             'resource-centre/IFAW%20Northern%20Dog.JPG'
-
+dog_source = 'https://i.imgur.com/B15ubOP.jpg'
 dog_image = imageio.imread(dog_source)
 # print("Original", dog_image.shape, dog_image[0][0])
 
@@ -84,19 +99,23 @@ image_obj = {
     "image_data": numpy_to_b64str(dog_image)
 }
 
-resp = requests.post("http://127.0.0.1:5000/api/image/upload_image",
+resp = requests.post("http://127.0.0.1:5000/api/process/upload_image",
                      json=image_obj)
 content = byte_2_json(resp)
+view_image(b64str_to_numpy(content["image_data"]))
 
 # blur
 image_obj_2 = {"user_id": user_id}
 resp = requests.post("http://127.0.0.1:5000/api/process/blur",
                      json=image_obj)
 content = byte_2_json(resp)
+view_image(b64str_to_numpy(content["image_data"]))
+
+"""
 # attempt to confirm
 resp = requests.post("http://127.0.0.1:5000/api/process/confirm", json=content)
 content = byte_2_json(resp)
-view_image(b64str_to_numpy(content["image_data"]))
+view_image(b64str_to_numpy(content["image_data"]))"""
 
 # should use the blurred image
 image_obj_3 = {"user_id": user_id}

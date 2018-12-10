@@ -27,9 +27,13 @@ state = {
 
 getData = () => {
   console.log('getData')
-  axios.get("http://adpl.suyash.io/api/sites").then(res => {
-    console.log(res)
-    this.setState({myData: res.data})
+  axios.get("http://127.0.0.1:5000/api/image/get_current_image/myID").then(res => {
+
+
+    var myAr = []
+    myAr.push(res.data)
+    this.setState({myData: myAr})
+    //console.log(this.state.myData[0].image_data)
   })
 }
 
@@ -37,6 +41,7 @@ containData = () => {
   if (this.state.myData.length === 0){
     {this.getData()}
   }
+  //{console.log(image)}
 }
 
 down = () => {
@@ -51,7 +56,7 @@ down = () => {
       {this.containData()}
 
       <Paper className='paper'>
-      <GridList background='white' cellHeight={500} cols={3}>
+      <GridList cellHeight={400} cols={3}>
 
         <GridListTile key="Subheader" cols={1} style={{height: 'auto'}}>
           <ListSubheader component="div"> Library </ListSubheader>
@@ -59,10 +64,10 @@ down = () => {
         // All I have to do here is change this to myData.map and make sure
         // that the '.' parts match the data type
         // probably need a little tweaking to pull the thing out of the state though
-        {TileData.map(tile => (
+        {this.state.myData.map(tile => (
           <Picture tile={tile}/>
 
-          ))}
+        ))}
 
         </GridList>
         </Paper>
