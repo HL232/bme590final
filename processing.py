@@ -3,7 +3,7 @@ import skimage
 import numpy as np
 from skimage import exposure, util, color
 import matplotlib.pyplot as plt
-from skimage.io import imread
+import imageio
 import cv2
 import os
 
@@ -85,6 +85,8 @@ class Processing(object):
         If the image is grayscale, the image is converted to
         2D grayscale array
         """
+        self._check_image_type(image)
+        self._check_image_shape(image)
         if _check_grayscale(image) == 'COLOR':
             self.image = image
         if _check_grayscale(image) == 'GRAY':
@@ -123,7 +125,8 @@ class Processing(object):
         p1, p2 = np.percentile(self.image, percentile)
         image_rescale = exposure.rescale_intensity(
             self.image, in_range=(p1, p2))
-        image_rescale_output = output_0_to_255_as_int(output_to_rgb(image_rescale))
+        image_rescale_output = output_0_to_255_as_int(
+            output_to_rgb(image_rescale))
         return image_rescale_output, b.stop()
 
     def log_compression(self):
@@ -137,6 +140,7 @@ class Processing(object):
         b = Benchmark()
 
         if self._check_grayscale() == 'GRAY':
+            # IS THIS WORKING???**********************************
             image_rgb = cv2.cvtColor(self.image, cv2.COLOR_GRAY2RGB)
             image_hsv = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2HSV)
             image_hsv[:, :, 1] = np.log(image_hsv[:, :, 1] + 1)
@@ -161,10 +165,11 @@ class Processing(object):
         b = Benchmark()
         if self._check_grayscale() == 'GRAY':
             image_reverse = util.invert(self.image)
-            image_reverse_output = output_0_to_255_as_int(output_to_rgb(image_reverse))
+            image_reverse_output = output_0_to_255_as_int(
+                output_to_rgb(image_reverse))
             return image_reverse_output, b.stop()
         if self._check_grayscale() == 'COLOR':
-            raise ValueError("Can only use reverse video for grayscale images")
+            raise ValueError("reverse video only for grayscale images")
 
     def blur(self):
         """
@@ -188,8 +193,10 @@ class Processing(object):
         b = Benchmark()
         temp_self_image = self.image
         image_blur = cv2.GaussianBlur(temp_self_image, (19, 19), 10)
-        unsharp_image = cv2.addWeighted(temp_self_image, 1.5, image_blur, -0.5, 0)
-        image_sharpen_output = output_0_to_255_as_int(output_to_rgb(unsharp_image))
+        unsharp_image = cv2.addWeighted(
+            temp_self_image, 1.5, image_blur, -0.5, 0)
+        image_sharpen_output = output_0_to_255_as_int(
+            output_to_rgb(unsharp_image))
         return image_sharpen_output, b.stop()
 
     def histogram(self, image):
@@ -202,15 +209,16 @@ class Processing(object):
         """
         if self._check_grayscale() == 'GRAY':
             histr = plt.hist(image.ravel(), 256, [0, 256], color='black')
-            ('Pixel Intensity')
+            plt.xlabel('Pixel Intensity')
             plt.ylabel('Number of Pixels')
             plt.xlim(-10, 270)
             plt.ylim([0, max(histr[0])+5000])
             plt.savefig("./temp.png")
             plt.close()
-            hist_np_array = imread('temp.png')
+            hist_np_array = imageio.imread('temp.png')
             os.remove("temp.png")
-            hist_np_array_output = output_0_to_255_as_int(output_to_rgb(hist_np_array))
+            hist_np_array_output = output_0_to_255_as_int(
+                output_to_rgb(hist_np_array))
             return hist_np_array_output
         if self._check_grayscale() == 'COLOR':
             image = np.uint8(image)
@@ -227,28 +235,29 @@ class Processing(object):
             plt.ylim([0, max(max_pixel)+5000])
             plt.savefig("./temp.png")
             plt.close()
-            hist_np_array = imread('temp.png')
+            hist_np_array = imageio.imread('temp.png')
             os.remove("temp.png")
-            hist_np_array_output = output_0_to_255_as_int(output_to_rgb(hist_np_array))
+            hist_np_array_output = output_0_to_255_as_int(
+                output_to_rgb(hist_np_array))
             return hist_np_array_output
 
-    def _check_image_type(self):
+    def _check_image_type(self, image):
         """
         Checks if the input image is a numpy array.
         Returns:
             bool: If the image is valid.
         """
-        if type(self.image) != np.ndarray:
-            raise TypeError("Image is not a numpy array")
+        if type(image) != imageio.core.util.Array:
+            raise TypeError("Image is not a imageio Array")
         return True
 
-    def _check_image_shape(self):
+    def _check_image_shape(self, image):
         """
         Checks if image numpy array has valid dimensions
         Returns:
             bool: If the image is valid.
         """
-        if len(self.image.shape) != 2 and len(self.image.shape) != 3:
+        if len(image.shape) != 2 and len(image.shape) != 3:
             raise ValueError("Dimensions of input array incorrect")
         return True
 

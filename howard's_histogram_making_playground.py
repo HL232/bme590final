@@ -28,38 +28,45 @@ plt.show()
 P = Processing(dog_image)
 plot(P.histogram(dog_image), 'Histogram Original')
 
-hist_image = P.hist_eq()[0]
+hist_image, time = P.hist_eq()
 plot(hist_image, 'Hist Equalization')
 plot(P.histogram(hist_image), 'Histogram Hist Eq.')
+print('Gray Hist Eq. Process time: ' + str(time) + ' ms')
 
-contrast_stretch_image = P.contrast_stretch()[0]
+contrast_stretch_image,time = P.contrast_stretch()
 plot(contrast_stretch_image, 'Contrast Stretch Default')
+plot(P.histogram(contrast_stretch_image), 'Histogram Contrast Stretch')
+print('Gray Con. Stretch 1 Process time: ' + str(time) + ' ms')
 
 
-contrast_stretch_image = P.contrast_stretch((35, 65))[0]
+contrast_stretch_image, time = P.contrast_stretch((35, 65))
 plot(contrast_stretch_image, 'Contrast Stretch Different')
 plot(P.histogram(contrast_stretch_image), 'Histogram Contrast Stretch 2')
+print('Gray Con. Stretch 2 Process time: ' + str(time) + ' ms')
 
-log_comp = P.log_compression()[0]
+log_comp, time = P.log_compression()
 plot(log_comp, 'Log Compression Default')
 plot(P.histogram(log_comp), 'Histogram Log Comp.')
+print('Gray log comp Process time: ' + str(time) + ' ms')
 
 try:
-    reverse_vid = P.reverse_video()[0]
+    reverse_vid, time = P.reverse_video()
     plot(reverse_vid, 'Reverse Video')
     plot(P.histogram(reverse_vid), 'Histogram Reverse Vid')
-
+    print('Gray reverse vid Process time: ' + str(time) + ' ms')
 
 except ValueError:
     print('Reverse video is grayscale only!')
 
-blur = P.blur()[0]
+blur, time = P.blur()
 plot(blur, 'Blur')
 plot(P.histogram(blur), 'Histogram blur')
+print('Gray blur Process time: ' + str(time) + ' ms')
 
-sharpen = P.sharpen()[0]
+sharpen, time = P.sharpen()
 plot(sharpen, 'Sharpen')
 plot(P.histogram(sharpen), 'Histogram sharpen')
+print('Gray sharpen Process time: ' + str(time) + ' ms')
 
 
 # ***********************************************************************
@@ -78,31 +85,42 @@ P = Processing(dog_image)
 plot(P.histogram(dog_image), 'Histogram Original')
 
 
-contrast_stretch_image = P.contrast_stretch()[0]
-plot(contrast_stretch_image, 'Contrast Stretch Default')
-plot(P.histogram(contrast_stretch_image), 'Histogram Contrast Stretch 1')
+hist_image, time = P.hist_eq()
+plot(hist_image, 'Hist Equalization')
+plot(P.histogram(hist_image), 'Histogram Hist Eq.')
+print('Color Hist Eq. Process time: ' + str(time) + ' ms')
 
-contrast_stretch_image = P.contrast_stretch((35, 65))[0]
+contrast_stretch_image,time = P.contrast_stretch()
+plot(contrast_stretch_image, 'Contrast Stretch Default')
+plot(P.histogram(contrast_stretch_image), 'Histogram Contrast Stretch')
+print('Color Con. Stretch 1 Process time: ' + str(time) + ' ms')
+
+
+contrast_stretch_image, time = P.contrast_stretch((35, 65))
 plot(contrast_stretch_image, 'Contrast Stretch Different')
 plot(P.histogram(contrast_stretch_image), 'Histogram Contrast Stretch 2')
+print('Color Con. Stretch 2 Process time: ' + str(time) + ' ms')
 
-log_comp = P.log_compression()[0]
+log_comp, time = P.log_compression()
 plot(log_comp, 'Log Compression Default')
 plot(P.histogram(log_comp), 'Histogram Log Comp.')
+print('Color log comp Process time: ' + str(time) + ' ms')
 
 try:
-    reverse_vid = P.reverse_video()[0]
+    reverse_vid, time = P.reverse_video()
     plot(reverse_vid, 'Reverse Video')
     plot(P.histogram(reverse_vid), 'Histogram Reverse Vid')
-
+    print('Color reverse vid Process time: ' + str(time) + ' ms')
 
 except ValueError:
     print('Reverse video is grayscale only!')
 
-blur = P.blur()[0]
+blur, time = P.blur()
 plot(blur, 'Blur')
 plot(P.histogram(blur), 'Histogram blur')
+print('Color blur Process time: ' + str(time) + ' ms')
 
-sharpen = P.sharpen()[0]
+sharpen, time = P.sharpen()
 plot(sharpen, 'Sharpen')
 plot(P.histogram(sharpen), 'Histogram sharpen')
+print('Color sharpen Process time: ' + str(time) + ' ms')
