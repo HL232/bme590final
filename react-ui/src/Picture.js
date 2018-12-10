@@ -4,11 +4,7 @@ import { CloudDownload } from '@material-ui/icons'
 
 export default class Picture extends Component {
 
-  myDown = () => {
-    var img = this.props.tile.image_data
-    var url = img.replace(/^data:image\/[^;]+/, 'data:application/octet-stream');
-    window.open(url);
-  }
+
 
 
   render() {
@@ -23,7 +19,10 @@ export default class Picture extends Component {
   subtitle={<span>by: {this.props.tile.format}</span>}
   actionIcon={
     <IconButton color='primary'>
-      <CloudDownload />
+      <a className='link' href={this.props.tile.image_data} download={this.props.tile.image_id + '.jpeg'}>
+      <CloudDownload fill='primary' />
+      </a>
+
     </IconButton>
   }
 />
