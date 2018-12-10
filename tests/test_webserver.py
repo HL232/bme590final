@@ -125,12 +125,11 @@ def test_post_upload_image(flask_app, image_upload):
     client = flask_app.test_client()
     image_upload["user_id"] = random_id()
     resp = client.post('/api/process/upload_image', json=image_upload)
-    print(resp)
     image = resp.json[0]
     db_image = b64str_to_numpy(image["image_data"])
     user = db.find_user(image["user_id"])
     assert _check_image(db_image) and \
-           user.current_image == image["image_id"]
+        user.current_image == image["image_id"]
 
 
 def test_post_change_image(flask_app, image_upload):
@@ -149,7 +148,7 @@ def test_post_change_image(flask_app, image_upload):
     db_image = b64str_to_numpy(image["image_data"])
     user = db.find_user(image["user_id"])
     assert _check_image(db_image) and \
-           user.current_image == image["image_id"]
+        user.current_image == image["image_id"]
 
 
 def test_post_hist_eq(flask_app, image_upload):
@@ -387,7 +386,6 @@ def test_get_updated_uploads(flask_app, image_upload):
     resp = client.get(
         '/api/user/get_updated_uploads/{}'.format(user_id))
     images = resp.json
-    print(original_id, blurred_id, images[0]["image_id"])
     assert len(images) == 1 and images[0]["image_id"] == blurred_id
 
 

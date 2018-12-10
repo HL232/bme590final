@@ -139,10 +139,11 @@ def get_upload_filenames(user_id):
         dict: image names associated with root image.
     """
     if not user_id:
-        return error_handler(400, "Must have include user_id.", "AttributeError")
+        return error_handler(400,
+                             "Must have include user_id.",
+                             "AttributeError")
     user = db.find_user(user_id)
     names = {}
-    print(user.uploads)
     for image_id in user.uploads.keys():
         image = db.find_image(image_id, user_id)
         names[image_id] = image.filename
@@ -227,7 +228,9 @@ def post_upload_image():
         upload["image_id"] = random_id()
         upload["process"] = "upload"
         upload["processing_time"] = -1
-        upload["format"] = "None"
+        upload["format"] = _get_b64_format(upload["image_data"])
+        if "None" in upload["format"]:  # last ditch effort.
+            upload["format"] = _determine_format(upload["filename"])
         image = db.add_image(upload["user_id"], upload)
         uploaded_images.append(db.image_to_json(image))
 
@@ -313,6 +316,7 @@ def post_get_images():
 
     return jsonify(ret_images)
 
+
 def _link_new_image(current_image):
     """
     Makes associated links.
@@ -325,6 +329,7 @@ def _link_new_image(current_image):
     new_image = db.image_to_json(current_image)
     new_image["user_id"] = current_image.user_id
     new_image["parent_id"] = current_image.image_id
+    new_image["format"] = current_image.format
     new_image["image_id"] = random_id()
     return new_image
 
@@ -342,8 +347,29 @@ def _populate_image_meta(new_image, image_data):
     """
     new_image["width"] = image_data.shape[0]
     new_image["height"] = image_data.shape[1]
-    new_image["format"] = "None"
     return new_image
+
+
+def _determine_format(format_string: str):
+    """
+    Determines file format from a string. Could be header/ext.
+    Args:
+        format_string: Header or file extension.
+
+    Returns:
+        str: Type of the image.
+    """
+    formats = ["PNG",
+               "TIF", "TIFF",
+               "JPG", "JPEG"]
+    for format in formats:
+        if format in format_string.upper():
+            if "JPEG" in format_string.upper():
+                return "JPG"
+            if "TIF" in format_string.upper():
+                return "TIFF"
+            return format
+    return "None"
 
 
 @app.route("/api/process/hist_eq", methods=["POST"])
@@ -365,7 +391,8 @@ def post_hist_eq():
     image_data, new_image["processing_time"] = \
         Processing(b64str_to_numpy(current_image.image_data)).hist_eq()
     new_image = _populate_image_meta(new_image, image_data)
-    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["image_data"] = numpy_to_b64str(image_data,
+                                              format=new_image["format"])
     new_image["process"] = "hist_eq"
     return jsonify(new_image)
 
@@ -393,7 +420,8 @@ def post_image_contrast_stretch():
         Processing(b64str_to_numpy(current_image.image_data)
                    ).contrast_stretch(percentile)
     new_image = _populate_image_meta(new_image, image_data)
-    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["image_data"] = numpy_to_b64str(image_data,
+                                              format=new_image["format"])
     new_image["process"] = "contrast_stretch"
     return jsonify(new_image)
 
@@ -417,7 +445,8 @@ def post_image_log_compression():
     image_data, new_image["processing_time"] = \
         Processing(b64str_to_numpy(current_image.image_data)).log_compression()
     new_image = _populate_image_meta(new_image, image_data)
-    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["image_data"] = numpy_to_b64str(image_data,
+                                              format=new_image["format"])
     new_image["process"] = "log_compression"
     return jsonify(new_image)
 
@@ -442,7 +471,8 @@ def post_image_rev_video():
         Processing(b64str_to_numpy(current_image.image_data)).reverse_video()
     new_image = _populate_image_meta(new_image, image_data)
     # maybe something e lse
-    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["image_data"] = numpy_to_b64str(image_data,
+                                              format=new_image["format"])
     new_image["process"] = "reverse_video"
     return jsonify(new_image)
 
@@ -466,7 +496,8 @@ def post_image_sharpen():
     image_data, new_image["processing_time"] = \
         Processing(b64str_to_numpy(current_image.image_data)).sharpen()
     new_image = _populate_image_meta(new_image, image_data)
-    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["image_data"] = numpy_to_b64str(image_data,
+                                              format=new_image["format"])
     new_image["process"] = "sharpen"
     return jsonify(new_image)
 
@@ -491,7 +522,8 @@ def post_image_blur():
     image_data, new_image["processing_time"] = \
         Processing(b64str_to_numpy(current_image.image_data)).blur(sigma)
     new_image = _populate_image_meta(new_image, image_data)
-    new_image["image_data"] = numpy_to_b64str(image_data)
+    new_image["image_data"] = numpy_to_b64str(image_data,
+                                              format=new_image["format"])
     new_image["process"] = "blur"
     return jsonify(new_image)
 
@@ -506,18 +538,25 @@ def b64str_to_numpy(b64_img):
         np.ndarray: numpy array of image.
 
     """
-    split = b64_img.split("base64,")  # get rid of header
-    if len(split) == 2:
-        b64_img = split[1]
-    else:
-        b64_img = split[0]
+    b64_image, _ = _get_b64_format(b64_img)
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
     np_img = imageio.imread(image_buf, format="JPG")
     return np_img
 
 
-def numpy_to_b64str(img):
+def _get_b64_format(b64_img):
+    split = b64_img.split("base64,")  # get rid of header
+    image_format = "None"
+    if len(split) == 2:
+        b64_img = split[1]
+        image_format = _determine_format(split[0])
+    else:
+        b64_img = split[0]
+    return b64_img, image_format
+
+
+def numpy_to_b64str(img, format="JPG"):
     """
     Converts a numpy array into a base 64 string
     Args:
@@ -527,11 +566,21 @@ def numpy_to_b64str(img):
         str: base 64 representation of the numpy array/image.
 
     """
-    img = img[..., ::-1]  # flip for cv conversion
+    if _should_reverse_image(format):
+        # flip for cv conversion, only some file formats
+        img = img[..., ::-1]
     _, img = cv2.imencode('.jpg', img)  # strips header
     image_base64 = base64.b64encode(img)
     base64_string = image_base64.decode('utf-8')  # convert to string
     return base64_string
+
+
+def _should_reverse_image(format):
+    should_reverse = ["JPG"]
+    if format in should_reverse:
+        return True
+    else:
+        return False
 
 
 def error_handler(status_code, msg, error_type):
