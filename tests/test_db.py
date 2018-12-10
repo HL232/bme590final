@@ -175,6 +175,14 @@ def test_update_user(database_obj):
     assert db_user.uploads["ID1"] == "ID2"
 
 
+def test_update_user_process(database_obj):
+    user_id = random_id()
+    database_obj.add_user(user_id)
+    database_obj.update_user_process(user_id, "hist_eq")
+    db_user = database_obj.find_user(user_id)
+    assert db_user.process_count["hist_eq"] == 1
+
+
 def test_remove_image(database_obj, image_info):
     user_id = random_id()
     u_image = image_info

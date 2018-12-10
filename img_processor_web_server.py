@@ -394,6 +394,7 @@ def post_hist_eq():
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
     new_image["process"] = "hist_eq"
+    db.update_user_process(content["user_id"], new_image["process"])
     return jsonify(new_image)
 
 
@@ -423,6 +424,7 @@ def post_image_contrast_stretch():
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
     new_image["process"] = "contrast_stretch"
+    db.update_user_process(content["user_id"], new_image["process"])
     return jsonify(new_image)
 
 
@@ -448,6 +450,7 @@ def post_image_log_compression():
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
     new_image["process"] = "log_compression"
+    db.update_user_process(content["user_id"], new_image["process"])
     return jsonify(new_image)
 
 
@@ -474,6 +477,7 @@ def post_image_rev_video():
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
     new_image["process"] = "reverse_video"
+    db.update_user_process(content["user_id"], new_image["process"])
     return jsonify(new_image)
 
 
@@ -499,6 +503,7 @@ def post_image_sharpen():
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
     new_image["process"] = "sharpen"
+    db.update_user_process(content["user_id"], new_image["process"])
     return jsonify(new_image)
 
 
@@ -525,6 +530,7 @@ def post_image_blur():
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
     new_image["process"] = "blur"
+    db.update_user_process(content["user_id"], new_image["process"])
     return jsonify(new_image)
 
 
