@@ -6,7 +6,7 @@ export default class EnhanceEditor extends Component {
 
   state = {
     beforeIM: '',
-    afterIM: '',
+    afterIM: [],
     enhtype: 1,
 
   }
@@ -18,7 +18,7 @@ beforeSelector = () => {
     this.setState({afterIM: this.props.tile})
   }
   else {
-
+    console.log(this.state.afterIM)
   }
 }
 
@@ -28,11 +28,12 @@ afterSelector = () => {
 
   }
   else if (enhtype === 1) {
-    axios.post('http://127.0.0.1:5000/api/process/hist_eq', {
-      user_id:'myID'
-    })
+
+    axios.get('http://127.0.0.1:5000/api/process/hist_eq/myID')
  	 .then(res => {
- 	 	this.setState({afterIM: res.data})
+     var myAr = []
+     myAr.push(res.data)
+     this.setState({afterIM: myAr})
  	 })
  	 .catch(function (error) {
   console.log(error);
@@ -64,7 +65,7 @@ afterSelector = () => {
       ||
       VV
       After:
-      <img src={this.state.afterIM.image_data} />
+      <img src={"data:image/jpeg;" + this.state.afterIM.image_data} />
 
 
       </div>
