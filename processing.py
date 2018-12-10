@@ -7,18 +7,27 @@ from skimage.io import imread
 import cv2
 import os
 
-# This converts 3D RBG to 2D grayscale
-# image_gray = skimage.color.rgb2grey(self.image)
-# This converts 3D RBG to 2D grayscale
-# output_as_rgb = skimage.color.gray2rgb(img_array)
-
 
 def output_to_rgb(img_array: np.array):
+    """
+    Converts the image array to RGB
+    Args:
+        img_array: A numpy array representing the image
+    Returns:
+        output_as_rgb: the image represented as a RGB image
+    """
     output_as_rgb = skimage.color.gray2rgb(img_array)
     return output_as_rgb
 
 
 def output_0_to_255_as_int(img_array: np.array):
+    """
+    Converts the image array integers in range 0-255
+    Args:
+        img_array: A numpy array representing the image
+    Returns:
+        output_as_in: the image array as integer 0-255
+    """
     output_as_0_255 = exposure.rescale_intensity(
         img_array, out_range=(0, 255))
     output_as_int = output_as_0_255.astype(int)
@@ -27,7 +36,7 @@ def output_0_to_255_as_int(img_array: np.array):
 
 def _check_grayscale(image):
         """
-        Checks if the input image is grayscale.
+        Checks if the input image is grayscale OUTSIDE Processing class.
         Returns:
             GRAY: If the image is grayscale
             COLOR: if the image is color
@@ -43,10 +52,21 @@ def _check_grayscale(image):
 
 
 class Benchmark(object):
+    """
+    Benchmark class used to document time it takes to process images
+    """
     def __init__(self):
+        """
+        Initializes the benchmark class with the start time
+        """
         self.start_time = datetime.datetime.now()
 
     def stop(self):
+        """
+        Determines the stop time of when the process finished
+        Returns:
+            Time in milliseconds the process ran for
+        """
         delta = datetime.datetime.now() - self.start_time
         return int(delta.total_seconds() * 1000)  # milliseconds
 
@@ -59,6 +79,12 @@ class Processing(object):
     """
 
     def __init__(self, image):
+        """
+        Initializes the Processing class with an image.
+        If the image is color, the array is unchanged
+        If the image is grayscale, the image is converted to
+        2D grayscale array
+        """
         if _check_grayscale(image) == 'COLOR':
             self.image = image
         if _check_grayscale(image) == 'GRAY':
@@ -130,9 +156,8 @@ class Processing(object):
         Only works for grayscale images
         Returns:
             Numpy.Array representation of reversed image
+            ValueError if the user inputs a color image
         """
-        # TODO: Please check inputs here!
-
         b = Benchmark()
         if self._check_grayscale() == 'GRAY':
             image_reverse = util.invert(self.image)
@@ -190,7 +215,7 @@ class Processing(object):
         if self._check_grayscale() == 'COLOR':
             image = np.uint8(image)
             color = ('r', 'g', 'b')
-            max_pixel = 0;
+            max_pixel = 0
             for i, col in enumerate(color):
                 histr = cv2.calcHist([image], [i], None, [256], [0, 255])
                 plt.plot(histr, color=col)
@@ -203,7 +228,7 @@ class Processing(object):
             plt.savefig("./temp.png")
             plt.close()
             hist_np_array = imread('temp.png')
-            # os.remove("temp.png")
+            os.remove("temp.png")
             hist_np_array_output = output_0_to_255_as_int(output_to_rgb(hist_np_array))
             return hist_np_array_output
 
@@ -213,7 +238,6 @@ class Processing(object):
         Returns:
             bool: If the image is valid.
         """
-        # Image input should be an ARRAY.
         if type(self.image) != np.ndarray:
             raise TypeError("Image is not a numpy array")
         return True
@@ -224,18 +248,17 @@ class Processing(object):
         Returns:
             bool: If the image is valid.
         """
-        # Image array should be grayscale or color (length = 2 or 3)
         if len(self.image.shape) != 2 and len(self.image.shape) != 3:
             raise ValueError("Dimensions of input array incorrect")
         return True
 
     def _check_grayscale(self):
         """
-        Checks if the input image is grayscale.
+        Checks if the input image is grayscale WITHIN Processing class.
         Returns:
-            bool: True if the image is grayscale.
+            GRAY: If the image is grayscale
+            COLOR: if the image is color
         """
-        # Image array length should not be 3 (color).
         if len(self.image.shape) == 2:
             return 'GRAY'
         if len(self.image.shape) == 3:
