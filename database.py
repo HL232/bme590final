@@ -95,8 +95,7 @@ class ImageProcessingDB(object):
                   description=description
                   )
         db_image = i.save()
-
-        return self.image_to_json(db_image)
+        return db_image
 
     def get_current_image_id(self, user_id):
         """

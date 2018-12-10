@@ -19,6 +19,8 @@ db = ImageProcessingDB()
 
 # ---------- get stuff ----------
 # ---------- get image stuff ----------
+
+
 @app.route("/api/image/get_current_image/<user_id>", methods=["GET"])
 def get_current_image(user_id):
     """
@@ -85,6 +87,7 @@ def get_user(user_id):
     if not user_id:
         return error_handler(400, "Must have include id.", "AttributeError")
     user = db.find_user(user_id)
+    user = db.user_to_json(user)
     return jsonify(user)
 
 
@@ -136,11 +139,13 @@ def get_upload_filenames(user_id):
         dict: image names associated with root image.
     """
     if not user_id:
-        return error_handler(400, "Must have include id.", "AttributeError")
+        return error_handler(400, "Must have include user_id.", "AttributeError")
     user = db.find_user(user_id)
     names = {}
-    for image in user.uploads.keys():
-        names[image.id] = image.name
+    print(user.uploads)
+    for image_id in user.uploads.keys():
+        image = db.find_image(image_id, user_id)
+        names[image_id] = image.filename
     return jsonify(names)
 
 
@@ -175,7 +180,7 @@ def get_updated_uploads(user_id):
     """
     if not user_id:
         return error_handler(400, "Must have include id.", "AttributeError")
-    updated_uploads = db.get_all_original_images(user_id)
+    updated_uploads = db.get_all_updated_images(user_id)
     updated_json = []
     for upload in updated_uploads:
         updated_json.append(db.image_to_json(upload))
@@ -189,6 +194,7 @@ def post_upload_image():
     """
     Uploads a NEW image into the database to process.
     Args:
+        filename: the name of the file.
         user_id: ID of the current user.
         image_data: base64 representation of image.
     Returns:
@@ -197,6 +203,8 @@ def post_upload_image():
     content = request.get_json()
     if not content:
         return error_handler(400, "Insufficient post.", "ValueError")
+    if type(content) != list and type(content) != dict:
+        return error_handler(400, "must by either dict or list of dicts")
     if "image_data" not in content.keys():
         return error_handler(400, "must include image_data", "AttributeError")
     if "user_id" not in content.keys():
@@ -208,16 +216,45 @@ def post_upload_image():
     if type(content["filename"]) != str:
         return error_handler(400, "filename must be type str", "TypeError")
 
-    image = b64str_to_numpy(content["image_data"])
-    content["width"] = image.shape[0]
-    content["height"] = image.shape[1]
-    content["image_id"] = random_id()
-    content["process"] = "upload"
-    content["processing_time"] = -1
-    content["format"] = "None"
+    if type(content) == dict:
+        content = [content]
 
-    image = db.add_image(content["user_id"], content)
-    return jsonify(image)  # with included ID
+    uploaded_images = []
+    for upload in content:
+        image = b64str_to_numpy(upload["image_data"])
+        upload["width"] = image.shape[0]
+        upload["height"] = image.shape[1]
+        upload["image_id"] = random_id()
+        upload["process"] = "upload"
+        upload["processing_time"] = -1
+        upload["format"] = "None"
+        image = db.add_image(upload["user_id"], upload)
+        uploaded_images.append(db.image_to_json(image))
+
+    return jsonify(uploaded_images)  # with included ID
+
+
+@app.route("/api/process/change_image", methods=["POST"])
+def post_change_image():
+    """
+    Changes the user's current image
+    Args:
+        user_id: user id.
+        image_id: new image id to change to.
+    Returns:
+        dict: Image that as associated with user.
+    """
+    content = request.get_json()
+    if "user_id" not in content.keys():
+        error_handler(400, "needs user_id", "AttributeError")
+    if "image_id" not in content.keys():
+        error_handler(400, "needs image_id", "AttributeError")
+
+    # must contain image_data, user_id
+    db.update_user_current(content["user_id"], content["image_id"])
+    image = db.find_image(content["user_id"], content["image_id"])
+    image = db.image_to_json(image)
+    return jsonify(image)
 
 
 @app.route("/api/process/confirm", methods=["POST"])
@@ -232,6 +269,7 @@ def post_confirm_image():
         return error_handler(400, "Insufficient Inputs", "AttributeError")
     # must contain image_data, user_id
     added_image = db.add_image(content["user_id"], content)
+    added_image = db.image_to_json(added_image)
     return jsonify(added_image)
 
 
@@ -251,6 +289,29 @@ def _verify_confirm_image(image):
         return True
     return False
 
+
+@app.route("/api/image/get_images/", methods=["POST"])
+def post_get_images():
+    """
+    Obtains images from database based on ID.
+    Args:
+        image_ids: as a list of images to get.
+        user_id: user associated with this images.
+    Returns:
+        list: all images.
+    """
+    content = request.get_json()
+    user_id = content["user_id"]
+    ret_images = []
+    if type(content["image_ids"]) != list:
+        content["iamge_ids"] = [content["iamge_ids"]]
+
+    get_images = content["image_ids"]
+    for image_id in get_images:
+        image = db.find_image(image_id, user_id)
+        ret_images.append(db.image_to_json(image))
+
+    return jsonify(ret_images)
 
 def _link_new_image(current_image):
     """
@@ -433,17 +494,6 @@ def post_image_blur():
     new_image["image_data"] = numpy_to_b64str(image_data)
     new_image["process"] = "blur"
     return jsonify(new_image)
-
-
-@app.route("/api/image/search_image", methods=["POST"])
-def post_search_image():
-    """
-    Looks for an image that the user uploaded. Filters can be included.
-    Returns:
-        object:
-    """
-    # TODO: Still not implemented in database!
-    pass
 
 
 def b64str_to_numpy(b64_img):
