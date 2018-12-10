@@ -1,79 +1,98 @@
 import pytest
-from processing import Processing
-import matplotlib.pyplot as plt
-from skimage.io import imread
+from processing import *
 import numpy as np
+import imageio
+from time import sleep
 
 
-# Manually testing processing.py
-
-
-def plot(image_array, title):
-    plt.imshow(image_array, cmap=plt.cm.gray)
-    plt.title(title)
-    plt.axis('off')
-    plt.show()
-    return
-
+dog_source = 'https://thumbs.dreamstime.com/b' \
+             '/grayscale-photography-short-coated-dog-83077538.jpg'
+dog_gray = imageio.imread(dog_source, format="JPG")
 
 dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
           'sites/default/files/legacy/images/' \
           'resource-centre/IFAW%20Northern%20Dog.JPG'
-dog_image = imread(dog_source, as_gray=True)
-plot(dog_image, 'Normal, Grayscale Image')
+dog_color = imageio.imread(dog_source, format="JPG")
 
-P = Processing(dog_image)
 
-plot(P.hist_eq()[0], 'Hist Equalization')
-plot(P.contrast_stretch()[0], 'Contrast Streching Default')
-plot(P.contrast_stretch((50, 75))[0], 'Contrast Streching (dif numbers)')
-plot(P.log_compression()[0], 'Log Compression Default')
-plot(P.log_compression(100)[0], 'Log Compression Log=100')
-plot(P.reverse_video()[0], 'Reverse Video')
-plot(P.blur()[0], 'Blur default')
-plot(P.blur(10)[0], 'Blur Sigma = 10')
-plot(P.sharpen()[0], 'Sharpen')
-plot(P.histogram_gray(), 'Histogram of original')
+def test_output_to_rgb():
+    a = imageio.core.util.Array(np.zeros((2, 3)))
+    assert np.array_equal(output_to_rgb(a), np.zeros((2, 3, 3)))
 
-'''
+
+def test_output_0_to_255_as_int():
+    a = np.array(
+        [[[0.,  1.],
+            [0.,  0.],
+            [0.5,  0.]],
+            [[.2,  0.],
+             [0.,  0.7],
+             [1.,  0.]]])
+    b = np.array(
+        [[[0, 255],
+          [0, 0],
+          [127, 0]],
+         [[51, 0],
+          [0, 178],
+          [255, 0]]])
+    assert np.array_equal(output_0_to_255_as_int(a), b)
+
+
+def test_stop():
+    b = Benchmark()
+    sleep(0.1)
+    stop_time = b.stop()
+    assert 100 <= stop_time < 120
+
+
+# def test_hist_eq():
+
+
+
+@pytest.mark.parametrize("candidate, expected", [
+    (dog_gray, 'GRAY'),
+    (dog_color, 'COLOR')
+])
+def test_check_grayscale(candidate, expected):
+    assert check_grayscale(candidate) == expected
+
+
 @pytest.mark.parametrize("candidate", [
-    Processing('blah'),
-    Processing(3),
-    Processing(2.4),
-    Processing([1, 2, 3]),
-    Processing((1, 3)),
-    Processing(np.array([2, 3, 1, 0]))
+    'blah',                                               
+    3,
+    2.4,
+    [1, 2, 3],
+    (1, 3),
+    np.array([2, 3, 1, 0]),
+    imageio.core.util.Array(np.array([2, 3, 1, 0]))
 ])
 def test_check_image_type(candidate):
+    p = Processing(dog_gray)
     try:
-        assert candidate._check_image_type()
+        assert p._check_image_type(candidate)
     except TypeError:
         with pytest.raises(TypeError):
-            candidate._check_image_type()
+            p._check_image_type(candidate)
 
 
 @pytest.mark.parametrize("candidate", [
-    Processing(np.array([2, 3, 1, 0])),
-    Processing(np.zeros((2, 3))),
-    Processing(np.zeros((2, 3, 4))),
-    Processing(np.zeros((2, 3, 4, 5)))
+    imageio.core.util.Array(np.array([2, 3, 1, 0])),
+    imageio.core.util.Array(np.zeros((2, 3))),
+    imageio.core.util.Array(np.zeros((2, 3, 4))),
+    imageio.core.util.Array(np.zeros((2, 3, 4, 5)))
 ])
 def test_check_image_shape(candidate):
+    p = Processing(dog_gray)
     try:
-        assert candidate._check_image_shape()
+        assert p._check_image_shape(candidate)
     except ValueError:
         with pytest.raises(ValueError):
-            candidate._check_image_shape()
+            p._check_image_shape(candidate)
 
 
-@pytest.mark.parametrize("candidate", [
-    Processing(imread(dog_source, as_gray=False)),
-    Processing(dog_image)
+@pytest.mark.parametrize("candidate, expected", [
+    (Processing(dog_gray), 'GRAY'),
+    (Processing(dog_color), 'COLOR')
 ])
-def test_check_grayscale(candidate):
-    try:
-        assert candidate._check_grayscale()
-    except custom_errors.GrayscaleError:
-        with pytest.raises(custom_errors.GrayscaleError):
-            candidate._check_grayscale()
-'''
+def test__check_grayscale(candidate, expected):
+        assert candidate._check_grayscale() == expected

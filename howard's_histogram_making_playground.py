@@ -1,7 +1,6 @@
 from processing import Processing
 import matplotlib.pyplot as plt
 import imageio
-import numpy as np
 
 # Manually testing processing.py
 

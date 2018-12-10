@@ -34,7 +34,7 @@ def output_0_to_255_as_int(img_array: np.array):
     return output_as_int
 
 
-def _check_grayscale(image):
+def check_grayscale(image):
         """
         Checks if the input image is grayscale OUTSIDE Processing class.
         Returns:
@@ -87,9 +87,9 @@ class Processing(object):
         """
         self._check_image_type(image)
         self._check_image_shape(image)
-        if _check_grayscale(image) == 'COLOR':
+        if check_grayscale(image) == 'COLOR':
             self.image = image
-        if _check_grayscale(image) == 'GRAY':
+        if check_grayscale(image) == 'GRAY':
             self.image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
     def hist_eq(self):
