@@ -176,11 +176,11 @@ class Processing(object):
             Numpy.Array representation of histogram of image
         """
         if self._check_grayscale() == 'GRAY':
-            plt.hist(image.ravel(), 256, [0, 256], color='black')
-            plt.xlabel('Pixel Intensity')
+            histr = plt.hist(image.ravel(), 256, [0, 256], color='black')
+            ('Pixel Intensity')
             plt.ylabel('Number of Pixels')
-            plt.xlim(0, 256)
-            plt.ylim([0, 75000])
+            plt.xlim(-10, 270)
+            plt.ylim([0, max(histr[0])+5000])
             plt.savefig("./temp.png")
             plt.close()
             hist_np_array = imread('temp.png')
@@ -188,15 +188,19 @@ class Processing(object):
             hist_np_array_output = output_0_to_255_as_int(output_to_rgb(hist_np_array))
             return hist_np_array_output
         if self._check_grayscale() == 'COLOR':
+            image = np.uint8(image)
             color = ('r', 'g', 'b')
+            max_pixel = 0;
             for i, col in enumerate(color):
                 histr = cv2.calcHist([image], [i], None, [256], [0, 255])
                 plt.plot(histr, color=col)
-                plt.xlabel('Pixel Intensity')
-                plt.ylabel('Number of Pixels')
-                plt.xlim([0, 256])
-                plt.ylim([0, 75000])
-                plt.savefig("./temp.png")
+                if max(histr) > max_pixel:
+                    max_pixel = max(histr)
+            plt.xlabel('Pixel Intensity')
+            plt.ylabel('Number of Pixels')
+            plt.xlim([-10, 270])
+            plt.ylim([0, max(max_pixel)+5000])
+            plt.savefig("./temp.png")
             plt.close()
             hist_np_array = imread('temp.png')
             # os.remove("temp.png")

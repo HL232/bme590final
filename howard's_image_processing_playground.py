@@ -31,7 +31,7 @@ contrast_stretch_image = P.contrast_stretch()[0]
 
 plot(contrast_stretch_image, 'Contrast Stretch Default')
 
-contrast_stretch_image = P.contrast_stretch((35,65))[0]
+contrast_stretch_image = P.contrast_stretch((35, 65))[0]
 
 plot(contrast_stretch_image, 'Contrast Stretch Different')
 
@@ -65,7 +65,7 @@ contrast_stretch_image = P.contrast_stretch()[0]
 
 plot(contrast_stretch_image, 'Contrast Stretch Default')
 
-contrast_stretch_image = P.contrast_stretch((35,65))[0]
+contrast_stretch_image = P.contrast_stretch((35, 65))[0]
 
 plot(contrast_stretch_image, 'Contrast Stretch Different')
 
