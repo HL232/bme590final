@@ -159,7 +159,9 @@ def test_post_hist_eq(flask_app, image_upload):
                        json={"email": image_upload["email"]})
 
     db_image = b64str_to_numpy(resp.json["image_data"])
-    assert _check_image(db_image)
+    user = db.find_user(image_upload["email"])
+    assert _check_image(db_image) and \
+        user.process_count["hist_eq"] == 1
 
 
 def test_post_image_contrast_stretch(flask_app, image_upload):
@@ -170,18 +172,22 @@ def test_post_image_contrast_stretch(flask_app, image_upload):
                        json={"email": image_upload["email"]})
 
     db_image = b64str_to_numpy(resp.json["image_data"])
-    assert _check_image(db_image)
+    user = db.find_user(image_upload["email"])
+    assert _check_image(db_image) and \
+        user.process_count["contrast_stretch"] == 1
 
 
 def test_post_image_log_compression(flask_app, image_upload):
     client = flask_app.test_client()
     image_upload["email"] = random_id()
     client.post('/api/process/upload_image', json=image_upload)
-    resp = client.post('/api/process/sharpen',
+    resp = client.post('/api/process/log_compression',
                        json={"email": image_upload["email"]})
 
     db_image = b64str_to_numpy(resp.json["image_data"])
-    assert _check_image(db_image)
+    user = db.find_user(image_upload["email"])
+    assert _check_image(db_image) and \
+        user.process_count["log_compression"] == 1
 
 
 def test_post_image_reverse_video(flask_app, image_upload):
@@ -192,7 +198,9 @@ def test_post_image_reverse_video(flask_app, image_upload):
                        json={"email": image_upload["email"]})
 
     db_image = b64str_to_numpy(resp.json["image_data"])
-    assert _check_image(db_image)
+    user = db.find_user(image_upload["email"])
+    assert _check_image(db_image) and \
+        user.process_count["reverse_video"] == 1
 
 
 def test_post_image_sharpen(flask_app, image_upload):
@@ -203,7 +211,9 @@ def test_post_image_sharpen(flask_app, image_upload):
                        json={"email": image_upload["email"]})
 
     db_image = b64str_to_numpy(resp.json["image_data"])
-    assert _check_image(db_image)
+    user = db.find_user(image_upload["email"])
+    assert _check_image(db_image) and \
+        user.process_count["sharpen"] == 1
 
 
 def test_post_image_blur(flask_app, image_upload):
@@ -214,7 +224,9 @@ def test_post_image_blur(flask_app, image_upload):
                        json={"email": image_upload["email"]})
 
     db_image = b64str_to_numpy(resp.json["image_data"])
-    assert _check_image(db_image)
+    user = db.find_user(image_upload["email"])
+    assert _check_image(db_image) and \
+        user.process_count["blur"] == 1
 
 
 def test_post_email_image(flask_app, image_upload):
