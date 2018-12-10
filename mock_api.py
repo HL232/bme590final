@@ -46,6 +46,33 @@ def error_catcher(json_resp: dict):
     return json_resp
 
 
+def numpy_to_b64str(img, format="JPG"):
+    """
+    Converts a numpy array into a base 64 string
+    Args:
+        img (np.array):
+
+    Returns:
+        str: base 64 representation of the numpy array/image.
+
+    """
+    if _should_reverse_image(format):
+        # flip for cv conversion, only some file formats
+        img = img[..., ::-1]
+    _, img = cv2.imencode('.jpg', img)  # strips header
+    image_base64 = base64.b64encode(img)
+    base64_string = image_base64.decode('utf-8')  # convert to string
+    return base64_string
+
+
+def _should_reverse_image(format):
+    should_reverse = ["JPG"]
+    if format in should_reverse:
+        return True
+    else:
+        return False
+
+
 def b64str_to_numpy(b64_img):
     """
     Converts a b64str to numpy. Strips headers.
@@ -56,32 +83,44 @@ def b64str_to_numpy(b64_img):
         np.ndarray: numpy array of image.
 
     """
-    split = b64_img.split("base64,")  # get rid of header
-    if len(split) == 2:
-        b64_img = split[1]
-    else:
-        b64_img = split[0]
+    b64_image, _ = _get_b64_format(b64_img)
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
     np_img = imageio.imread(image_buf, format="JPG")
     return np_img
 
 
-def numpy_to_b64str(img):
+def _get_b64_format(b64_img):
+    split = b64_img.split("base64,")  # get rid of header
+    image_format = None
+    if len(split) == 2:
+        b64_img = split[1]
+        image_format = _determine_format(split[0])
+    else:
+        b64_img = split[0]
+    return b64_img, image_format
+
+
+def _determine_format(format_string: str):
     """
-    Converts a numpy array into a base 64 string
+    Determines file format from a string. Could be header/ext.
     Args:
-        img (np.array):
+        format_string: Header or file extension.
 
     Returns:
-        str: base 64 representation of the numpy array/image.
-
+        str: Type of the image.
     """
-    img = img[..., ::-1]  # flip for cv conversion
-    _, img = cv2.imencode('.jpg', img)  # strips header
-    image_base64 = base64.b64encode(img)
-    base64_string = image_base64.decode('utf-8')  # convert to string
-    return base64_string
+    formats = ["PNG",
+               "TIF", "TIFF",
+               "JPG", "JPEG"]
+    for format in formats:
+        if format in format_string.upper():
+            if "JPEG" in format_string.upper():
+                return "JPG"
+            if "TIF" in format_string.upper():
+                return "TIFF"
+            return format
+    return "None"
 
 
 def view_image(image):
@@ -91,18 +130,23 @@ def view_image(image):
 
 user_id = "test"
 dog_source = 'https://i.imgur.com/B15ubOP.jpg'
+# dog_source = "https://i.imgur.com/2gX8HVS.png"
+# dog_source = "MARBIBM.TIF"
 dog_image = imageio.imread(dog_source)
 # print("Original", dog_image.shape, dog_image[0][0])
+view_image(dog_image)
 
+image_format = _determine_format(dog_source)
 image_obj = {
     "user_id": user_id,
-    "image_data": numpy_to_b64str(dog_image)
+    "image_data": numpy_to_b64str(dog_image, format=image_format),
+    "filename": dog_source
 }
 
 resp = requests.post("http://127.0.0.1:5000/api/process/upload_image",
                      json=image_obj)
 content = byte_2_json(resp)
-view_image(b64str_to_numpy(content["image_data"]))
+view_image(b64str_to_numpy(content[0]["image_data"]))
 
 # blur
 image_obj_2 = {"user_id": user_id}

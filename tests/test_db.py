@@ -16,6 +16,7 @@ def database_obj():
 @pytest.fixture()
 def image_info():
     image_i = {
+        "filename": "test_name",
         "image_id": "0",
         "image_data": "test",
         "height": 100,
@@ -33,6 +34,7 @@ def test_add_image(database_obj, image_info):
     u_image["user_id"] = user_id
     u_image["image_id"] = random_id()
     image = database_obj.add_image(user_id, image_info)
+    image = database_obj.image_to_json(image)
     assert image["image_data"] == "test"
 
 
