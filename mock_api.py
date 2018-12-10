@@ -128,17 +128,16 @@ def view_image(image):
     plt.show()
 
 
-user_id = "test"
+email = "dukebme590.imageprocessor@gmail.com"
 dog_source = 'https://i.imgur.com/B15ubOP.jpg'
 # dog_source = "https://i.imgur.com/2gX8HVS.png"
 # dog_source = "MARBIBM.TIF"
 dog_image = imageio.imread(dog_source)
 # print("Original", dog_image.shape, dog_image[0][0])
-view_image(dog_image)
 
 image_format = _determine_format(dog_source)
 image_obj = {
-    "user_id": user_id,
+    "email": email,
     "image_data": numpy_to_b64str(dog_image, format=image_format),
     "filename": dog_source
 }
@@ -146,14 +145,19 @@ image_obj = {
 resp = requests.post("http://127.0.0.1:5000/api/process/upload_image",
                      json=image_obj)
 content = byte_2_json(resp)
-view_image(b64str_to_numpy(content[0]["image_data"]))
+# view_image(b64str_to_numpy(content[0]["image_data"]))
 
 # blur
-image_obj_2 = {"user_id": user_id}
+image_obj_2 = {"email": email}
 resp = requests.post("http://127.0.0.1:5000/api/process/blur",
                      json=image_obj)
 content = byte_2_json(resp)
-view_image(b64str_to_numpy(content["image_data"]))
+# view_image(b64str_to_numpy(content["image_data"]))
+
+# send_image
+send_obj = {"email": email, "image_id": content["image_id"]}
+requests.post("http://127.0.0.1:5000/api/process/email_image",
+              json=send_obj)
 
 """
 # attempt to confirm
@@ -161,16 +165,18 @@ resp = requests.post("http://127.0.0.1:5000/api/process/confirm", json=content)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))"""
 
+"""
 # should use the blurred image
-image_obj_3 = {"user_id": user_id}
+image_obj_3 = {"email": email}
 resp = requests.post("http://127.0.0.1:5000/api/process/sharpen",
                      json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 
 # should use the non-sharpened blurred image, since not confirmed.
-image_obj_5 = {"user_id": user_id}
+image_obj_5 = {"email": email}
 resp = requests.post("http://127.0.0.1:5000/api/process/contrast_stretch",
                      json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
+"""
