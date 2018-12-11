@@ -49,6 +49,7 @@ def test_stop():
     stop_time = b.stop()
     assert 100 <= stop_time < 120
 
+
 @pytest.mark.parametrize("file_name, which_dog", [
     ('./images_for_testing/gray_hist_eq.jpg', dog_gray),
     ('./images_for_testing/color_hist_eq.jpg', dog_color),

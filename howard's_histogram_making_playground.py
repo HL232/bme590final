@@ -31,7 +31,7 @@ plot(hist_image, 'Hist Equalization')
 plot(P.histogram(hist_image), 'Histogram Hist Eq.')
 print('Gray Hist Eq. Process time: ' + str(time) + ' ms')
 
-contrast_stretch_image,time = P.contrast_stretch()
+contrast_stretch_image, time = P.contrast_stretch()
 plot(contrast_stretch_image, 'Contrast Stretch Default')
 plot(P.histogram(contrast_stretch_image), 'Histogram Contrast Stretch')
 print('Gray Con. Stretch 1 Process time: ' + str(time) + ' ms')

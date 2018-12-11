@@ -15,6 +15,7 @@ import os
 # just remove the [0] at the end of histogram to access
 # the whole array
 
+
 def output_to_rgb(img_array: np.array):
     """
     Converts the image array to RGB
