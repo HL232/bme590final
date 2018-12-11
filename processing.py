@@ -7,6 +7,13 @@ import imageio
 import cv2
 import os
 
+# OKAY SELF, HERE'S A NOTE SO YOU DON'T KEEP MAKING THE SAME MISTAKE
+# if you get a singular line as an output of histogram()
+# it's because all other processing functions output
+# a tuple of form: array, time
+# whereas histogram only outputs an array.
+# just remove the [0] at the end of histogram to access
+# the whole array
 
 def output_to_rgb(img_array: np.array):
     """

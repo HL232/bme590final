@@ -17,8 +17,7 @@ def plot(image_array, title):
 # ***********************************************************************
 
 
-dog_source = 'https://thumbs.dreamstime.com/b' \
-             '/grayscale-photography-short-coated-dog-83077538.jpg'
+dog_source = './gray_dog.jpg'
 dog_image = imageio.imread(dog_source, format="JPG")
 plt.imshow(dog_image, cmap='gray')
 plt.title('Original Image')
@@ -72,9 +71,7 @@ print('Gray sharpen Process time: ' + str(time) + ' ms')
 # COLOR TESTING STARTS HERE *********************************************
 # ***********************************************************************
 
-dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
-          'sites/default/files/legacy/images/' \
-          'resource-centre/IFAW%20Northern%20Dog.JPG'
+dog_source = './color_dog.JPG'
 dog_image = imageio.imread(dog_source, format="JPG")
 plt.imshow(dog_image)
 plt.title('Original Image')
