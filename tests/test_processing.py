@@ -5,10 +5,10 @@ import imageio
 from time import sleep
 
 
-dog_source_gray = './gray_dog.jpg'
+dog_source_gray = 'gray_dog.jpg'
 dog_gray = imageio.imread(dog_source_gray, format="JPG")
 
-dog_source_color = './color_dog.JPG'
+dog_source_color = 'color_dog.JPG'
 dog_color = imageio.imread(dog_source_color, format="JPG")
 
 
@@ -51,8 +51,8 @@ def test_stop():
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
-    ('./images_for_testing/gray_hist_eq.jpg', dog_gray),
-    ('./images_for_testing/color_hist_eq.jpg', dog_color),
+    ('images_for_testing/gray_hist_eq.jpg', dog_gray),
+    ('images_for_testing/color_hist_eq.jpg', dog_color),
 ])
 def test_hist_eq(file_name, which_dog):
     prepared_image = imageio.imread(file_name, format='JPG')
@@ -65,8 +65,8 @@ def test_hist_eq(file_name, which_dog):
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
-    ('./images_for_testing/gray_contrast_stretch.jpg', dog_gray),
-    ('./images_for_testing/color_contrast_stretch.jpg', dog_color),
+    ('images_for_testing/gray_contrast_stretch.jpg', dog_gray),
+    ('images_for_testing/color_contrast_stretch.jpg', dog_color),
 ])
 def test_contrast_stretch(file_name, which_dog):
     prepared_image = imageio.imread(file_name, format='JPG')
@@ -79,8 +79,8 @@ def test_contrast_stretch(file_name, which_dog):
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
-    ('./images_for_testing/gray_log_comp.jpg', dog_gray),
-    ('./images_for_testing/color_log_comp.jpg', dog_color),
+    ('images_for_testing/gray_log_comp.jpg', dog_gray),
+    ('images_for_testing/color_log_comp.jpg', dog_color),
 ])
 def test_log_compression(file_name, which_dog):
     prepared_image = imageio.imread(file_name, format='JPG')
@@ -93,8 +93,8 @@ def test_log_compression(file_name, which_dog):
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
-    ('./images_for_testing/gray_reverse_vid.jpg', dog_gray),
-    ('./images_for_testing/color_dog.jpg', dog_color),
+    ('images_for_testing/gray_reverse_vid.jpg', dog_gray),
+    ('images_for_testing/color_dog.jpg', dog_color),
 ])
 def test_reverse_video(file_name, which_dog):
     try:
@@ -112,8 +112,8 @@ def test_reverse_video(file_name, which_dog):
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
-    ('./images_for_testing/gray_blur.jpg', dog_gray),
-    ('./images_for_testing/color_blur.jpg', dog_color),
+    ('images_for_testing/gray_blur.jpg', dog_gray),
+    ('images_for_testing/color_blur.jpg', dog_color),
 ])
 def test_blur(file_name, which_dog):
     prepared_image = imageio.imread(file_name, format='JPG')
@@ -126,8 +126,8 @@ def test_blur(file_name, which_dog):
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
-    ('./images_for_testing/gray_sharpen.jpg', dog_gray),
-    ('./images_for_testing/color_sharpen.jpg', dog_color),
+    ('images_for_testing/gray_sharpen.jpg', dog_gray),
+    ('images_for_testing/color_sharpen.jpg', dog_color),
 ])
 def test_sharpen(file_name, which_dog):
     prepared_image = imageio.imread(file_name, format='JPG')
@@ -140,8 +140,8 @@ def test_sharpen(file_name, which_dog):
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
-    ('./images_for_testing/gray_original_histogram.jpg', dog_gray),
-    ('./images_for_testing/color_original_histogram.jpg', dog_color),
+    ('images_for_testing/gray_original_histogram.jpg', dog_gray),
+    ('images_for_testing/color_original_histogram.jpg', dog_color),
 ])
 def test_histogram(file_name, which_dog):
     prepared_image = imageio.imread(file_name, format='JPG')
@@ -161,7 +161,7 @@ def test_check_grayscale(candidate, expected):
 
 
 @pytest.mark.parametrize("candidate", [
-    'blah',                                               
+    'blah',
     3,
     2.4,
     [1, 2, 3],
