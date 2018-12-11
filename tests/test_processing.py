@@ -5,10 +5,10 @@ import imageio
 from time import sleep
 
 
-dog_source_gray = 'gray_dog.jpg'
+dog_source_gray = 'images_for_testing/gray_dog.jpg'
 dog_gray = imageio.imread(dog_source_gray, format="JPG")
 
-dog_source_color = 'color_dog.JPG'
+dog_source_color = 'images_for_testing/color_dog.JPG'
 dog_color = imageio.imread(dog_source_color, format="JPG")
 
 
@@ -94,7 +94,7 @@ def test_log_compression(file_name, which_dog):
 
 @pytest.mark.parametrize("file_name, which_dog", [
     ('images_for_testing/gray_reverse_vid.jpg', dog_gray),
-    ('images_for_testing/color_dog.jpg', dog_color),
+    ('images_for_testing/color_dog.JPG', dog_color),
 ])
 def test_reverse_video(file_name, which_dog):
     try:
