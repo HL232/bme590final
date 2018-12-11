@@ -15,4 +15,5 @@ pytest-cov
 pytest-pudb
 pymodm
 imageio
+sendgrid
 opencv-python
