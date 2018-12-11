@@ -5,10 +5,10 @@ import imageio
 from time import sleep
 
 
-dog_source_gray = './images_for_testing/gray_dog.jpg'
+dog_source_gray = './gray_dog.jpg'
 dog_gray = imageio.imread(dog_source_gray, format="JPG")
 
-dog_source_color = './images_for_testing/color_dog.JPG'
+dog_source_color = './color_dog.JPG'
 dog_color = imageio.imread(dog_source_color, format="JPG")
 
 
