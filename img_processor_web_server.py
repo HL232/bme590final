@@ -90,6 +90,7 @@ def get_user(email):
     Gets the user based on id
     Args:
         email: user to find.
+
     Returns:
         dict: user in database.
     """
@@ -106,6 +107,7 @@ def get_original_upload_ids(email):
     Gets all root image ids from a user.
     Args:
         email: user to find.
+
     Returns:
         list: root image ids.
     """
@@ -121,6 +123,7 @@ def get_updated_upload_ids(email):
     Gets all updated image ids from a user.
     Args:
         email: user to find.
+
     Returns:
         list: updated image ids.
     """
@@ -141,6 +144,7 @@ def get_upload_filenames(email):
     Gets all root image names from a user.
     Args:
         email: user to find.
+
     Returns:
         dict: image names associated with root image.
     """
@@ -162,6 +166,7 @@ def get_original_uploads(email):
     Gets all root/original images from a user.
     Args:
         email: user to find.
+
     Returns:
         list: root images.
     """
@@ -180,6 +185,7 @@ def get_updated_uploads(email):
     Gets all updated images from a user.
     Args:
         email: user to find.
+
     Returns:
         list: updated images.
     """
@@ -285,6 +291,7 @@ def _verify_confirm_image(image):
     Confirms that all necessary attributes are present at image add.
     Args:
         image (dict): Image object to be added.
+
     Returns:
         bool: Whether or not the image object is valid.
     """
@@ -325,6 +332,7 @@ def _link_new_image(current_image):
     Makes associated links.
     Args:
         current_image: current image of the user/post data.
+
     Returns:
         dict: Dict with linked ids.
     """
@@ -342,8 +350,10 @@ def _populate_image_meta(new_image, image_data):
     Args:
         new_image (dict):
         image_data (np.ndarray): image data in RGB
+
     Returns:
         dict: dict with image meta information
+
     """
     new_image["width"] = image_data.shape[0]
     new_image["height"] = image_data.shape[1]
@@ -355,6 +365,7 @@ def _determine_format(format_string: str):
     Determines file format from a string. Could be header/ext.
     Args:
         format_string: Header or file extension.
+
     Returns:
         str: Type of the image.
     """
@@ -377,6 +388,7 @@ def post_hist_eq():
     Takes CURRENT image and performs histogram eq on image.
     Args:
         email: ID of the current user.
+
     Returns:
         object: New hist eq'd image.
     """
@@ -402,6 +414,7 @@ def post_image_contrast_stretch():
     Takes CURRENT image and performs contrast stretch on image.
     Args:
         email: ID of the current user.
+
     Returns:
         object: New contrast stretched image.
     """
@@ -431,6 +444,7 @@ def post_image_log_compression():
     Takes CURRENT image and performs log compression on image.
     Args:
         email: ID of the current user.
+
     Returns:
         object: New log compressed image.
     """
@@ -456,6 +470,7 @@ def post_image_rev_video():
     Inverse the intensities of a grayscale image.
     Args:
         email: ID of the current user.
+
     Returns:
         dict: image with inverted intensities.
     """
@@ -482,6 +497,7 @@ def post_image_sharpen():
     Takes CURRENT image and performs image sharpen on whole image.
     Args:
         email: ID of the current user.
+
     Returns:
         object: sharpened image.
     """
@@ -507,6 +523,7 @@ def post_image_blur():
     Takes CURRENT image and performs image blur on whole image.
     Args:
         email: ID of the current user.
+
     Returns:
         object: blurred image.
     """
@@ -534,6 +551,7 @@ def post_email_image():
     Args:
         email: email of the current user.
         image_id: id of the image to email
+
     Returns:
         object: response from sendgrid.
     """
@@ -559,8 +577,10 @@ def b64str_to_numpy(b64_img):
     Converts a b64str to numpy. Strips headers.
     Args:
         b64_img (str): base 64 representation of an image.
+
     Returns:
         np.ndarray: numpy array of image.
+
     """
     b64_image, _ = _get_b64_format(b64_img)
     byte_image = base64.b64decode(b64_img)
@@ -585,8 +605,10 @@ def numpy_to_b64str(img, format="JPG"):
     Converts a numpy array into a base 64 string
     Args:
         img (np.array):
+
     Returns:
         str: base 64 representation of the numpy array/image.
+
     """
     if _should_reverse_image(format):
         # flip for cv conversion, only some file formats
@@ -612,6 +634,7 @@ def email_image(image):
         to_address: Address to send to
         email_subject: Subject of the email.
         email_content: Content of the email.
+
     Returns:
         object: API response from Sendgrid Server.
     """
@@ -638,8 +661,10 @@ def _is_valid_email(email):
     Determines if the email is valid.
     Args:
         email: Email to test.
+
     Returns:
         bool: If the email is valid.
+
     """
     if "@" not in email:
         return False
@@ -655,8 +680,10 @@ def error_handler(status_code, msg, error_type):
         status_code: The status code, standard.
         msg: Message to send.
         error_type: Error type if raises exception.
+
     Returns:
         dict: Error message information.
+
     """
     error_msg = {
         "status_code": status_code,
