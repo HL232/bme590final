@@ -15,7 +15,7 @@ setImage = () => {
   var myob = {}
   var iStr2 = this.state.afterIM.image_id
   //iStr = iStr.split(";").pop();
-    myob['user_id'] = 'myID';
+    myob['email'] = 'myID@no.';
     myob['image_id'] = iStr2 ;
 
   axios.post('http://127.0.0.1:5000/api/process/change_image', myob)
@@ -45,7 +45,7 @@ afterSelector = () => {
   }
   else if (enhtype === 1) {
     var myob2 = {}
-    myob2['user_id'] = this.state.beforeIM.user_id
+    myob2['email'] = this.state.beforeIM.email
     axios.get('http://127.0.0.1:5000/api/process/blur', myob2)
  	 .then(res => {
      var myAr = []

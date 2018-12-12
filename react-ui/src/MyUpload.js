@@ -42,7 +42,7 @@ export default class MyUpload extends Component {
 	 var iStr = this.state.currentImageString
 	 //iStr = iStr.split(";").pop();
 		 myob['image_data'] = iStr;
-		 myob['user_id'] = 'myID';
+		 myob['email'] = 'myID@no.';
 		 myob['filename'] = 'stevenisaTWAT'
 
 

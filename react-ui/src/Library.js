@@ -27,7 +27,7 @@ state = {
 
 getData = () => {
   console.log('getData')
-  axios.get("http://127.0.0.1:5000/api/image/get_current_image/myID").then(res => {
+  axios.get("http://127.0.0.1:5000/api/image/get_current_image/myID@no.").then(res => {
 
 
     var myAr = []
