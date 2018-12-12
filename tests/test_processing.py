@@ -108,7 +108,7 @@ def test_reverse_video(file_name, which_dog):
     except ValueError:
         with pytest.raises(ValueError):
             p = Processing(which_dog)
-            image = p.reverse_video()[0]
+            p.reverse_video()[0]
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
