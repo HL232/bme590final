@@ -11,11 +11,6 @@ from matplotlib import pyplot as plt
 ip = "http://127.0.0.1:5000"
 
 
-def read_file_as_b64(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read())
-
-
 def byte_2_json(resp):
     """
     Converts bytes to json. Raises exception if necessary.
@@ -51,19 +46,81 @@ def error_catcher(json_resp: dict):
     return json_resp
 
 
-def b64str_to_numpy(b64_img):
-    byte_image = base64.b64decode(b64_img)
-    image_buf = io.BytesIO(byte_image)
-    np_img = imageio.imread(image_buf, format='JPG')
-    i = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)
-    return i
+def numpy_to_b64str(img, format="JPG"):
+    """
+    Converts a numpy array into a base 64 string
+    Args:
+        img (np.array):
 
+    Returns:
+        str: base 64 representation of the numpy array/image.
 
-def numpy_to_b64str(img, format=".jpg"):
-    _, img = cv2.imencode(format, img)  # strips header
+    """
+    if _should_reverse_image(format):
+        # flip for cv conversion, only some file formats
+        img = img[..., ::-1]
+    _, img = cv2.imencode('.jpg', img)  # strips header
     image_base64 = base64.b64encode(img)
     base64_string = image_base64.decode('utf-8')  # convert to string
     return base64_string
+
+
+def _should_reverse_image(format):
+    should_reverse = ["JPG"]
+    if format in should_reverse:
+        return True
+    else:
+        return False
+
+
+def b64str_to_numpy(b64_img):
+    """
+    Converts a b64str to numpy. Strips headers.
+    Args:
+        b64_img (str): base 64 representation of an image.
+
+    Returns:
+        np.ndarray: numpy array of image.
+
+    """
+    b64_image, _ = _get_b64_format(b64_img)
+    byte_image = base64.b64decode(b64_img)
+    image_buf = io.BytesIO(byte_image)
+    np_img = imageio.imread(image_buf, format="JPG")
+    return np_img
+
+
+def _get_b64_format(b64_img):
+    split = b64_img.split("base64,")  # get rid of header
+    image_format = None
+    if len(split) == 2:
+        b64_img = split[1]
+        image_format = _determine_format(split[0])
+    else:
+        b64_img = split[0]
+    return b64_img, image_format
+
+
+def _determine_format(format_string: str):
+    """
+    Determines file format from a string. Could be header/ext.
+    Args:
+        format_string: Header or file extension.
+
+    Returns:
+        str: Type of the image.
+    """
+    formats = ["PNG",
+               "TIF", "TIFF",
+               "JPG", "JPEG"]
+    for format in formats:
+        if format in format_string.upper():
+            if "JPEG" in format_string.upper():
+                return "JPG"
+            if "TIF" in format_string.upper():
+                return "TIFF"
+            return format
+    return "None"
 
 
 def view_image(image):
@@ -71,43 +128,55 @@ def view_image(image):
     plt.show()
 
 
-user_id = "test"
-dog_source = 'https://s3.amazonaws.com/ifaw-pantheon/' \
-             'sites/default/files/legacy/images/' \
-             'resource-centre/IFAW%20Northern%20Dog.JPG'
-
+email = "dukebme590.imageprocessor@gmail.com"
+dog_source = 'https://i.imgur.com/B15ubOP.jpg'
+# dog_source = "https://i.imgur.com/2gX8HVS.png"
+# dog_source = "MARBIBM.TIF"
 dog_image = imageio.imread(dog_source)
 # print("Original", dog_image.shape, dog_image[0][0])
 
+image_format = _determine_format(dog_source)
 image_obj = {
-    "user_id": user_id,
-    "image_data": numpy_to_b64str(dog_image)
+    "email": email,
+    "image_data": numpy_to_b64str(dog_image, format=image_format),
+    "filename": dog_source
 }
 
-resp = requests.post("http://127.0.0.1:5000/api/image/upload_image",
+resp = requests.post("http://127.0.0.1:5000/api/process/upload_image",
                      json=image_obj)
 content = byte_2_json(resp)
+# view_image(b64str_to_numpy(content[0]["image_data"]))
 
 # blur
-image_obj_2 = {"user_id": user_id}
+image_obj_2 = {"email": email}
 resp = requests.post("http://127.0.0.1:5000/api/process/blur",
                      json=image_obj)
 content = byte_2_json(resp)
+# view_image(b64str_to_numpy(content["image_data"]))
+
+# send_image
+send_obj = {"email": email, "image_id": content["image_id"]}
+requests.post("http://127.0.0.1:5000/api/process/email_image",
+              json=send_obj)
+
+"""
 # attempt to confirm
 resp = requests.post("http://127.0.0.1:5000/api/process/confirm", json=content)
 content = byte_2_json(resp)
-view_image(b64str_to_numpy(content["image_data"]))
+view_image(b64str_to_numpy(content["image_data"]))"""
 
+"""
 # should use the blurred image
-image_obj_3 = {"user_id": user_id}
+image_obj_3 = {"email": email}
 resp = requests.post("http://127.0.0.1:5000/api/process/sharpen",
                      json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 
 # should use the non-sharpened blurred image, since not confirmed.
-image_obj_5 = {"user_id": user_id}
+image_obj_5 = {"email": email}
 resp = requests.post("http://127.0.0.1:5000/api/process/contrast_stretch",
                      json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
+"""

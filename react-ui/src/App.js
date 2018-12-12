@@ -18,8 +18,11 @@ const theme = createMuiTheme({
     backgroundColor: 'primary'
   },
   gridList: {
-    width: 800,
+    width: 500,
     height: 500,
+  },
+  gridListTileBar: {
+    width:500,
   },
   icon: {
     color: 'rgba(0, 0, 0, 0.54)',
