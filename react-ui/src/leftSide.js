@@ -10,9 +10,9 @@ import MyDownload from './MyDownload'
 import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Typography, Grid, Paper} from '@material-ui/core';
 import MainEnhance from './MainEnhance'
 
-export default class leftSide extends Component {
+export default class LeftSide extends Component {
 
-
+ 
   state = {
     "winDisplay": 1
   };
