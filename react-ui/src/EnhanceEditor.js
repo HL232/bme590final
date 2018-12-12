@@ -11,14 +11,30 @@ export default class EnhanceEditor extends Component {
 
   }
 
+setImage = () => {
+  var myob = {}
+  var iStr2 = this.state.afterIM.image_id
+  //iStr = iStr.split(";").pop();
+    myob['user_id'] = 'myID';
+    myob['image_id'] = iStr2 ;
+
+  axios.post('http://127.0.0.1:5000/api/process/change_image', myob)
+  .then(res => {
+   console.log(res)
+  })
+  .catch(function (error) {
+console.log(error);
+});
+}
 
 beforeSelector = () => {
   if (this.state.beforeIM.length === 0) {
     this.setState({beforeIM: this.props.tile})
     this.setState({afterIM: this.props.tile})
+    {this.setImage()} ;
   }
   else {
-    console.log(this.state.afterIM)
+    //console.log(this.state.afterIM)
   }
 }
 
@@ -28,8 +44,9 @@ afterSelector = () => {
 
   }
   else if (enhtype === 1) {
-
-    axios.get('http://127.0.0.1:5000/api/process/hist_eq/myID')
+    var myob2 = {}
+    myob2['user_id'] = this.state.beforeIM.user_id
+    axios.get('http://127.0.0.1:5000/api/process/blur', myob2)
  	 .then(res => {
      var myAr = []
      myAr.push(res.data)

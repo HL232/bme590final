@@ -292,8 +292,8 @@ def _populate_image_meta(new_image, image_data):
     return new_image
 
 
-@app.route("/api/process/hist_eq", methods=["POST"])
-def post_hist_eq():
+@app.route("/api/process/hist_eq/<user_id>", methods=["GET"])
+def get_hist_eq(user_id):
     """
     Takes CURRENT image and performs histogram eq on image.
     Args:
@@ -303,15 +303,16 @@ def post_hist_eq():
         object: New hist eq'd image.
     """
     # should take the current image with all info
-    content = request.get_json()
+    ##content = request.get_json()
     # grab the user's current image.
-    user_image_id = db.get_current_image_id(content["user_id"])
-    current_image = db.find_image(user_image_id, content["user_id"])
+    user_image_id = db.get_current_image_id(user_id)
+    current_image = db.find_image(user_image_id, user_id)
     new_image = _link_new_image(current_image)
     image_data, new_image["processing_time"] = \
         Processing(b64str_to_numpy(current_image.image_data)).hist_eq()
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data)
+
     new_image["process"] = "hist_eq"
     return jsonify(new_image)
 
