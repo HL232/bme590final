@@ -238,7 +238,7 @@ def post_upload_image():
         upload["image_id"] = random_id()
         upload["process"] = "upload"
         upload["processing_time"] = -1
-        upload["format"] = _get_b64_format(upload["image_data"])
+        _, upload["format"] = _get_b64_format(upload["image_data"])
         if "None" in upload["format"]:  # last ditch effort.
             upload["format"] = _determine_format(upload["filename"])
         image = db.add_image(upload["email"], upload)
@@ -379,7 +379,7 @@ def _determine_format(format_string: str):
             if "TIF" in format_string.upper():
                 return "TIFF"
             return format
-    return "None"
+    return "JPG"  # assume jpg
 
 
 @app.route("/api/process/hist_eq", methods=["POST"])
@@ -582,7 +582,7 @@ def b64str_to_numpy(b64_img):
         np.ndarray: numpy array of image.
 
     """
-    b64_image, _ = _get_b64_format(b64_img)
+    b64_img, _ = _get_b64_format(b64_img)
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
     np_img = imageio.imread(image_buf, format="JPG")
@@ -591,12 +591,12 @@ def b64str_to_numpy(b64_img):
 
 def _get_b64_format(b64_img):
     split = b64_img.split("base64,")  # get rid of header
-    image_format = "None"
     if len(split) == 2:
         b64_img = split[1]
         image_format = _determine_format(split[0])
     else:
         b64_img = split[0]
+        image_format = "JPG"  # assume jpg
     return b64_img, image_format
 
 
