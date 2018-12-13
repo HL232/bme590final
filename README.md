@@ -1,5 +1,14 @@
 # Image Processor
-This image processor is meant to combine the functionality and scripting _prowess_ of python with the modularity and adaptability of cloud computing. The project is split into 3 primary components: image processing, web api, and a GUI, generally following the typical Model/View/Controller paradigm.
+
+Authors: Matt Guptil, Howard Li, Stephen Xu
+
+Version: 1.0.0
+
+Licsense: MIT License (See License File)
+
+## Introduction
+This image processor is meant to combine the functionality and scripting _prowess_ of python with the modularity and adaptability of cloud computing. The project is split into 3 primary components: image processing, web api, and a GUI, generally following the typical Model/View/Controller paradigm. For a general schematic of how our project works, check out this helpful graphic below:
+
 
 ## Usage
 The GUI can be accessed via...
