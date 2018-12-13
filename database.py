@@ -403,8 +403,12 @@ class ImageProcessingDB(object):
         """
         Gets returnable json format of image.
         Args:
-            image:
+            image: image database object.
+        Returns:
+            dict: dict version of image.
         """
+        if not image:
+            raise ValueError("Image does not exist.")
 
         ret_json = {
             "filename": image.filename,
@@ -428,8 +432,13 @@ class ImageProcessingDB(object):
         """
         Gets returnable json format of user.
         Args:
-            user:
+            user: user database object.
+        Returns:
+            dict: dict version of user.
         """
+        if not user:
+            raise ValueError("User does not exist.")
+
         ret_json = {
             "email": user.email,
             "uploads": user.uploads,

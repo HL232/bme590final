@@ -205,6 +205,17 @@ image_obj = {
 }
 
 """
+filenames = []
+image_data = []
+for i in range(3):
+    filenames.append(image_obj["filename"])
+    image_data.append(image_obj["image_data"])
+image_obj["email"] = image_obj["email"]
+image_obj["image_data"] = image_data
+image_obj["filename"] = filenames"""
+
+
+"""
 filename = "test_folder.zip"
 image_obj = {
     "email": email,
@@ -212,8 +223,7 @@ image_obj = {
     "filename": filename
 }"""
 
-resp = requests.post("http://127.0.0.1:5000/api/process/upload_image",
-                     json=image_obj)
+resp = requests.post("http://127.0.0.1:5000/api/process/upload_image", json=image_obj)
 content = byte_2_json(resp)
 ids = []
 for image in content:

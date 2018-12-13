@@ -215,58 +215,92 @@ def post_upload_image():
         object: uploaded image object.
     """
     content = request.get_json()
+
     if not content:
         return error_handler(400, "Insufficient post.", "ValueError")
     if type(content) != list and type(content) != dict:
         return error_handler(400, "must by either dict or list of dicts")
-    if "image_data" not in content.keys():
-        return error_handler(400, "must include image_data", "AttributeError")
-    if "email" not in content.keys():
-        return error_handler(400, "must include email", "AttributeError")
-    if type(content["email"]) != str:
-        return error_handler(400, "email must be type str", "TypeError")
-    if "filename" not in content.keys():
-        return error_handler(400, "must include filename", "AttributeError")
-    if type(content["filename"]) != str:
-        return error_handler(400, "filename must be type str", "TypeError")
-    if not any(x in content["filename"] \
-               for x in ["zip", "tif", "jp", "png"]):
-        return error_handler(400, "file must be valid type", "TypeError")
 
-    if 'zip' in content["filename"].lower():
-        # handles if it's a zipped file
-        return process_zipped(content)
+    if type(content) == dict:
+        if "image_data" not in content.keys():
+            return error_handler(400, "must include image_data", "AttributeError")
+        if "email" not in content.keys():
+            return error_handler(400, "must include email", "AttributeError")
+        if type(content["email"]) != str:
+            return error_handler(400, "email must be type str", "TypeError")
+        if "filename" not in content.keys():
+            return error_handler(400, "must include filename", "AttributeError")
+
+        if type(content["filename"]) != list:
+            if 'zip' in content["filename"].lower():
+                # handles if it's a zipped file
+                return process_zipped(content)
+            else:
+                return process_image_dict(content)
+        else:
+            # handles dict and dict list
+            return process_image_dict(content)
+
+    elif type(content) == list:
+        for upload in content:
+            if type(upload) != dict:
+                return error_handler(400, "must be type dict", "TypeError")
+            if "image_data" not in upload.keys():
+                return error_handler(400, "must include image_data", "AttributeError")
+            if "email" not in upload.keys():
+                return error_handler(400, "must include email", "AttributeError")
+            if type(upload["email"]) != str:
+                return error_handler(400, "email must be type str", "TypeError")
+            if "filename" not in upload.keys():
+                return error_handler(400, "must include filename", "AttributeError")
+            valid_types = ["jp", "png", "tif"]
+            if not any(s in upload["filename"] for s in valid_types):
+                return error_handler(400, "file not supported.", "TypeError")
+
+        return process_image_dict(content)
     else:
-        return process_images(content)
+        return error_handler(400, "Bad type", "TypeError")
 
 
-def process_images(content):
+def process_image_dict(content):
     """
     Processes images from end user, individual or in a list.
     Args:
         content: The content from the json request.
     """
-    if type(content) == dict and type(content["filename"]) != list:
-        content = [content]
-    elif type(content["filename"]) == list and \
-                    type(content["image_data"]) == list:
-        if len(content["filename"]) == len(content["image_data"]):
-            temp_content = []
-            for i, file in enumerate(content["filename"]):
-                image = {
-                    "email": content["email"],
-                    "image_data": content["image_data"][i],
-                    "filename": content["filename"][i],
-                }
-                temp_content.append(image)
-            content = temp_content
-        else:
-            return error_handler("multiple images must "
-                                 "have respective filenames.")
+    valid_types = ["jp", "png", "tif", "zip"]
 
+    if type(content["filename"]) != list and \
+                    type(content["image_data"]) != list:
+        print(content["filename"])
+        if not any(s in content["filename"] for s in valid_types):
+            return error_handler(400, "file not supported.", "TypeError")
+        content = [content]
+    elif type(content["filename"]) == list or type(content["image_data"]) == list:
+
+        if len(content["filename"]) != len(content["image_data"]):
+            return error_handler(400, "multiple images must "
+                                      "have respective filenames.",
+                                 "ValueError")
+
+        temp_content = []
+        for i, filename in enumerate(content["filename"]):
+            if not any(s in filename for s in valid_types):
+                return error_handler(400, "file not supported.", "TypeError")
+
+            image = {
+                "email": content["email"],
+                "image_data": content["image_data"][i],
+                "filename": filename,
+            }
+            temp_content.append(image)
+        content = temp_content
+
+    # process as list
     uploaded_images = []
     for upload in content:
-        upload["email"] = content["email"]
+        image = b64str_to_numpy(upload["image_data"])
+        upload["email"] = upload["email"]
         upload["histogram"] = _get_b64_histogram(image)
         upload["width"] = image.shape[0]
         upload["height"] = image.shape[1]
@@ -279,7 +313,7 @@ def process_images(content):
         image = db.add_image(upload["email"], upload)
         uploaded_images.append(db.image_to_json(image))
 
-    return jsonify(uploaded_images)  # with included ID
+    return jsonify(uploaded_images[-1])  # with included ID
 
 
 def process_zipped(content):
@@ -298,7 +332,7 @@ def process_zipped(content):
         zip_image["email"] = content["email"]
         image = db.add_image(content["email"], zip_image)
         uploaded_images.append(db.image_to_json(image))
-    return jsonify(uploaded_images)
+    return jsonify(uploaded_images[-1])
 
 
 def b64str_zip_to_images(b64_str, folder_name):
@@ -354,13 +388,15 @@ def post_change_image():
     """
     content = request.get_json()
     if "email" not in content.keys():
-        error_handler(400, "needs email", "AttributeError")
+        return error_handler(400, "needs email", "AttributeError")
     if "image_id" not in content.keys():
-        error_handler(400, "needs image_id", "AttributeError")
+        return error_handler(400, "needs image_id", "AttributeError")
 
     # must contain image_data, email
     db.update_user_current(content["email"], content["image_id"])
     image = db.find_image(content["email"], content["image_id"])
+    if not image:
+        return error_handler(400, "Image does not exist", "ValueError")
     image = db.image_to_json(image)
     return jsonify(image)
 
