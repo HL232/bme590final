@@ -135,6 +135,7 @@ dog_source = 'https://i.imgur.com/B15ubOP.jpg'
 dog_image = imageio.imread(dog_source)
 # print("Original", dog_image.shape, dog_image[0][0])
 
+
 image_format = _determine_format(dog_source)
 image_obj = {
     "email": email,
@@ -154,18 +155,11 @@ resp = requests.post("http://127.0.0.1:5000/api/process/blur",
 content = byte_2_json(resp)
 # view_image(b64str_to_numpy(content["image_data"]))
 
-# send_image
-send_obj = {"email": email, "image_id": content["image_id"]}
-requests.post("http://127.0.0.1:5000/api/process/email_image",
-              json=send_obj)
-
-"""
 # attempt to confirm
 resp = requests.post("http://127.0.0.1:5000/api/process/confirm", json=content)
 content = byte_2_json(resp)
-view_image(b64str_to_numpy(content["image_data"]))"""
+view_image(b64str_to_numpy(content["image_data"]))
 
-"""
 # should use the blurred image
 image_obj_3 = {"email": email}
 resp = requests.post("http://127.0.0.1:5000/api/process/sharpen",
@@ -179,4 +173,3 @@ resp = requests.post("http://127.0.0.1:5000/api/process/contrast_stretch",
                      json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
-"""
