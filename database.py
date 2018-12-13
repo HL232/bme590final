@@ -9,8 +9,10 @@ from processing import Processing
 
 class Image(MongoModel):
     image_id = fields.CharField(primary_key=True)
+    filename = fields.CharField()
     image_data = fields.CharField()
-    user_id = fields.CharField()
+    histogram = fields.CharField()
+    email = fields.CharField()
     timestamp = fields.DateTimeField()
     width = fields.IntegerField()
     height = fields.IntegerField()
@@ -24,10 +26,11 @@ class Image(MongoModel):
 
 
 class User(MongoModel):
-    user_id = fields.CharField(primary_key=True)
+    email = fields.CharField(primary_key=True)
     # the structure of this will be key (upload id): most recent_id
     uploads = fields.DictField()
     current_image = fields.CharField()
+    process_count = fields.DictField()
 
 
 class ImageProcessingDB(object):
@@ -41,12 +44,12 @@ class ImageProcessingDB(object):
                   "image_processing".format(db_user, db_pass)
             connect(url)
 
-    def add_image(self, user_id, image_info):
+    def add_image(self, email, image_info):
         """
         Adds image to the database. First checks if it is a child of
         another image, then adds the image.
         Args:
-            user_id: User who is adding the image.
+            email: User who is adding the image.
             image_info: Information about the image.
         Returns:
             object: Image database object that was added.
@@ -56,20 +59,20 @@ class ImageProcessingDB(object):
         # see if there is a parent-child relationship for the image.
         if "parent_id" in image_info.keys():
             # look for the provided id in the database
-            parent_image = self.get_current_image(user_id)
+            parent_image = self.get_current_image(email)
             image_info["process_history"] = parent_image.process_history
             image_info["process_history"].append(image_info["image_id"])
             # relate the child to the parent
             self._add_child(image_info["image_id"],
                             image_info["parent_id"],
-                            user_id)
+                            email)
         else:
             image_info["process_history"] = [image_info["image_id"]]
             image_info["parent_id"] = "root"
 
         # update user object as well.
-        self.update_process_history(user_id, image_info["process_history"])
-        self.update_user_current(user_id, image_info["image_id"])
+        self.update_process_history(email, image_info["process_history"])
+        self.update_user_current(email, image_info["image_id"])
 
         # deal with description
         if "description" not in image_info.keys():
@@ -78,8 +81,10 @@ class ImageProcessingDB(object):
             description = image_info["description"]
 
         # add image to db
-        i = Image(user_id=user_id,
+        i = Image(email=email,
+                  filename=image_info["filename"],
                   image_id=image_info["image_id"],
+                  histogram=image_info["histogram"],
                   process=image_info["process"],
                   image_data=image_info["image_data"],
                   processing_time=image_info["processing_time"],
@@ -87,14 +92,14 @@ class ImageProcessingDB(object):
                   parent_id=image_info["parent_id"],
                   width=image_info["width"],
                   height=image_info["height"],
+                  format=image_info["format"],
                   timestamp=current_time,
                   description=description
                   )
         db_image = i.save()
+        return db_image
 
-        return self.image_to_json(db_image)
-
-    def get_current_image_id(self, user_id):
+    def get_current_image_id(self, email):
         """
         Obtains the user's current image id.
         Args:
@@ -103,26 +108,63 @@ class ImageProcessingDB(object):
             object:
 
         """
-        user = self.find_user(user_id)
+        user = self.find_user(email)
         if user is None:
             return None
         return user.current_image
 
-    def get_current_image(self, user_id):
+    def get_current_image(self, email):
         """
         Obtains the user's current image.
         Args:
-            user_id: user to get current image of.
+            email: user to get current image of.
 
         Returns:
             dict: user's current image.
 
         """
-        image_id = self.get_current_image_id(user_id)
-        image = self.find_image(image_id, user_id)
+        image_id = self.get_current_image_id(email)
+        image = self.find_image(image_id, email)
         return image
 
-    def _add_child(self, child_id, parent_id, user_id):
+    def get_all_updated_images(self, email):
+        """
+        Gets all updated/recent images of a user.
+        Args:
+            email: User to get.
+
+        Returns:
+            list: All images as stored in database.
+
+        """
+        user = self.find_user(email)
+        updated_list = []
+        for root in user.uploads.keys():
+            image_id = user.uploads[root]
+            image = self.find_image(image_id, email)
+            updated_list.append(image)
+
+        return updated_list
+
+    def get_all_original_images(self, email):
+        """
+        Gets all original images of a user.
+        Args:
+            email: User to get.
+
+        Returns:
+            list: All original images as stored in database.
+
+        """
+        user = self.find_user(email)
+        original_list = []
+        for image_id in user.uploads.keys():
+            image = self.find_image(image_id, email)
+            original_list.append(image)
+
+        return original_list
+
+    def _add_child(self, child_id, parent_id, email):
         """
         Adds a child id to the parent image.
         Args:
@@ -132,7 +174,7 @@ class ImageProcessingDB(object):
         Returns:
             str: child id of the image that was added.
         """
-        parent_image = self.find_image(parent_id, user_id)
+        parent_image = self.find_image(parent_id, email)
         if parent_image is not None:
             parent_image.child_ids.append(child_id)
             parent_image.save()
@@ -156,10 +198,14 @@ class ImageProcessingDB(object):
             raise AttributeError("image_info must have image_id.")
         if not isinstance(image_info["image_id"], str):
             raise ValueError("image_id must be type str.")
-        if "user_id" not in image_info.keys():
-            raise AttributeError("image_info must have user_id.")
-        if not isinstance(image_info["user_id"], str):
-            raise ValueError("user_id must be type str.")
+        if "email" not in image_info.keys():
+            raise AttributeError("image_info must have email.")
+        if not isinstance(image_info["email"], str):
+            raise ValueError("email must be type str.")
+        if "filename" not in image_info.keys():
+            raise AttributeError("image_info must have filename.")
+        if not isinstance(image_info["filename"], str):
+            raise ValueError("filename must be type str.")
         if "image_data" not in image_info.keys():
             raise AttributeError("image_info must have image_data.")
         if type(image_info["image_data"]) != str:
@@ -186,11 +232,13 @@ class ImageProcessingDB(object):
             raise AttributeError("image_info must have process.")
         if not isinstance(image_info["process"], str):
             raise TypeError("process must be type str.")
-        if not self.valid_process(image_info["process"]):
+        if not self._valid_process(image_info["process"]):
             raise ValueError("process invalid.")
+        if "histogram" not in image_info.keys():
+            raise AttributeError("image_info must have histogram.")
         return image_info
 
-    def valid_process(self, process):
+    def _valid_process(self, process):
         """
         Determines if the process is valid based on Processing methods.
         Args:
@@ -207,29 +255,29 @@ class ImageProcessingDB(object):
             return False
         return True
 
-    def add_user(self, user_id):
+    def add_user(self, email):
         """
         Adds user to the database.
         Args:
-            user_id: Unique identifier. Doesn't have to be ID.
+            email: Unique identifier. Doesn't have to be ID.
 
         Returns:
             object: user object that was saved.
 
         """
-        test_user = self.find_user(user_id)
+        test_user = self.find_user(email)
         if test_user:
             raise ValueError("User already exists!")
 
-        u = User(user_id=user_id)
+        u = User(email=email)
         return u.save()
 
-    def update_process_history(self, user_id, process_history: list):
+    def update_process_history(self, email, process_history: list):
         """
         Updates user uploads for an image.
         Args:
             process_history: History of Image ids.
-            user_id: User to update.
+            email: User to update.
 
         Returns:
             object: updated user object.
@@ -237,25 +285,43 @@ class ImageProcessingDB(object):
 
         root_id = process_history[0]
         recent_id = process_history[-1]
-        user = self.find_user(user_id)
+        user = self.find_user(email)
         if user is None:
-            user = self.add_user(user_id)
+            user = self.add_user(email)
         user.uploads[root_id] = recent_id
         return user.save()
 
-    def update_user_current(self, user_id, image_id):
+    def update_user_current(self, email, image_id):
         """
         Updates user current_image.
         Args:
-            user_id: User to update.
+            email: User to update.
             image_id: Id to update with
 
         """
         # image is not yet in the database
-        user = self.find_user(user_id)
+        user = self.find_user(email)
         if user is None:
-            user = self.add_user(user_id)
+            user = self.add_user(email)
         user.current_image = image_id
+        return user.save()
+
+    def update_user_process(self, email: str, process: str):
+        """
+        Increments the count on the process performed.
+        Args:
+            email (str): User to update.
+            process (str): Id to update with
+
+        """
+        # image is not yet in the database
+        if not self._valid_process(process):
+            raise ValueError("process invalid.")
+
+        user = self.find_user(email)
+        if process not in user.process_count.keys():
+            user.process_count[process] = 0
+        user.process_count[process] += 1
         return user.save()
 
     def remove_image(self, image_id):
@@ -272,11 +338,11 @@ class ImageProcessingDB(object):
                 return removed_image
         return None
 
-    def find_image(self, image_id, user_id):
+    def find_image(self, image_id, email):
         """
         Finds the image in the database based on image id.
         Args:
-            user_id: user ID for the image.
+            email: user ID for the image.
             image_id: ID of the image to find.
 
         Returns:
@@ -284,11 +350,11 @@ class ImageProcessingDB(object):
         """
         for image in Image.objects.all():
             if str(image.image_id) == image_id \
-                    and str(image.user_id) == user_id:
+                    and str(image.email) == email:
                 return image
         return None
 
-    def find_image_parent(self, image_id, user_id):
+    def find_image_parent(self, image_id, email):
         """
         Finds the parent of the image in the database based on image id.
         Args:
@@ -297,14 +363,14 @@ class ImageProcessingDB(object):
         Returns:
             object: found image in the database.
         """
-        image = self.find_image(image_id, user_id)
+        image = self.find_image(image_id, email)
         if image.parent_id is not None:
             parent_id = image.parent_id
-            parent_image = self.find_image(parent_id, user_id)
+            parent_image = self.find_image(parent_id, email)
             return parent_image
         return None
 
-    def find_image_child(self, image_id, user_id):
+    def find_image_child(self, image_id, email):
         """
         Finds the child of the image in the database based on image id.
         Args:
@@ -313,23 +379,23 @@ class ImageProcessingDB(object):
         Returns:
             object: found image in the database.
         """
-        image = self.find_image(image_id, user_id)
+        image = self.find_image(image_id, email)
         if image is not None:
             return image.child_ids
         return []
 
-    def find_user(self, user_id):
+    def find_user(self, email):
         """
         Finds user in the database and returns if found.
         Args:
-            user_id: ID of user to find.
+            email: ID of user to find.
 
         Returns:
             object: found user in the database.
 
         """
         for user in User.objects.all():
-            if str(user.user_id) == user_id:
+            if str(user.email) == email:
                 return user
         return None
 
@@ -337,12 +403,17 @@ class ImageProcessingDB(object):
         """
         Gets returnable json format of image.
         Args:
-            image:
+            image: image database object.
+        Returns:
+            dict: dict version of image.
         """
+        if not image:
+            raise ValueError("Image does not exist.")
 
         ret_json = {
+            "filename": image.filename,
             "image_id": image.image_id,
-            "user_id": image.user_id,
+            "email": image.email,
             "parent_id": image.parent_id,
             "processing_history": image.process_history,
             "description": image.description,
@@ -361,11 +432,17 @@ class ImageProcessingDB(object):
         """
         Gets returnable json format of user.
         Args:
-            user:
+            user: user database object.
+        Returns:
+            dict: dict version of user.
         """
+        if not user:
+            raise ValueError("User does not exist.")
+
         ret_json = {
-            "user_id": user.user_id,
+            "email": user.email,
             "uploads": user.uploads,
-            "current_image": user.current_image
+            "current_image": user.current_image,
+            "process_count": user.process_count
         }
         return ret_json
