@@ -11,7 +11,6 @@ from string import ascii_uppercase
 from sendgrid.helpers.mail import *
 from flask import Flask, request, jsonify
 
-import processing
 from processing import Processing
 from database import ImageProcessingDB
 
@@ -20,10 +19,13 @@ app = Flask(app_name)
 
 
 @app.after_request
-def after_request(response): 
-    response.headers.add('Access-Control-Allow-Origin', '*') 
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization') 
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE') 
+def after_request(response):
+    response.headers.add(
+        'Access-Control-Allow-Origin', '*')
+    response.headers.add(
+        'Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add(
+        'Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE')
     return response
 
 
