@@ -1,13 +1,22 @@
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom'
 import Button from '@material-ui/core/Button';
 import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Typography, Grid, Paper} from '@material-ui/core';
 import axios from 'axios'
 import { UploadField } from '@navjobs/upload'
+
+
 export default class MyUpload extends Component {
 
+	constructor() {
+			super();
+			this.state= {
+					currentImageString: '',
+			}
+	}
 
 	state = {
-		selectedFile: null
+		selectedFile: 'img'
 	}
 
 	fileSelectedHandler = event => {
@@ -15,14 +24,36 @@ export default class MyUpload extends Component {
 
 	}
 
-	uploadhand = () => {
-		axios.post('http://duke.edu/Upload', this.state.selectedFile)
-		.then(res => {
-			console.log(res)
-		})
+		onUpload = (files) => {
+			const reader = new FileReader()
+			const myF = files[0]
+			reader.readAsDataURL(myF);
+			reader.onloadend = () => {
+				this.setState({currentImageString: reader.result});
+			}
 
 
-	}
+		}
+
+ pusher = () => {
+
+	 //console.log(this.state)
+	 var myob = {}
+	 var iStr = this.state.currentImageString
+	 //iStr = iStr.split(";").pop();
+		 myob['image_data'] = iStr;
+		 myob['email'] = 'myID@no.';
+		 myob['filename'] = 'stevenisaTWAT'
+
+		 console.log(iStr)
+	 axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
+	 .then(res => {
+	 	console.log(res)
+	 })
+	 .catch(function (error) {
+ console.log(error);
+});
+ }
 
 
 	render() {
@@ -30,11 +61,23 @@ export default class MyUpload extends Component {
 
 			<div>
 			<Paper className='paper'>
-				<input type="file" onChange={this.fileSelectedHandler}/>
 
 
-				<br /> <br />
-				<Button color="primary" variant="contained" onClick={this.uploadhand}> Upload </Button>
+				<h2> Upload Images! </h2>
+				<Button color = 'primary' variant = 'contained' style= {{margin: '5px'}}>
+				<UploadField onFiles={this.onUpload}>
+
+
+					Upload here
+
+					</UploadField>
+					</Button>
+					<img src={this.state.currentImageString} />
+					<Button style= {{margin: '5px'}} variant='contained' color='primary' onClick={this.pusher}>
+					Confirm Upload?
+					</Button>
+
+
 			</Paper>
 			</div>
 
