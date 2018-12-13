@@ -3,6 +3,7 @@ import cv2
 import base64
 import pytest
 import imageio
+import skimage
 import numpy as np
 from flask import Flask
 from random import choice
@@ -30,7 +31,9 @@ def flask_app():
 
 @pytest.fixture()
 def image_post():
-    dog_source = 'https://i.imgur.com/B15ubOP.jpg'
+    dog_source = '/images_for_testing/{}'.format(
+        "https://i.imgur.com/B15ubOP.jpg"
+    )
     dog_image = imageio.imread(dog_source)
     image_data = numpy_to_b64str(dog_image)
     image = {
@@ -68,7 +71,7 @@ def image_post_png():
 
 @pytest.fixture()
 def image_upload():
-    dog_source = 'https://i.imgur.com/B15ubOP.jpg'
+    dog_source = "https://i.imgur.com/B15ubOP.jpg"
     dog_image = imageio.imread(dog_source)
     image_data = numpy_to_b64str(dog_image)
     image = {
@@ -190,10 +193,25 @@ def test_post_image_log_compression(flask_app, image_upload):
         user.process_count["log_compression"] == 1
 
 
-def test_post_image_reverse_video(flask_app, image_upload):
+def test_post_image_reverse_video_color(flask_app, image_upload):
     client = flask_app.test_client()
     image_upload["email"] = random_id()
-    client.post('/api/process/upload_image', json=image_upload)
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    resp = client.post('/api/process/reverse_video',
+                       json={"email": image_upload["email"]})
+    assert resp.json["error_type"] == "ValueError"
+
+
+def test_post_image_reverse_video(flask_app, image_upload):
+    rev_upload = image_upload
+    test_image = imageio.imread(
+        "images_for_testing/gray_dog.jpg", format="JPG")
+    rev_upload["image_data"] = numpy_to_b64str(test_image)
+
+    client = flask_app.test_client()
+    image_upload["email"] = random_id()
+    upload_resp = client.post(
+        '/api/process/upload_image', json=image_upload)
     resp = client.post('/api/process/reverse_video',
                        json={"email": image_upload["email"]})
 
@@ -249,7 +267,7 @@ def test_post_confirm(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(resp.json["email"])
     assert _check_image(db_image) and \
-        user.current_image == resp.json["image_id"]
+           user.current_image == resp.json["image_id"]
 
 
 # ---------------- get tests ------------------------------
