@@ -21,8 +21,13 @@ const TileData = [
 export default class Library extends Component {
 
 state = {
-    myData: []
+    myData: [],
+    dType : '.jpg'
 
+  }
+
+  setDtype = (myT) => {
+    this.setState({dType: myT})
   }
 
 getData = () => {
@@ -66,7 +71,7 @@ down = () => {
         // that the '.' parts match the data type
         // probably need a little tweaking to pull the thing out of the state though
         {this.state.myData.map(tile => (
-          <Picture tile={tile}/>
+          <Picture dType = {this.state.dType} tile={tile}/>
 
         ))}
 
