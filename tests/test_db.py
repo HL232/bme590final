@@ -59,8 +59,8 @@ def test_add_image_with_parent(database_obj, image_info):
     image_2 = database_obj.find_image(child_id, email)
 
     assert child_id in image_1.child_ids and \
-           image_2.parent_id == parent_id and \
-           image_1.process_history == [parent_id]
+        image_2.parent_id == parent_id and \
+        image_1.process_history == [parent_id]
 
 
 def test_add_image_no_image_id(database_obj, image_info):

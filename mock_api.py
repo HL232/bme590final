@@ -223,7 +223,9 @@ image_obj = {
     "filename": filename
 }"""
 
-resp = requests.post("http://127.0.0.1:5000/api/process/upload_image", json=image_obj)
+resp = requests.post(
+    "http://127.0.0.1:5000/api/process/upload_image",
+    json=image_obj)
 content = byte_2_json(resp)
 ids = []
 for image in content:

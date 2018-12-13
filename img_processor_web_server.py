@@ -223,13 +223,17 @@ def post_upload_image():
 
     if type(content) == dict:
         if "image_data" not in content.keys():
-            return error_handler(400, "must include image_data", "AttributeError")
+            return error_handler(
+                400, "must include image_data", "AttributeError")
         if "email" not in content.keys():
-            return error_handler(400, "must include email", "AttributeError")
+            return error_handler(
+                400, "must include email", "AttributeError")
         if type(content["email"]) != str:
-            return error_handler(400, "email must be type str", "TypeError")
+            return error_handler(
+                400, "email must be type str", "TypeError")
         if "filename" not in content.keys():
-            return error_handler(400, "must include filename", "AttributeError")
+            return error_handler(
+                400, "must include filename", "AttributeError")
 
         if type(content["filename"]) != list:
             if 'zip' in content["filename"].lower():
@@ -244,15 +248,20 @@ def post_upload_image():
     elif type(content) == list:
         for upload in content:
             if type(upload) != dict:
-                return error_handler(400, "must be type dict", "TypeError")
+                return error_handler(
+                    400, "must be type dict", "TypeError")
             if "image_data" not in upload.keys():
-                return error_handler(400, "must include image_data", "AttributeError")
+                return error_handler(
+                    400, "must include image_data", "AttributeError")
             if "email" not in upload.keys():
-                return error_handler(400, "must include email", "AttributeError")
+                return error_handler(
+                    400, "must include email", "AttributeError")
             if type(upload["email"]) != str:
-                return error_handler(400, "email must be type str", "TypeError")
+                return error_handler(
+                    400, "email must be type str", "TypeError")
             if "filename" not in upload.keys():
-                return error_handler(400, "must include filename", "AttributeError")
+                return error_handler(
+                    400, "must include filename", "AttributeError")
             valid_types = ["jp", "png", "tif"]
             if not any(s in upload["filename"] for s in valid_types):
                 return error_handler(400, "file not supported.", "TypeError")
@@ -271,12 +280,13 @@ def process_image_dict(content):
     valid_types = ["jp", "png", "tif", "zip"]
 
     if type(content["filename"]) != list and \
-                    type(content["image_data"]) != list:
+            type(content["image_data"]) != list:
         print(content["filename"])
         if not any(s in content["filename"] for s in valid_types):
             return error_handler(400, "file not supported.", "TypeError")
         content = [content]
-    elif type(content["filename"]) == list or type(content["image_data"]) == list:
+    elif type(content["filename"]) == list \
+            or type(content["image_data"]) == list:
 
         if len(content["filename"]) != len(content["image_data"]):
             return error_handler(400, "multiple images must "
@@ -701,7 +711,8 @@ def post_image_rev_video():
     new_image = _link_new_image(current_image)
     try:
         image_data, new_image["processing_time"] = \
-            Processing(b64str_to_numpy(current_image.image_data)).reverse_video()
+            Processing(b64str_to_numpy(
+                current_image.image_data)).reverse_video()
     except ValueError:
         return error_handler(400, "must be grayscale", "ValueError")
     new_image = _populate_image_meta(new_image, image_data)

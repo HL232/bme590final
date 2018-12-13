@@ -151,7 +151,7 @@ def test_post_upload_image_dict(flask_app, image_upload):
     db_image = b64str_to_numpy(image["image_data"])
     user = db.find_user(image["email"])
     assert _check_image(db_image) and \
-           user.current_image == image["image_id"]
+        user.current_image == image["image_id"]
 
 
 def test_post_upload_image_list(flask_app, image_upload):
@@ -165,7 +165,7 @@ def test_post_upload_image_list(flask_app, image_upload):
     db_image = b64str_to_numpy(image["image_data"])
     user = db.find_user(image["email"])
     assert _check_image(db_image) and \
-           user.current_image == image["image_id"]
+        user.current_image == image["image_id"]
 
 
 def test_post_upload_image_dict_list(flask_app, image_upload):
@@ -188,7 +188,7 @@ def test_post_upload_image_dict_list(flask_app, image_upload):
     db_image = b64str_to_numpy(image["image_data"])
     user = db.find_user(image["email"])
     assert _check_image(db_image) and \
-           user.current_image == image["image_id"]
+        user.current_image == image["image_id"]
 
 
 def test_post_upload_image_zip_file(flask_app, image_upload):
@@ -202,7 +202,7 @@ def test_post_upload_image_zip_file(flask_app, image_upload):
     db_image = b64str_to_numpy(image["image_data"])
     user = db.find_user(image["email"])
     assert _check_image(db_image) and \
-           user.current_image == image["image_id"]
+        user.current_image == image["image_id"]
 
 
 def test_post_upload_image_no_email(flask_app, image_upload):
@@ -253,20 +253,18 @@ def test_post_change_image(flask_app, image_upload):
     db_image = b64str_to_numpy(image["image_data"])
     user = db.find_user(image["email"])
     assert _check_image(db_image) and \
-           user.current_image == image["image_id"]
+        user.current_image == image["image_id"]
 
 
 def test_post_change_image_bad_id(flask_app, image_upload):
     client = flask_app.test_client()
     image_upload["email"] = random_id()
     resp = client.post('/api/process/upload_image', json=image_upload)
-    print(resp, type(resp.json))
     payload = {
         "email": image_upload["email"],
         "image_id": "1"
     }
     resp = client.post('/api/process/change_image', json=payload)
-    print(resp, type(resp.json))
     assert resp.json["error_type"] == "ValueError"
 
 
@@ -278,7 +276,6 @@ def test_post_change_image_no_id(flask_app, image_upload):
         "email": image_upload["email"]
     }
     resp = client.post('/api/process/change_image', json=payload)
-    print(resp, type(resp.json))
     assert resp.json["error_type"] == "AttributeError"
 
 
@@ -288,7 +285,6 @@ def test_post_bad_confirm_image(flask_app, image_upload, remove_key):
     client = flask_app.test_client()
     image_upload["email"] = random_id()
     resp = client.post('/api/process/upload_image', json=image_upload)
-    print(resp)
     payload = resp.json
     del payload[remove_key]
     resp = client.post('/api/process/confirm', json=payload)
@@ -305,7 +301,7 @@ def test_post_hist_eq(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-           user.process_count["hist_eq"] == 1
+        user.process_count["hist_eq"] == 1
 
 
 def test_post_image_contrast_stretch(flask_app, image_upload):
@@ -318,7 +314,7 @@ def test_post_image_contrast_stretch(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-           user.process_count["contrast_stretch"] == 1
+        user.process_count["contrast_stretch"] == 1
 
 
 def test_post_image_log_compression(flask_app, image_upload):
@@ -331,7 +327,7 @@ def test_post_image_log_compression(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-           user.process_count["log_compression"] == 1
+        user.process_count["log_compression"] == 1
 
 
 def test_post_image_reverse_video_color(flask_app, image_upload):
@@ -359,7 +355,7 @@ def test_post_image_reverse_video(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-           user.process_count["reverse_video"] == 1
+        user.process_count["reverse_video"] == 1
 
 
 def test_post_image_sharpen(flask_app, image_upload):
@@ -372,7 +368,7 @@ def test_post_image_sharpen(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-           user.process_count["sharpen"] == 1
+        user.process_count["sharpen"] == 1
 
 
 def test_post_image_blur(flask_app, image_upload):
@@ -385,7 +381,7 @@ def test_post_image_blur(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-           user.process_count["blur"] == 1
+        user.process_count["blur"] == 1
 
 
 def test_post_email_image(flask_app, image_upload):
@@ -408,7 +404,7 @@ def test_post_confirm(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(resp.json["email"])
     assert _check_image(db_image) and \
-           user.current_image == resp.json["image_id"]
+        user.current_image == resp.json["image_id"]
 
 
 # ---------------- get tests ------------------------------
@@ -425,7 +421,7 @@ def test_get_current_image(flask_app, image_upload):
     current_id = user.current_image
 
     assert _check_image(db_image) and \
-           current_id == resp.json["image_id"]
+        current_id == resp.json["image_id"]
 
 
 def test_get_previous_image(flask_app, image_upload):
@@ -446,7 +442,7 @@ def test_get_previous_image(flask_app, image_upload):
     curr_image = user.current_image
 
     assert prev_image["image_id"] == original["image_id"] \
-           and curr_image == prev_image["image_id"]
+        and curr_image == prev_image["image_id"]
 
 
 def test_get_next_image(flask_app, image_upload):
@@ -471,8 +467,8 @@ def test_get_next_image(flask_app, image_upload):
     current_id = user.current_image
 
     assert original["image_id"] == previous_image["image_id"] \
-           and next_image["image_id"] == blurred_image["image_id"] \
-           and current_id == blurred_image["image_id"]
+        and next_image["image_id"] == blurred_image["image_id"] \
+        and current_id == blurred_image["image_id"]
 
 
 # -------------------- test get user stuff ---------------------
@@ -486,9 +482,8 @@ def test_get_user(flask_app, image_upload):
 
     resp = client.get('/api/user/get_user/{}'.format(email))
     user = resp.json
-    print(user)
     assert image_id in user["uploads"].keys() and \
-           email == user["email"]
+        email == user["email"]
 
 
 def test_get_user_no_email(flask_app, image_upload):

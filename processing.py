@@ -260,7 +260,7 @@ class Processing(object):
             bool: If the image is valid.
         """
         if type(image) != imageio.core.util.Array and \
-                        type(image) != np.ndarray:
+                type(image) != np.ndarray:
             raise TypeError("Image is not a imageio Array")
         return True
 
