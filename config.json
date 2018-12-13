@@ -1,4 +1,6 @@
 {
+    "SENDGRID_API_KEY": "",
+    "from_email": "dukebme590.imageprocessor@gmail.com",
     "mongo_user": "dukeuser",
     "mongo_pass": "GODUKE10"
 }

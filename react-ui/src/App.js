@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 //import logo from './logo.svg';
 import './App.css';
-import LeftSide from './LeftSide' ;
+import LeftSide from './LeftSide' ; 
 
 import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Button, Typography, Grid, Paper} from '@material-ui/core';
 import axios from 'axios'
@@ -18,8 +18,11 @@ const theme = createMuiTheme({
     backgroundColor: 'primary'
   },
   gridList: {
-    width: 800,
+    width: 500,
     height: 500,
+  },
+  gridListTileBar: {
+    width:500,
   },
   icon: {
     color: 'rgba(0, 0, 0, 0.54)',
