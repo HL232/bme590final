@@ -18,12 +18,14 @@ from database import ImageProcessingDB
 app_name = "image_processor"
 app = Flask(app_name)
 
-@app.after_request 
+
+@app.after_request
 def after_request(response): 
     response.headers.add('Access-Control-Allow-Origin', '*') 
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization') 
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE') 
     return response
+
 
 # testing using DM
 db = ImageProcessingDB()
@@ -45,8 +47,12 @@ except:
 def get_current_image(email):
     """
     Obtains image from database based on ID.
+
     Args:
-        email: ID of the image to get.
+        email: ID of the user to get current image
+
+    Returns:
+        JSON current image object returned to client
     """
     if not email:
         return error_handler(400, "Must include user email.", "AttributeError")
@@ -59,8 +65,12 @@ def get_current_image(email):
 def get_previous_image(email):
     """
     Obtains the parent of the image given an ID.
+
+    Args:
+        email: ID of the user to get parent image
+
     Returns:
-        object: history of the image.
+        JSON parent image object returned to client
     """
     if not email:
         return error_handler(400, "Must include user id.", "AttributeError")
@@ -74,9 +84,14 @@ def get_previous_image(email):
 @app.route("/api/image/get_next_image/<email>", methods=["GET"])
 def get_next_image(email):
     """
-    Obtains the child of the image given an ID.
+    Obtains the child of the image given an ID. If there are multiple
+    child images, returns the first one
+
+    Args:
+        email: ID of the user to get child image
+
     Returns:
-        object: parent image.
+        JSON child image object returned to client
     """
     if not email:
         return error_handler(400, "Must include user id.", "AttributeError")
@@ -98,11 +113,12 @@ def get_next_image(email):
 def get_user(email):
     """
     Gets the user based on id
+
     Args:
-        email: user to find.
+        email: ID of the user to find
 
     Returns:
-        dict: user in database.
+        JSON User dictionary object returned to client
     """
     if not email:
         return error_handler(400, "Must have include id.", "AttributeError")
@@ -115,11 +131,12 @@ def get_user(email):
 def get_original_upload_ids(email):
     """
     Gets all root image ids from a user.
+
     Args:
         email: user to find.
 
     Returns:
-        list: root image ids.
+        list: JSON root image ids to client
     """
     if not email:
         return error_handler(400, "Must have include id.", "AttributeError")
@@ -131,11 +148,12 @@ def get_original_upload_ids(email):
 def get_updated_upload_ids(email):
     """
     Gets all updated image ids from a user.
+
     Args:
         email: user to find.
 
     Returns:
-        list: updated image ids.
+        list: JSON updated image ids to client
     """
     if not email:
         return error_handler(400, "Must have include id.", "AttributeError")
@@ -152,6 +170,7 @@ def get_updated_upload_ids(email):
 def get_upload_filenames(email):
     """
     Gets all root image names from a user.
+
     Args:
         email: user to find.
 
@@ -174,6 +193,7 @@ def get_upload_filenames(email):
 def get_original_uploads(email):
     """
     Gets all root/original images from a user.
+
     Args:
         email: user to find.
 
@@ -193,6 +213,7 @@ def get_original_uploads(email):
 def get_updated_uploads(email):
     """
     Gets all updated images from a user.
+
     Args:
         email: user to find.
 
@@ -214,10 +235,12 @@ def get_updated_uploads(email):
 def post_upload_image():
     """
     Uploads a NEW image into the database to process.
-    Args:
+
+    POSTed request should contain:
         filename: the name of the file.
         email: ID of the current user.
         image_data: base64 representation of image.
+
     Returns:
         object: uploaded image object.
     """
@@ -281,8 +304,12 @@ def post_upload_image():
 def process_image_dict(content):
     """
     Processes images from end user, individual or in a list.
+
     Args:
         content: The content from the json request.
+
+    Returns:
+        JSON images with confirmed "upload" process
     """
     valid_types = ["jp", "png", "tif", "zip"]
 
@@ -336,8 +363,12 @@ def process_image_dict(content):
 def process_zipped(content):
     """
     Processes base 64 zipped data into a zipped folder. Reads folder.
+
     Args:
         content: json payload sent by end user.
+
+    Returns:
+        JSON zipped images with confirmed "upload" process
     """
     zip_data = content["image_data"]
     temp_name = 'temp'
@@ -354,14 +385,15 @@ def process_zipped(content):
 
 def b64str_zip_to_images(b64_str, folder_name):
     """
-    Takes a b64str which is a zip and converts to numpy images.
+    Converts a base64 data string representing a zip folder
+    to images on the webserver
+
     Args:
-        b64_str: the base 64 string representation of a zip file.
-        folder_name: the zip folder to extract.
+        b64_str: json payload sent by end user.
+        folder_name: name of folder to save to
 
     Returns:
-        list: A list of numpy images.
-
+        ret_images: list of dictionaries with all image data from zip folder
     """
     b64_str = b64_str.encode('utf-8')
     decoded = base64.decodebytes(b64_str)
@@ -397,9 +429,11 @@ def b64str_zip_to_images(b64_str, folder_name):
 def post_change_image():
     """
     Changes the user's current image
-    Args:
+
+    POSTed request should contain:
         email: user id.
         image_id: new image id to change to.
+
     Returns:
         dict: Image that as associated with user.
     """
@@ -421,7 +455,8 @@ def post_change_image():
 @app.route("/api/process/confirm", methods=["POST"])
 def post_confirm_image():
     """
-    Adds the image to the user.
+    Confirms image change and adds the image to the user.
+
     Returns:
         dict: Image that as associated with user.
     """
@@ -437,6 +472,7 @@ def post_confirm_image():
 def _verify_confirm_image(image):
     """
     Confirms that all necessary attributes are present at image add.
+
     Args:
         image (dict): Image object to be added.
 
@@ -455,11 +491,13 @@ def _verify_confirm_image(image):
 def post_get_images():
     """
     Obtains images from database based on ID.
-    Args:
+
+    POSTed request should contain:
         image_ids: as a list of images to get.
         email: user associated with this images.
+
     Returns:
-        list: all images.
+        list: all images
     """
     content = request.get_json()
     email = content["email"]
@@ -479,10 +517,12 @@ def post_get_images():
 def post_get_images_zipped():
     """
     Obtains zipped folder of images from database based on IDs.
-    Args:
+
+    POSTed request should contain:
         image_ids: as a list of images to get.
         email: user associated with this images.
         format: format for the images to be converted to.
+
     Returns:
         dict: base 64 encoded zip file of all images.
     """
@@ -534,8 +574,9 @@ def post_get_images_zipped():
 def zip_folder(folder_name, ziph):
     """
     Zips folder given a path
+
     Args:
-        path (str): folder to zip
+        folder_name (str): folder to zip
         ziph: some zip path indicator.
     """
     for file in os.listdir(folder_name):
@@ -545,6 +586,7 @@ def zip_folder(folder_name, ziph):
 def zip_to_b64(filepath):
     """
     Takes a zip file and turns it to base 64.
+
     Args:
         filepath: Filepath of the folder to zip
 
@@ -563,6 +605,7 @@ def zip_to_b64(filepath):
 def _link_new_image(current_image):
     """
     Makes associated links.
+
     Args:
         current_image: current image of the user/post data.
 
@@ -582,13 +625,13 @@ def _link_new_image(current_image):
 def _populate_image_meta(new_image, image_data):
     """
     Populates an existing dict with image meta information.
+
     Args:
         new_image (dict):
         image_data (np.ndarray): image data in RGB
 
     Returns:
         dict: dict with image meta information
-
     """
     new_image["width"] = image_data.shape[0]
     new_image["height"] = image_data.shape[1]
@@ -598,6 +641,7 @@ def _populate_image_meta(new_image, image_data):
 def _determine_format(format_string: str):
     """
     Determines file format from a string. Could be header/ext.
+
     Args:
         format_string: Header or file extension.
 
@@ -621,7 +665,8 @@ def _determine_format(format_string: str):
 def post_hist_eq():
     """
     Takes CURRENT image and performs histogram eq on image.
-    Args:
+
+    POSTed request should contain:
         email: ID of the current user.
 
     Returns:
@@ -648,7 +693,8 @@ def post_hist_eq():
 def post_image_contrast_stretch():
     """
     Takes CURRENT image and performs contrast stretch on image.
-    Args:
+
+    POSTed request should contain:
         email: ID of the current user.
 
     Returns:
@@ -679,7 +725,8 @@ def post_image_contrast_stretch():
 def post_image_log_compression():
     """
     Takes CURRENT image and performs log compression on image.
-    Args:
+
+    POSTed request should contain:
         email: ID of the current user.
 
     Returns:
@@ -706,7 +753,9 @@ def post_image_log_compression():
 def post_image_rev_video():
     """
     Inverse the intensities of a grayscale image.
-    Args:
+    Only works for grayscale images
+
+    POSTed request should contain:
         email: ID of the current user.
 
     Returns:
@@ -737,7 +786,8 @@ def post_image_rev_video():
 def post_image_sharpen():
     """
     Takes CURRENT image and performs image sharpen on whole image.
-    Args:
+
+    POSTed request should contain:
         email: ID of the current user.
 
     Returns:
@@ -764,7 +814,8 @@ def post_image_sharpen():
 def post_image_blur():
     """
     Takes CURRENT image and performs image blur on whole image.
-    Args:
+
+    POSTed request should contain:
         email: ID of the current user.
 
     Returns:
@@ -789,12 +840,12 @@ def post_image_blur():
 def _get_b64_histogram(image_data, is_gray=False):
     """
     Gets a base 64 representation of a histogram for an image
+
     Args:
         image_data (np.ndarray): Image.
 
     Returns:
         str: Base 64 representation of the histogram for image.
-
     """
     histogram = Processing(
         image_data, is_color=False).histogram(
@@ -806,13 +857,14 @@ def _get_b64_histogram(image_data, is_gray=False):
 @app.route("/api/process/email_image", methods=["POST"])
 def post_email_image():
     """
-    Takes CURRENT image and performs image blur on whole image.
-    Args:
+    Returns the information about if the image was emailed.
+
+    POSTed request should contain:
         email: email of the current user.
         image_id: id of the image to email
 
     Returns:
-        object: response from sendgrid.
+        object: response from Sendgrid.
     """
     content = request.get_json()
 
@@ -834,12 +886,12 @@ def post_email_image():
 def b64str_to_numpy(b64_img):
     """
     Converts a b64str to numpy. Strips headers.
+
     Args:
         b64_img (str): base 64 representation of an image.
 
     Returns:
         np.ndarray: numpy array of image.
-
     """
     b64_img, _ = _get_b64_format(b64_img)
     byte_image = base64.b64decode(b64_img)
@@ -849,6 +901,16 @@ def b64str_to_numpy(b64_img):
 
 
 def _get_b64_format(b64_img):
+    """
+    Determines the format of the b64 string
+
+    Args:
+        b64_img (str): base 64 representation of an image.
+
+    Returns:
+        b64_image: Array data of the image only
+        image_format: The format of the image
+    """
     split = b64_img.split("base64,")  # get rid of header
     if len(split) == 2:
         b64_img = split[1]
@@ -862,12 +924,13 @@ def _get_b64_format(b64_img):
 def numpy_to_b64str(img, format="JPG"):
     """
     Converts a numpy array into a base 64 string
+
     Args:
-        img (np.array):
+        img (np.array): the image represented as an Numpy Array
+        format: The format of the image to be converted into
 
     Returns:
         str: base 64 representation of the numpy array/image.
-
     """
     if _should_reverse_image(format):
         # flip for cv conversion, only some file formats
@@ -879,6 +942,15 @@ def numpy_to_b64str(img, format="JPG"):
 
 
 def _should_reverse_image(format):
+    """
+    Reverses the array format for JPG images
+
+    Args:
+        format: The format of the image input
+
+    Returns:
+        bool: True if the image should be reversed. False otherwise
+    """
     should_reverse = ["JPG"]
     if format in should_reverse:
         return True
@@ -888,11 +960,10 @@ def _should_reverse_image(format):
 
 def email_image(image):
     """
-    Sends email regarding heart rate via Sendgrid API.
+    Sends email with image via Sendgrid API.
+
     Args:
-        to_address: Address to send to
-        email_subject: Subject of the email.
-        email_content: Content of the email.
+        image: Image to be emailed.
 
     Returns:
         object: API response from Sendgrid Server.
@@ -918,12 +989,12 @@ def email_image(image):
 def _is_valid_email(email):
     """
     Determines if the email is valid.
+
     Args:
         email: Email to test.
 
     Returns:
         bool: If the email is valid.
-
     """
     if "@" not in email:
         return False
@@ -935,6 +1006,7 @@ def _is_valid_email(email):
 def error_handler(status_code, msg, error_type):
     """
     Handles errors to send back to requester.
+
     Args:
         status_code: The status code, standard.
         msg: Message to send.
@@ -942,7 +1014,6 @@ def error_handler(status_code, msg, error_type):
 
     Returns:
         dict: Error message information.
-
     """
     error_msg = {
         "status_code": status_code,
@@ -955,6 +1026,10 @@ def error_handler(status_code, msg, error_type):
 def random_id(length=10):
     """
     Generates random alpha-numeric ID.
+
+    Args:
+        length: length of ID. Default 10
+
     Returns:
         str: alpha-numeric ID
     """
@@ -964,6 +1039,7 @@ def random_id(length=10):
 def get_app():
     """
     Gets the app (for testing).
+
     Returns:
         object: Flask application object.
     """

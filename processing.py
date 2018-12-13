@@ -20,8 +20,10 @@ import os
 def output_to_rgb(img_array: np.array):
     """
     Converts the image array to RGB
+
     Args:
         img_array: A numpy array representing the image
+
     Returns:
         output_as_rgb: the image represented as a RGB image
     """
@@ -32,8 +34,10 @@ def output_to_rgb(img_array: np.array):
 def output_0_to_255_as_int(img_array: np.array):
     """
     Converts the image array integers in range 0-255
+
     Args:
         img_array: A numpy array representing the image
+
     Returns:
         output_as_in: the image array as integer 0-255
     """
@@ -46,6 +50,9 @@ def output_0_to_255_as_int(img_array: np.array):
 def check_grayscale(image):
     """
     Checks if the input image is grayscale OUTSIDE Processing class.
+
+    Args:
+        image: Array representation of image to check if Grayscale
     Returns:
         GRAY: If the image is grayscale
         COLOR: if the image is color
@@ -74,6 +81,7 @@ class Benchmark(object):
     def stop(self):
         """
         Determines the stop time of when the process finished
+
         Returns:
             Time in milliseconds the process ran for
         """
@@ -107,6 +115,7 @@ class Processing(object):
     def hist_eq(self):
         """
         Employs histogram equalization on self.image.
+
         Returns:
             Numpy.Array representation of histogram equilization image
         """
@@ -127,8 +136,10 @@ class Processing(object):
     def contrast_stretch(self, percentile=(10, 90)):
         """
         Employs contrast stretching on self.image.
+
         Args:
             percentile: percentile range of pixel intensity to stretch
+
         Returns:
             Numpy.Array representation of contrast stretched image
         """
@@ -144,8 +155,7 @@ class Processing(object):
     def log_compression(self):
         """
         Performs log compression of self.image.
-        Args:
-            base: base of the log which is applied to the image
+
         Returns:
             Numpy.Array representation of log compressed image
         """
@@ -170,6 +180,7 @@ class Processing(object):
         """
         Inverts the black/white pixels of an image.
         Only works for grayscale images
+
         Returns:
             Numpy.Array representation of reversed image
             ValueError if the user inputs a color image
@@ -186,6 +197,7 @@ class Processing(object):
     def blur(self):
         """
         Employs a Gaussian blurring filter on given image.
+
         Returns:
             Numpy.Array representation of blurred image
         """
@@ -198,6 +210,7 @@ class Processing(object):
     def sharpen(self):
         """
         Employs a sharpening filter on given image.
+
         Returns:
             Numpy.Array representation of sharpened image
         """
@@ -214,8 +227,11 @@ class Processing(object):
     def histogram(self, image, is_gray=False):
         """
         Returns a histogram of the image
+
         Args:
             image: Image to find histogram of
+            is_gray = allows server to set if gray by default
+
         Returns:
             Numpy.Array representation of histogram of image
         """
@@ -256,6 +272,10 @@ class Processing(object):
     def _check_image_type(self, image):
         """
         Checks if the input image is a numpy array.
+
+        Args:
+            image: image input to check type
+
         Returns:
             bool: If the image is valid.
         """
@@ -267,6 +287,10 @@ class Processing(object):
     def _check_image_shape(self, image):
         """
         Checks if image numpy array has valid dimensions
+
+        Args:
+            image: image array to check shape
+
         Returns:
             bool: If the image is valid.
         """
@@ -277,6 +301,7 @@ class Processing(object):
     def _check_grayscale(self):
         """
         Checks if the input image is grayscale WITHIN Processing class.
+
         Returns:
             GRAY: If the image is grayscale
             COLOR: if the image is color
