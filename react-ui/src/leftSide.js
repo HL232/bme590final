@@ -11,8 +11,8 @@ import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Typo
 import MainEnhance from './MainEnhance'
 
 export default class LeftSide extends Component {
-
  
+
   state = {
     "winDisplay": 1
   };
