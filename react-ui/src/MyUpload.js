@@ -16,7 +16,7 @@ export default class MyUpload extends Component {
 	}
 
 	state = {
-		selectedFile: null
+		selectedFile: 'img'
 	}
 
 	fileSelectedHandler = event => {
@@ -24,29 +24,36 @@ export default class MyUpload extends Component {
 
 	}
 
-	uploadhand = () => {
-		axios.post('http://duke.edu/Upload', this.state.selectedFile)
-		.then(res => {
-			console.log(res)
-		})
-
-}
 		onUpload = (files) => {
 			const reader = new FileReader()
 			const myF = files[0]
 			reader.readAsDataURL(myF);
 			reader.onloadend = () => {
-				console.log(reader.result);
 				this.setState({currentImageString: reader.result});
 			}
-			axios.post('http://duke.edu/Upload', this.state.currentImageString)
-			.then(res => {
-				console.log(res)
-			})
+
 
 		}
 
+ pusher = () => {
 
+	 //console.log(this.state)
+	 var myob = {}
+	 var iStr = this.state.currentImageString
+	 //iStr = iStr.split(";").pop();
+		 myob['image_data'] = iStr;
+		 myob['email'] = 'myID@no.';
+		 myob['filename'] = 'stevenisaTWAT'
+
+		 console.log(iStr)
+	 axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
+	 .then(res => {
+	 	console.log(res)
+	 })
+	 .catch(function (error) {
+ console.log(error);
+});
+ }
 
 
 	render() {
@@ -57,7 +64,7 @@ export default class MyUpload extends Component {
 
 
 				<h2> Upload Images! </h2>
-				<Button color = 'primary' variant = 'contained'>
+				<Button color = 'primary' variant = 'contained' style= {{margin: '5px'}}>
 				<UploadField onFiles={this.onUpload}>
 
 
@@ -66,6 +73,10 @@ export default class MyUpload extends Component {
 					</UploadField>
 					</Button>
 					<img src={this.state.currentImageString} />
+
+					<Button style= {{margin: '5px'}} variant='contained' color='primary' onClick={this.pusher}>
+					Confirm Upload?
+					</Button>
 
 
 			</Paper>

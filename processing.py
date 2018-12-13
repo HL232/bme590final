@@ -152,7 +152,6 @@ class Processing(object):
         b = Benchmark()
 
         if self._check_grayscale() == 'GRAY':
-            # IS THIS WORKING???**********************************
             image_rgb = cv2.cvtColor(self.image, cv2.COLOR_GRAY2RGB)
             image_hsv = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2HSV)
             image_hsv[:, :, 1] = np.log(image_hsv[:, :, 1] + 1)
