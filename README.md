@@ -31,30 +31,30 @@ development and design conventions taught in this class, including:
 
 ## Functional Specifications
 At a minimum, you image processor should do the following:
-* Provide a [graphical] user interface that will allow a user to select an image, list of
-  images, or a zip archive of images that will be uploaded to your web-server,
+* Provide a [graphical] user interface that will allow a user to select an image, **list of
+  images, or a zip archive of images** that will be uploaded to your web-server,
   perform necessary preprocessing steps, and then issue a RESTful API request
   to your cloud service for further processing.
 * Your [graphical] user interface will have a choice of processing steps to perform on each
   uploaded image, including:
-  + Histogram Equalization [default]
+  + ~~Histogram Equalization [default]
   + Contrast Stretching
   + Log Compression
   + Reverse Video
-  + Others of your choice!
-* A cloud-based web service that exposes a well-crafted RESTful API that will
+  + Others of your choice!~~
+* ~~A cloud-based web service that exposes a well-crafted RESTful API that will
   implement the image processing methods specified above (checkout out
-  [scikit-image](http://scikit-image.org/) to make your life easier on the image processing algorithms!).
+  [scikit-image](http://scikit-image.org/) to make your life easier on the image processing algorithms!).~~
 * A database should be implemented in some form to do one or more of the following:
-  + Store previous user actions / metrics (e.g. how many times has a user run Histogram Equalization, 
-  latency for running different processing tasks, etc). 
-  + Store uploaded images and timestamps for a user
-  + Store processed images (along with what processing was applied) and timestamps for a user
-  + Another use case you choose.
+  +~~Store previous user actions / metrics (e.g. how many times has a user run Histogram Equalization, 
+  latency for running different processing tasks, etc). ~~
+  + ~~Store uploaded images and timestamps for a user~~
+  + ~~Store processed images (along with what processing was applied) and timestamps for a user
+  + Another use case you choose.~~
 * Your user interface should also provide:
-  + An option to display and compare the original and processed images.
+  + ~~An option to display and compare the original and processed images.~~
   + An option to download the image(s) in one of the following formats:
-    - JPEG
+    - ~~JPEG~~
     - PNG
     - TIFF
   If multiple images are to be downloaded, they should be downloaded as a zip archive.
