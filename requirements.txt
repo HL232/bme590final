@@ -16,5 +16,4 @@ pytest-pudb
 pymodm
 imageio
 sendgrid
-zipfile
 opencv-python
