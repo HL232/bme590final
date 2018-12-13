@@ -16,7 +16,7 @@ export default class MyUpload extends Component {
 	}
 
 	state = {
-		selectedFile: 'img'
+		myimgArray: [],
 	}
 
 	fileSelectedHandler = event => {
@@ -39,13 +39,23 @@ export default class MyUpload extends Component {
 
 	 //console.log(this.state)
 	 var myob = {}
-	 var iStr = this.state.currentImageString
+
+	 var helpAr = []
+	 if (this.state.myimgArray.length === 0) {
+
+		 helpAr.push(this.state.currentImageString)
+		 this.setState({myimgArray: helpAr})
+	 }
+	 else {
+	    var myAr = this.state.myimgArray
+	 		helpAr = myAr.push(this.state.currentImageString)
+			this.setState({myimgArray: helpAr})
+		}
 	 //iStr = iStr.split(";").pop();
-		 myob['image_data'] = iStr;
+		 myob['image_data'] = helpAr
 		 myob['email'] = 'myID@no.';
 		 myob['filename'] = 'stevenisaTWAT'
 
-		 console.log(iStr)
 	 axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
 	 .then(res => {
 	 	console.log(res)
