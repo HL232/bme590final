@@ -11,6 +11,7 @@ class Image(MongoModel):
     image_id = fields.CharField(primary_key=True)
     filename = fields.CharField()
     image_data = fields.CharField()
+    histogram = fields.CharField()
     email = fields.CharField()
     timestamp = fields.DateTimeField()
     width = fields.IntegerField()
@@ -83,6 +84,7 @@ class ImageProcessingDB(object):
         i = Image(email=email,
                   filename=image_info["filename"],
                   image_id=image_info["image_id"],
+                  histogram=image_info["histogram"],
                   process=image_info["process"],
                   image_data=image_info["image_data"],
                   processing_time=image_info["processing_time"],
@@ -232,6 +234,8 @@ class ImageProcessingDB(object):
             raise TypeError("process must be type str.")
         if not self._valid_process(image_info["process"]):
             raise ValueError("process invalid.")
+        if "histogram" not in image_info.keys():
+            raise AttributeError("image_info must have histogram.")
         return image_info
 
     def _valid_process(self, process):
@@ -399,8 +403,12 @@ class ImageProcessingDB(object):
         """
         Gets returnable json format of image.
         Args:
-            image:
+            image: image database object.
+        Returns:
+            dict: dict version of image.
         """
+        if not image:
+            raise ValueError("Image does not exist.")
 
         ret_json = {
             "filename": image.filename,
@@ -424,8 +432,13 @@ class ImageProcessingDB(object):
         """
         Gets returnable json format of user.
         Args:
-            user:
+            user: user database object.
+        Returns:
+            dict: dict version of user.
         """
+        if not user:
+            raise ValueError("User does not exist.")
+
         ret_json = {
             "email": user.email,
             "uploads": user.uploads,

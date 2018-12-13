@@ -1,7 +1,10 @@
+import os
 import io
 import cv2
 import json
 import base64
+import random
+import zipfile
 import imageio
 import requests
 from random import choice
@@ -128,10 +131,68 @@ def view_image(image):
     plt.show()
 
 
+def zip_to_b64(filepath):
+    """
+    Takes a zip file and turns it to base 64.
+    Args:
+        filepath: Filepath of the folder to zip
+
+    Returns:
+        str: base 64 representation of zip folder.
+    """
+
+    # convert zip file to base64
+    with open(filepath, "rb") as f:
+        bytes = f.read()
+        base64_bytes = base64.b64encode(bytes)
+        base64_string = base64_bytes.decode('utf-8')  # convert to string
+        return base64_string
+
+
+def random_id(length=10):
+    """
+    Generates random alpha-numeric ID.
+    Returns:
+        str: alpha-numeric ID
+    """
+    return ''.join(choice(ascii_uppercase) for _ in range(length))
+
+
+def b64str_zip_to_images(b64_str, folder_name):
+    b64_str = b64_str.encode('utf-8')
+    decoded = base64.decodebytes(b64_str)
+
+    # makes a folder
+    ret_images = []
+    os.makedirs(folder_name, exist_ok=True)
+
+    with zipfile.ZipFile(io.BytesIO(decoded)) as f:
+        f.extractall("temp")
+
+        for filename in f.namelist():
+            filepath = "temp/{}".format(filename)
+            ret = {}
+            ext = os.path.splitext(filename)[1]
+            ret["filename"] = filename
+            image = imageio.imread(filepath)
+            ret["image_data"] = numpy_to_b64str(image)
+            ret["width"] = image.shape[0]
+            ret["height"] = image.shape[1]
+            ret["image_id"] = random_id()
+            ret["process"] = "upload"
+            ret["processing_time"] = -1
+            ret["format"] = _determine_format(ext)
+            ret_images.append(ret)
+
+    # os.removedirs(folder_name)
+    return ret_images
+
+
 email = "dukebme590.imageprocessor@gmail.com"
 dog_source = 'https://i.imgur.com/B15ubOP.jpg'
 # dog_source = "https://i.imgur.com/2gX8HVS.png"
 # dog_source = "MARBIBM.TIF"
+dog_source = "images_for_testing/gray_dog.jpg"
 dog_image = imageio.imread(dog_source)
 # print("Original", dog_image.shape, dog_image[0][0])
 
@@ -143,23 +204,60 @@ image_obj = {
     "filename": dog_source
 }
 
-resp = requests.post("http://127.0.0.1:5000/api/process/upload_image",
-                     json=image_obj)
+"""
+filenames = []
+image_data = []
+for i in range(3):
+    filenames.append(image_obj["filename"])
+    image_data.append(image_obj["image_data"])
+image_obj["email"] = image_obj["email"]
+image_obj["image_data"] = image_data
+image_obj["filename"] = filenames"""
+
+
+"""
+filename = "test_folder.zip"
+image_obj = {
+    "email": email,
+    "image_data": zip_to_b64(filename),
+    "filename": filename
+}"""
+
+resp = requests.post(
+    "http://127.0.0.1:5000/api/process/upload_image",
+    json=image_obj)
 content = byte_2_json(resp)
-# view_image(b64str_to_numpy(content[0]["image_data"]))
+ids = []
+for image in content:
+    ids.append(image["image_id"])
+    # view_image(b64str_to_numpy(image["image_data"]))
 
 # blur
 image_obj_2 = {"email": email}
-resp = requests.post("http://127.0.0.1:5000/api/process/blur",
+resp = requests.post("http://127.0.0.1:5000/api/process/reverse_video",
                      json=image_obj)
 content = byte_2_json(resp)
-# view_image(b64str_to_numpy(content["image_data"]))
-
+ids.append(content["image_id"])
+# view_image(b64str_to_numpy(content["histogram"]))
 # attempt to confirm
 resp = requests.post("http://127.0.0.1:5000/api/process/confirm", json=content)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 
+# attempt to get zipped images
+"""
+zip_post = {
+    "image_ids": ids,
+    "email": email,
+    "format": "JPG"
+}
+resp = requests.post("http://127.0.0.1:5000/api/image/get_images_zipped",
+                     json=zip_post)
+content = byte_2_json(resp)
+b64_zip = content["zip_data"][0:50]
+print(b64_zip)"""
+
+"""
 # should use the blurred image
 image_obj_3 = {"email": email}
 resp = requests.post("http://127.0.0.1:5000/api/process/sharpen",
@@ -172,4 +270,4 @@ image_obj_5 = {"email": email}
 resp = requests.post("http://127.0.0.1:5000/api/process/contrast_stretch",
                      json=image_obj)
 content = byte_2_json(resp)
-view_image(b64str_to_numpy(content["image_data"]))
+view_image(b64str_to_numpy(content["image_data"]))"""
