@@ -249,7 +249,7 @@ def test_post_change_image(flask_app, image_upload):
     }
     client.post('/api/process/change_image', json=payload)
 
-    image = resp.json[0]
+    image = resp.json
     db_image = b64str_to_numpy(image["image_data"])
     user = db.find_user(image["email"])
     assert _check_image(db_image) and \
@@ -429,7 +429,7 @@ def test_get_previous_image(flask_app, image_upload):
     email = random_id()
     image_upload["email"] = email
     original = client.post('/api/process/upload_image', json=image_upload)
-    original = original.json[0]
+    original = original.json
 
     resp = client.post('/api/process/blur', json={"email": email})
     client.post('/api/process/confirm', json=resp.json)
