@@ -2,6 +2,7 @@ import io
 import cv2
 import base64
 import pytest
+import zipfile
 import imageio
 import skimage
 import numpy as np
@@ -23,6 +24,24 @@ def random_id():
     return ''.join(choice(ascii_uppercase) for _ in range(10))
 
 
+def zip_to_b64(filepath):
+    """
+    Takes a zip file and turns it to base 64.
+    Args:
+        filepath: Filepath of the folder to zip
+
+    Returns:
+        str: base 64 representation of zip folder.
+    """
+
+    # convert zip file to base64
+    with open(filepath, "rb") as f:
+        bytes = f.read()
+        base64_bytes = base64.b64encode(bytes)
+        base64_string = base64_bytes.decode('utf-8')  # convert to string
+        return base64_string
+
+
 @pytest.fixture()
 def flask_app():
     app = get_app()
@@ -31,9 +50,7 @@ def flask_app():
 
 @pytest.fixture()
 def image_post():
-    dog_source = '/images_for_testing/{}'.format(
-        "https://i.imgur.com/B15ubOP.jpg"
-    )
+    dog_source = "https://i.imgur.com/B15ubOP.jpg"
     dog_image = imageio.imread(dog_source)
     image_data = numpy_to_b64str(dog_image)
     image = {
@@ -46,6 +63,7 @@ def image_post():
         "format": "png",
         "processing_time": 30,
         "process": "hist_eq",
+        "histogram": "test"
     }
     return image
 
@@ -65,6 +83,7 @@ def image_post_png():
         "format": "png",
         "processing_time": 30,
         "process": "hist_eq",
+        "histogram": "test"
     }
     return image
 
@@ -124,7 +143,7 @@ def numpy_to_b64str(img):
 
 # ----------------- Post tests ------------------------------
 
-def test_post_upload_image(flask_app, image_upload):
+def test_post_upload_image_dict(flask_app, image_upload):
     client = flask_app.test_client()
     image_upload["email"] = random_id()
     resp = client.post('/api/process/upload_image', json=image_upload)
@@ -132,7 +151,89 @@ def test_post_upload_image(flask_app, image_upload):
     db_image = b64str_to_numpy(image["image_data"])
     user = db.find_user(image["email"])
     assert _check_image(db_image) and \
-        user.current_image == image["image_id"]
+           user.current_image == image["image_id"]
+
+
+def test_post_upload_image_list(flask_app, image_upload):
+    client = flask_app.test_client()
+    image_uploads = []
+    for i in range(3):
+        image_upload["email"] = random_id()
+        image_uploads.append(image_upload)
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    image = resp.json[-1]
+    db_image = b64str_to_numpy(image["image_data"])
+    user = db.find_user(image["email"])
+    assert _check_image(db_image) and \
+           user.current_image == image["image_id"]
+
+
+def test_post_upload_image_dict_list(flask_app, image_upload):
+    client = flask_app.test_client()
+    image_uploads = {}
+    filenames = []
+    image_data = []
+    for i in range(3):
+        filenames.append(random_id())
+        image_data.append(image_upload["image_data"])
+
+    image_uploads["email"] = image_upload["email"]
+    image_uploads["image_data"] = image_data
+    image_upload["filename"] = filenames
+
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    image = resp.json.pop(1)
+    db_image = b64str_to_numpy(image["image_data"])
+    user = db.find_user(image["email"])
+    assert _check_image(db_image) and \
+           user.current_image == image["image_id"]
+
+
+def test_post_upload_image_zip_file(flask_app, image_upload):
+    client = flask_app.test_client()
+    image_upload["email"] = random_id()
+    image_upload["filename"] = "tests/images_for_testing/test_folder.zip"
+    image_upload["image_data"] = zip_to_b64(
+        "tests/images_for_testing/test_folder.zip")
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    num_images = len(resp.json)
+    image = resp.json.pop(1)
+    db_image = b64str_to_numpy(image["image_data"])
+    user = db.find_user(image["email"])
+    assert _check_image(db_image) and \
+           user.current_image == image["image_id"] and num_images == 4
+
+
+def test_post_upload_image_no_email(flask_app, image_upload):
+    client = flask_app.test_client()
+    del image_upload["email"]
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    assert resp.json["error_type"] == "AttributeError"
+
+
+def test_post_upload_image_no_filename(flask_app, image_upload):
+    with pytest.raises(AttributeError):
+        test = image_upload
+        client = flask_app.test_client()
+        del test["filename"]
+        client.post('/api/process/upload_image', json=image_upload)
+
+
+@pytest.mark.parametrize("filename", [
+    "test1.svg", "test", "blah.p"])
+def test_post_upload_image_bad_filenames(
+        flask_app, image_upload, filename):
+    client = flask_app.test_client()
+    image_upload["filename"] = filename
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    assert resp.json["error_type"] == "TypeError"
+
+
+def test_post_upload_image_no_image_data(flask_app, image_upload):
+    client = flask_app.test_client()
+    del image_upload["image_data"]
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    assert resp.json["error_type"] == "AttributeError"
 
 
 def test_post_change_image(flask_app, image_upload):
@@ -151,7 +252,51 @@ def test_post_change_image(flask_app, image_upload):
     db_image = b64str_to_numpy(image["image_data"])
     user = db.find_user(image["email"])
     assert _check_image(db_image) and \
-        user.current_image == image["image_id"]
+           user.current_image == image["image_id"]
+
+
+def test_post_change_image_bad_id(flask_app, image_upload):
+    client = flask_app.test_client()
+    image_upload["email"] = random_id()
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    payload = {
+        "email": image_upload["email"],
+        "image_id": "1"
+    }
+    resp = client.post('/api/process/change_image', json=payload)
+    assert resp.json["error_type"] == "AttributeError"
+
+
+def test_post_change_image_no_id(flask_app, image_upload):
+    client = flask_app.test_client()
+    image_upload["email"] = random_id()
+    client.post('/api/process/upload_image', json=image_upload)
+    payload = {
+        "email": image_upload["email"]
+    }
+    resp = client.post('/api/process/change_image', json=payload)
+    assert resp.json["error_type"] == "AttributeError"
+
+
+def test_post_confirm_image(flask_app, image_upload):
+    client = flask_app.test_client()
+    image_upload["email"] = random_id()
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    payload = resp.json
+    resp = client.post('/api/process/confirm_image', json=payload)
+    assert resp.json["filename"] == "test_name"
+
+
+@pytest.mark.parametrize("remove_key", [
+    "email", "image_data", "child_ids", ""])
+def test_post_bad_confirm_image(flask_app, image_upload, remove_key):
+    client = flask_app.test_client()
+    image_upload["email"] = random_id()
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    payload = resp.json.pop(1)
+    del payload[remove_key]
+    resp = client.post('/api/process/confirm_image', json=payload)
+    assert resp.json["error_type"] == "AttributeError"
 
 
 def test_post_hist_eq(flask_app, image_upload):
@@ -164,7 +309,7 @@ def test_post_hist_eq(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-        user.process_count["hist_eq"] == 1
+           user.process_count["hist_eq"] == 1
 
 
 def test_post_image_contrast_stretch(flask_app, image_upload):
@@ -177,7 +322,7 @@ def test_post_image_contrast_stretch(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-        user.process_count["contrast_stretch"] == 1
+           user.process_count["contrast_stretch"] == 1
 
 
 def test_post_image_log_compression(flask_app, image_upload):
@@ -190,7 +335,7 @@ def test_post_image_log_compression(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-        user.process_count["log_compression"] == 1
+           user.process_count["log_compression"] == 1
 
 
 def test_post_image_reverse_video_color(flask_app, image_upload):
@@ -218,7 +363,7 @@ def test_post_image_reverse_video(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-        user.process_count["reverse_video"] == 1
+           user.process_count["reverse_video"] == 1
 
 
 def test_post_image_sharpen(flask_app, image_upload):
@@ -231,7 +376,7 @@ def test_post_image_sharpen(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-        user.process_count["sharpen"] == 1
+           user.process_count["sharpen"] == 1
 
 
 def test_post_image_blur(flask_app, image_upload):
@@ -244,7 +389,7 @@ def test_post_image_blur(flask_app, image_upload):
     db_image = b64str_to_numpy(resp.json["image_data"])
     user = db.find_user(image_upload["email"])
     assert _check_image(db_image) and \
-        user.process_count["blur"] == 1
+           user.process_count["blur"] == 1
 
 
 def test_post_email_image(flask_app, image_upload):
@@ -284,7 +429,15 @@ def test_get_current_image(flask_app, image_upload):
     current_id = user.current_image
 
     assert _check_image(db_image) and \
-        current_id == resp.json["image_id"]
+           current_id == resp.json["image_id"]
+
+
+def test_get_current_image_no_email(flask_app, image_upload):
+    client = flask_app.test_client()
+    del image_upload["email"]
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    resp = client.get('/api/image/get_current_image/'.format())
+    assert resp.json["error_type"] == "AttributeError"
 
 
 def test_get_previous_image(flask_app, image_upload):
@@ -305,7 +458,15 @@ def test_get_previous_image(flask_app, image_upload):
     curr_image = user.current_image
 
     assert prev_image["image_id"] == original["image_id"] \
-        and curr_image == prev_image["image_id"]
+           and curr_image == prev_image["image_id"]
+
+
+def test_get_previous_image_no_email(flask_app, image_upload):
+    client = flask_app.test_client()
+    del image_upload["email"]
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    resp = client.get('/api/image/get_previous_image/'.format())
+    assert resp.json["error_type"] == "AttributeError"
 
 
 def test_get_next_image(flask_app, image_upload):
@@ -330,8 +491,16 @@ def test_get_next_image(flask_app, image_upload):
     current_id = user.current_image
 
     assert original["image_id"] == previous_image["image_id"] \
-        and next_image["image_id"] == blurred_image["image_id"] \
-        and current_id == blurred_image["image_id"]
+           and next_image["image_id"] == blurred_image["image_id"] \
+           and current_id == blurred_image["image_id"]
+
+
+def test_get_next_image_no_email(flask_app, image_upload):
+    client = flask_app.test_client()
+    del image_upload["email"]
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    resp = client.get('/api/image/get_previous_image/'.format())
+    assert resp.json["error_type"] == "AttributeError"
 
 
 # -------------------- test get user stuff ---------------------
@@ -345,7 +514,19 @@ def test_get_user(flask_app, image_upload):
 
     resp = client.get('/api/user/get_user/{}'.format(email))
     user = resp.json
-    assert image_id in user["uploads"].keys()
+    assert image_id in user["uploads"].keys() and \
+           email == user.user_id
+
+
+def test_get_user_no_email(flask_app, image_upload):
+    client = flask_app.test_client()
+    email = random_id()
+    image_upload["email"]
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    image_id = resp.json[0]["image_id"]
+
+    resp = client.get('/api/user/get_user')
+    assert resp.json["error_type"] == "AttributeError"
 
 
 def test_get_original_upload_ids(flask_app, image_upload):
@@ -363,6 +544,20 @@ def test_get_original_upload_ids(flask_app, image_upload):
     assert original_id in ids
 
 
+def test_get_original_upload_ids_no_email(flask_app, image_upload):
+    client = flask_app.test_client()
+    email = random_id()
+    image_upload["email"] = email
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    original_id = resp.json[0]["image_id"]
+    resp = client.post('/api/process/blur', json={"email": email})
+    client.post('/api/process/confirm', json=resp.json)
+    blurred_id = resp.json["image_id"]
+    resp = client.get(
+        '/api/user/get_original_upload_ids/')
+    assert resp.json["error_type"] == "AttributeError"
+
+
 def test_get_updated_upload_ids(flask_app, image_upload):
     client = flask_app.test_client()
     email = random_id()
@@ -378,6 +573,20 @@ def test_get_updated_upload_ids(flask_app, image_upload):
     assert blurred_id in ids
 
 
+def test_get_updated_upload_ids_no_email(flask_app, image_upload):
+    client = flask_app.test_client()
+    email = random_id()
+    image_upload["email"] = email
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    original_id = resp.json[0]["image_id"]
+    resp = client.post('/api/process/blur', json={"email": email})
+    client.post('/api/process/confirm', json=resp.json)
+    blurred_id = resp.json["image_id"]
+    resp = client.get(
+        '/api/user/get_updated_upload_ids/')
+    assert resp.json["error_type"] == "AttributeError"
+
+
 def test_get_upload_filenames(flask_app, image_upload):
     client = flask_app.test_client()
     email = random_id()
@@ -391,6 +600,16 @@ def test_get_upload_filenames(flask_app, image_upload):
     for image_id in names.keys():
         all_names.append(names[image_id])
     assert image_upload["filename"] in all_names
+
+
+def test_get_upload_filenames_no_email(flask_app, image_upload):
+    client = flask_app.test_client()
+    email = random_id()
+    image_upload["email"] = email
+    client.post('/api/process/upload_image', json=image_upload)
+    resp = client.get(
+        '/api/user/get_upload_filenames/')
+    assert resp.json["error_type"] == "AttributeError"
 
 
 def test_get_original_uploads(flask_app, image_upload):
@@ -411,6 +630,22 @@ def test_get_original_uploads(flask_app, image_upload):
     assert len(images) == 1 and images[0]["image_id"] == original_id
 
 
+def test_get_original_uploads_no_email(flask_app, image_upload):
+    client = flask_app.test_client()
+    email = random_id()
+    image_upload["email"] = email
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    original_id = resp.json[0]["image_id"]
+
+    resp = client.post('/api/process/blur', json={"email": email})
+    client.post('/api/process/confirm', json=resp.json)
+
+    blurred_id = resp.json["image_id"]
+    resp = client.get(
+        '/api/user/get_original_uploads/')
+    assert resp.json["error_type"] == "AttributeError"
+
+
 def test_get_updated_uploads(flask_app, image_upload):
     client = flask_app.test_client()
     email = random_id()
@@ -424,6 +659,22 @@ def test_get_updated_uploads(flask_app, image_upload):
         '/api/user/get_updated_uploads/{}'.format(email))
     images = resp.json
     assert len(images) == 1 and images[0]["image_id"] == blurred_id
+
+
+def test_get_updated_uploads_no_email(flask_app, image_upload):
+    client = flask_app.test_client()
+    email = random_id()
+    image_upload["email"] = email
+    resp = client.post('/api/process/upload_image', json=image_upload)
+    original_id = resp.json[0]["image_id"]
+
+    resp = client.post('/api/process/blur', json={"email": email})
+    client.post('/api/process/confirm', json=resp.json)
+
+    blurred_id = resp.json["image_id"]
+    resp = client.get(
+        '/api/user/get_updated_uploads/')
+    assert resp.json["error_type"] == "AttributeError"
 
 
 def _check_image(img_obj):

@@ -42,7 +42,7 @@ def get_current_image(email):
         email: ID of the image to get.
     """
     if not email:
-        return error_handler(400, "Must include user id.", "AttributeError")
+        return error_handler(400, "Must include user email.", "AttributeError")
     image = db.get_current_image(email)
     image = db.image_to_json(image)
     return jsonify(image)
@@ -229,6 +229,9 @@ def post_upload_image():
         return error_handler(400, "must include filename", "AttributeError")
     if type(content["filename"]) != str:
         return error_handler(400, "filename must be type str", "TypeError")
+    if not any(x in content["filename"] \
+               for x in ["zip", "tif", "jp", "png"]):
+        return error_handler(400, "file must be valid type", "TypeError")
 
     if 'zip' in content["filename"].lower():
         # handles if it's a zipped file
@@ -263,7 +266,8 @@ def process_images(content):
 
     uploaded_images = []
     for upload in content:
-        image = b64str_to_numpy(upload["image_data"])
+        upload["email"] = content["email"]
+        upload["histogram"] = _get_b64_histogram(image)
         upload["width"] = image.shape[0]
         upload["height"] = image.shape[1]
         upload["image_id"] = random_id()
@@ -298,6 +302,16 @@ def process_zipped(content):
 
 
 def b64str_zip_to_images(b64_str, folder_name):
+    """
+    Takes a b64str which is a zip and converts to numpy images.
+    Args:
+        b64_str: the base 64 string representation of a zip file.
+        folder_name: the zip folder to extract.
+
+    Returns:
+        list: A list of numpy images.
+
+    """
     b64_str = b64_str.encode('utf-8')
     decoded = base64.decodebytes(b64_str)
 
@@ -315,6 +329,7 @@ def b64str_zip_to_images(b64_str, folder_name):
             ret["filename"] = filename
             image = imageio.imread(filepath)
             ret["image_data"] = numpy_to_b64str(image)
+            ret["histogram"] = _get_b64_histogram(image)
             ret["width"] = image.shape[0]
             ret["height"] = image.shape[1]
             ret["image_id"] = random_id()
