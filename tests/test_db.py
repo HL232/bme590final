@@ -2,6 +2,7 @@ import pytest
 from random import choice
 from string import ascii_uppercase
 from database import ImageProcessingDB
+from processing import Processing
 
 
 def random_id():
@@ -24,6 +25,7 @@ def image_info():
         "format": "png",
         "processing_time": 30,
         "process": "hist_eq",
+        "histogram": "test"
     }
     return image_i
 
