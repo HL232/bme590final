@@ -73,6 +73,7 @@ export default class MyUpload extends Component {
 					</UploadField>
 					</Button>
 					<img src={this.state.currentImageString} />
+
 					<Button style= {{margin: '5px'}} variant='contained' color='primary' onClick={this.pusher}>
 					Confirm Upload?
 					</Button>
