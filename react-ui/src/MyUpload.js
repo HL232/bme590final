@@ -15,30 +15,33 @@ export default class MyUpload extends Component {
 			}
 	}
 
+
 	state = {
 		myimgArray: [],
+		zipContainer: '',
 	}
+
 
 	fileSelectedHandler = event => {
 		this.setState({selectedFile: event.target.files[0]})
-
 	}
+
 
 		onUpload = (files) => {
 			const reader = new FileReader()
 			const myF = files[0]
 			reader.readAsDataURL(myF);
 			reader.onloadend = () => {
-				this.setState({currentImageString: reader.result});
+				this.setState({currentImageString: reader.result}, () => {
+					this.addtoArray()
+				});
 			}
-
-
 		}
 
- pusher = () => {
 
+ addtoArray = () => {
 	 //console.log(this.state)
-	 var myob = {}
+
 
 	 var helpAr = []
 	 if (this.state.myimgArray === undefined) {
@@ -47,24 +50,55 @@ export default class MyUpload extends Component {
 		 this.setState({myimgArray: helpAr})
 	 }
 	 else {
+		 console.log('Hit')
 	    var myAr = this.state.myimgArray
-	 		helpAr = myAr.push(this.state.currentImageString)
-			this.setState({myimgArray: helpAr})
+			console.log(myAr)
+	 		myAr.push(this.state.currentImageString)
+			this.setState({myimgArray: myAr})
 		}
 	 //iStr = iStr.split(";").pop();
-		 myob['image_data'] = helpAr
-		 myob['email'] = 'myID@no.';
-		 myob['filename'] = 'stevenisaTWAT'
+ }
 
-	 axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
-	 .then(res => {
-	 	console.log(res)
-	 })
-	 .catch(function (error) {
- console.log(error);
+
+ pusher = () => {
+	 var myob = {} ;
+	 myob['image_data'] = this.state.myimgArray ;
+	 myob['email'] = 'myID@no.';
+	 myob['filename'] = 'stevenisaTWAT'
+	 console.log(this.state.myimgArray)
+ axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
+ .then(res => {
+	console.log(res)
+ })
+ .catch(function (error) {
+console.log(error);
 });
  }
 
+ onUploadzip = (files) => {
+	 const reader = new FileReader()
+	 const myF = files[0]
+	 reader.readAsDataURL(myF);
+	 reader.onloadend = () => {
+		 this.setState({zipContainer: reader.result}, () => {
+			 this.pusherZIP()
+		 });
+	 }
+ }
+
+ pusherZIP = () => {
+	 var myob = {} ;
+	 myob['image_data'] = this.state.zipContainer;
+	 myob['email'] = 'myID@no.';
+	 myob['filename'] = 'stevenisaTWAT.zip'
+ axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
+ .then(res => {
+	console.log(res)
+ })
+ .catch(function (error) {
+console.log(error);
+});
+ }
 
 	render() {
 		return (
@@ -73,20 +107,25 @@ export default class MyUpload extends Component {
 			<Paper className='paper'>
 
 
-				<h2> Upload Images! </h2>
+				<h2> Upload Images! (zip is uploaded automatically) </h2>
 				<Button color = 'primary' variant = 'contained' style= {{margin: '5px'}}>
 				<UploadField onFiles={this.onUpload}>
-
-
-					Upload here
-
+					Upload JPG
 					</UploadField>
 					</Button>
+
+					<Button color = 'primary' variant = 'contained' style= {{margin: '5px'}}>
+					<UploadField onFiles={this.onUploadzip}>
+						Upload ZIP
+						</UploadField>
+						</Button>
+
 					<img src={this.state.currentImageString} />
 
 					<Button style= {{margin: '5px'}} variant='contained' color='primary' onClick={this.pusher}>
-					Confirm Upload?
+					Confirm JPG Upload?
 					</Button>
+
 
 
 			</Paper>
