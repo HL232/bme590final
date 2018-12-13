@@ -10,6 +10,9 @@ Licsense: MIT License (See License File)
 This image processor is meant to combine the functionality and scripting _prowess_ of python with the modularity and adaptability of cloud computing. The project is split into 3 primary components: image processing, web api, and a GUI, generally following the typical Model/View/Controller paradigm. For a general schematic of how our project works, check out this helpful graphic below:
 
 
+        bme590final/BME Software Final.jpg
+      
+      
 ## Usage
 The GUI can be accessed via...
 ## Supported Formats
