@@ -7,6 +7,7 @@ import imageio
 import cv2
 import os
 
+
 # OKAY SELF, HERE'S A NOTE SO YOU DON'T KEEP MAKING THE SAME MISTAKE
 # if you get a singular line as an output of histogram()
 # it's because all other processing functions output
@@ -43,26 +44,27 @@ def output_0_to_255_as_int(img_array: np.array):
 
 
 def check_grayscale(image):
-        """
-        Checks if the input image is grayscale OUTSIDE Processing class.
-        Returns:
-            GRAY: If the image is grayscale
-            COLOR: if the image is color
-        """
-        # Image array length should not be 3 (color).
-        a = image[:, :, 0] == image[:, :, 1]
-        b = image[:, :, 1] == image[:, :, 2]
-        c = a == b
-        if c.all():
-            return 'GRAY'
-        else:
-            return 'COLOR'
+    """
+    Checks if the input image is grayscale OUTSIDE Processing class.
+    Returns:
+        GRAY: If the image is grayscale
+        COLOR: if the image is color
+    """
+    # Image array length should not be 3 (color).
+    a = image[:, :, 0] == image[:, :, 1]
+    b = image[:, :, 1] == image[:, :, 2]
+    c = a == b
+    if c.all():
+        return 'GRAY'
+    else:
+        return 'COLOR'
 
 
 class Benchmark(object):
     """
     Benchmark class used to document time it takes to process images
     """
+
     def __init__(self):
         """
         Initializes the benchmark class with the start time
@@ -86,7 +88,7 @@ class Processing(object):
     array-like object
     """
 
-    def __init__(self, image):
+    def __init__(self, image, **kwargs):
         """
         Initializes the Processing class with an image.
         If the image is color, the array is unchanged
@@ -95,9 +97,11 @@ class Processing(object):
         """
         self._check_image_type(image)
         self._check_image_shape(image)
-        if check_grayscale(image) == 'COLOR':
+        is_color = kwargs.get("is_color", True)
+
+        if not is_color or check_grayscale(image) == 'COLOR':
             self.image = image
-        if check_grayscale(image) == 'GRAY':
+        elif check_grayscale(image) == 'GRAY':
             self.image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
 
     def hist_eq(self):
@@ -206,7 +210,7 @@ class Processing(object):
             output_to_rgb(unsharp_image))
         return image_sharpen_output, b.stop()
 
-    def histogram(self, image):
+    def histogram(self, image, is_gray=False):
         """
         Returns a histogram of the image
         Args:
@@ -214,12 +218,12 @@ class Processing(object):
         Returns:
             Numpy.Array representation of histogram of image
         """
-        if self._check_grayscale() == 'GRAY':
+        if is_gray or self._check_grayscale() == 'GRAY':
             histr = plt.hist(image.ravel(), 256, [0, 256], color='black')
             plt.xlabel('Pixel Intensity')
             plt.ylabel('Number of Pixels')
             plt.xlim(-10, 270)
-            plt.ylim([0, max(histr[0])+5000])
+            plt.ylim([0, max(histr[0]) + 5000])
             plt.savefig("./temp.png")
             plt.close()
             hist_np_array = imageio.imread('temp.png')
@@ -239,7 +243,7 @@ class Processing(object):
             plt.xlabel('Pixel Intensity')
             plt.ylabel('Number of Pixels')
             plt.xlim([-10, 270])
-            plt.ylim([0, max(max_pixel)+5000])
+            plt.ylim([0, max(max_pixel) + 5000])
             plt.savefig("./temp.png")
             plt.close()
             hist_np_array = imageio.imread('temp.png')
@@ -254,7 +258,8 @@ class Processing(object):
         Returns:
             bool: If the image is valid.
         """
-        if type(image) != imageio.core.util.Array:
+        if type(image) != imageio.core.util.Array and \
+                        type(image) != np.ndarray:
             raise TypeError("Image is not a imageio Array")
         return True
 

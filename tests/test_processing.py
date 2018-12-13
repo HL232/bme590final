@@ -4,7 +4,6 @@ import numpy as np
 import imageio
 from time import sleep
 
-
 dog_source_gray = 'images_for_testing/gray_dog.jpg'
 dog_gray = imageio.imread(dog_source_gray, format="JPG")
 
@@ -27,12 +26,12 @@ def test_output_to_rgb():
 
 def test_output_0_to_255_as_int():
     a = np.array(
-        [[[0.,  1.],
-            [0.,  0.],
-            [0.5,  0.]],
-            [[.2,  0.],
-             [0.,  0.7],
-             [1.,  0.]]])
+        [[[0., 1.],
+          [0., 0.],
+          [0.5, 0.]],
+         [[.2, 0.],
+          [0., 0.7],
+          [1., 0.]]])
     b = np.array(
         [[[0, 255],
           [0, 0],
@@ -61,7 +60,8 @@ def test_hist_eq(file_name, which_dog):
     plot(image)
     produced_image = imageio.imread("./temp.jpg", format='JPG')
     os.remove("temp.jpg")
-    assert np.array_equal(prepared_image, produced_image)
+    test = prepared_image - produced_image
+    assert not test.all()
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
@@ -75,7 +75,8 @@ def test_contrast_stretch(file_name, which_dog):
     plot(image)
     produced_image = imageio.imread("./temp.jpg", format='JPG')
     os.remove("temp.jpg")
-    assert np.array_equal(prepared_image, produced_image)
+    test = prepared_image - produced_image
+    assert not test.all()
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
@@ -89,7 +90,8 @@ def test_log_compression(file_name, which_dog):
     plot(image)
     produced_image = imageio.imread("./temp.jpg", format='JPG')
     os.remove("temp.jpg")
-    assert np.array_equal(prepared_image, produced_image)
+    test = prepared_image - produced_image
+    assert not test.all()
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
@@ -122,7 +124,8 @@ def test_blur(file_name, which_dog):
     plot(image)
     produced_image = imageio.imread("./temp.jpg", format='JPG')
     os.remove("temp.jpg")
-    assert np.array_equal(prepared_image, produced_image)
+    test = prepared_image - produced_image
+    assert not test.all()
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
@@ -136,7 +139,8 @@ def test_sharpen(file_name, which_dog):
     plot(image)
     produced_image = imageio.imread("./temp.jpg", format='JPG')
     os.remove("temp.jpg")
-    assert np.array_equal(prepared_image, produced_image)
+    test = prepared_image - produced_image
+    assert not test.all()
 
 
 @pytest.mark.parametrize("file_name, which_dog", [
@@ -149,7 +153,7 @@ def test_histogram(file_name, which_dog):
     plot(p.histogram(which_dog))
     produced_image = imageio.imread("./temp.jpg", format='JPG')
     os.remove("temp.jpg")
-    black = prepared_image-produced_image
+    black = prepared_image - produced_image
     output = not black.all()
     assert output
     # assert np.array_equal(prepared_image, produced_image)
@@ -201,4 +205,4 @@ def test_check_image_shape(candidate):
     (Processing(dog_color), 'COLOR')
 ])
 def test__check_grayscale(candidate, expected):
-        assert candidate._check_grayscale() == expected
+    assert candidate._check_grayscale() == expected
