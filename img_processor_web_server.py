@@ -1,14 +1,17 @@
+import os
 import io
 import cv2
 import json
 import base64
 import imageio
+import zipfile
 import sendgrid
 from random import choice
 from string import ascii_uppercase
 from sendgrid.helpers.mail import *
 from flask import Flask, request, jsonify
 
+import processing
 from processing import Processing
 from database import ImageProcessingDB
 
@@ -227,8 +230,36 @@ def post_upload_image():
     if type(content["filename"]) != str:
         return error_handler(400, "filename must be type str", "TypeError")
 
-    if type(content) == dict:
+    if 'zip' in content["filename"].lower():
+        # handles if it's a zipped file
+        return process_zipped(content)
+    else:
+        return process_images(content)
+
+
+def process_images(content):
+    """
+    Processes images from end user, individual or in a list.
+    Args:
+        content: The content from the json request.
+    """
+    if type(content) == dict and type(content["filename"]) != list:
         content = [content]
+    elif type(content["filename"]) == list and \
+                    type(content["image_data"]) == list:
+        if len(content["filename"]) == len(content["image_data"]):
+            temp_content = []
+            for i, file in enumerate(content["filename"]):
+                image = {
+                    "email": content["email"],
+                    "image_data": content["image_data"][i],
+                    "filename": content["filename"][i],
+                }
+                temp_content.append(image)
+            content = temp_content
+        else:
+            return error_handler("multiple images must "
+                                 "have respective filenames.")
 
     uploaded_images = []
     for upload in content:
@@ -238,13 +269,62 @@ def post_upload_image():
         upload["image_id"] = random_id()
         upload["process"] = "upload"
         upload["processing_time"] = -1
-        upload["format"] = _get_b64_format(upload["image_data"])
+        _, upload["format"] = _get_b64_format(upload["image_data"])
         if "None" in upload["format"]:  # last ditch effort.
             upload["format"] = _determine_format(upload["filename"])
         image = db.add_image(upload["email"], upload)
         uploaded_images.append(db.image_to_json(image))
 
     return jsonify(uploaded_images)  # with included ID
+
+
+def process_zipped(content):
+    """
+    Processes base 64 zipped data into a zipped folder. Reads folder.
+    Args:
+        content: json payload sent by end user.
+    """
+    zip_data = content["image_data"]
+    temp_name = 'temp'
+    zip_images = b64str_zip_to_images(zip_data, temp_name)
+
+    # read all images from files
+    uploaded_images = []
+    for zip_image in zip_images:
+        zip_image["email"] = content["email"]
+        image = db.add_image(content["email"], zip_image)
+        uploaded_images.append(db.image_to_json(image))
+    return jsonify(uploaded_images)
+
+
+def b64str_zip_to_images(b64_str, folder_name):
+    b64_str = b64_str.encode('utf-8')
+    decoded = base64.decodebytes(b64_str)
+
+    # makes a folder
+    ret_images = []
+    os.makedirs(folder_name, exist_ok=True)
+
+    with zipfile.ZipFile(io.BytesIO(decoded)) as f:
+        f.extractall("temp")
+
+        for filename in f.namelist():
+            filepath = "temp/{}".format(filename)
+            ret = {}
+            ext = os.path.splitext(filename)[1]
+            ret["filename"] = filename
+            image = imageio.imread(filepath)
+            ret["image_data"] = numpy_to_b64str(image)
+            ret["width"] = image.shape[0]
+            ret["height"] = image.shape[1]
+            ret["image_id"] = random_id()
+            ret["process"] = "upload"
+            ret["processing_time"] = -1
+            ret["format"] = _determine_format(ext)
+            ret_images.append(ret)
+
+    # os.removedirs(folder_name)
+    return ret_images
 
 
 @app.route("/api/process/change_image", methods=["POST"])
@@ -303,7 +383,7 @@ def _verify_confirm_image(image):
     return False
 
 
-@app.route("/api/image/get_images/", methods=["POST"])
+@app.route("/api/image/get_images", methods=["POST"])
 def post_get_images():
     """
     Obtains images from database based on ID.
@@ -317,7 +397,7 @@ def post_get_images():
     email = content["email"]
     ret_images = []
     if type(content["image_ids"]) != list:
-        content["iamge_ids"] = [content["iamge_ids"]]
+        content["image_ids"] = [content["image_ids"]]
 
     get_images = content["image_ids"]
     for image_id in get_images:
@@ -325,6 +405,91 @@ def post_get_images():
         ret_images.append(db.image_to_json(image))
 
     return jsonify(ret_images)
+
+
+@app.route("/api/image/get_images_zipped", methods=["POST"])
+def post_get_images_zipped():
+    """
+    Obtains zipped folder of images from database based on IDs.
+    Args:
+        image_ids: as a list of images to get.
+        email: user associated with this images.
+        format: format for the images to be converted to.
+    Returns:
+        dict: base 64 encoded zip file of all images.
+    """
+    content = request.get_json()
+    email = content["email"]
+    if type(content["image_ids"]) != list:
+        content["image_ids"] = [content["image_ids"]]
+    format = _determine_format(content["format"]).lower()
+
+    # create a temp folder
+    folder_name = "temp"
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+    # writes to temp folder
+    get_images = content["image_ids"]
+    file_extless_file = []
+    for image_id in get_images:
+        image = db.find_image(image_id, email)
+        np_image = b64str_to_numpy(image.image_data)
+        # save image to a temp folder
+        extless_file = os.path.splitext(image.filename)[0]
+        if extless_file in file_extless_file:
+            file_extless_file.append(extless_file)
+            filename = "{}_{}.{}".format(
+                extless_file, image_id, format)
+        else:
+            filename = "{}.{}".format(extless_file, format)
+        filepath = "{}/{}".format(folder_name, filename)
+        imageio.imwrite(filepath, np_image)
+        file_extless_file.append(filename)
+
+    # zip the directory
+    zip_filename = 'images.zip'
+    zipf = zipfile.ZipFile(
+        zip_filename, 'w', zipfile.ZIP_DEFLATED)
+    zip_folder(folder_name, zipf)
+    zipf.close()
+
+    # return object
+    ret = {
+        "filename": zip_filename,
+        "zip_data": zip_to_b64(zip_filename)
+    }
+
+    return jsonify(ret)
+
+
+def zip_folder(folder_name, ziph):
+    """
+    Zips folder given a path
+    Args:
+        path (str): folder to zip
+        ziph: some zip path indicator.
+    """
+    for file in os.listdir(folder_name):
+        ziph.write(folder_name + "/" + file, arcname=file)
+
+
+def zip_to_b64(filepath):
+    """
+    Takes a zip file and turns it to base 64.
+    Args:
+        filepath: Filepath of the folder to zip
+
+    Returns:
+        str: base 64 representation of zip folder.
+    """
+
+    # convert zip file to base64
+    with open(filepath, "rb") as f:
+        bytes = f.read()
+        base64_bytes = base64.b64encode(bytes)
+        base64_string = base64_bytes.decode('utf-8')  # convert to string
+        return base64_string
 
 
 def _link_new_image(current_image):
@@ -336,6 +501,8 @@ def _link_new_image(current_image):
     Returns:
         dict: Dict with linked ids.
     """
+    if not current_image:
+        raise ValueError("current_image is None.")
     new_image = db.image_to_json(current_image)
     new_image["email"] = current_image.email
     new_image["parent_id"] = current_image.image_id
@@ -379,7 +546,7 @@ def _determine_format(format_string: str):
             if "TIF" in format_string.upper():
                 return "TIFF"
             return format
-    return "None"
+    return "JPG"  # assume jpg
 
 
 @app.route("/api/process/hist_eq", methods=["POST"])
@@ -403,6 +570,7 @@ def post_hist_eq():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "hist_eq"
     db.update_user_process(content["email"], new_image["process"])
     return jsonify(new_image)
@@ -433,6 +601,7 @@ def post_image_contrast_stretch():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "contrast_stretch"
     db.update_user_process(content["email"], new_image["process"])
     return jsonify(new_image)
@@ -459,6 +628,7 @@ def post_image_log_compression():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "log_compression"
     db.update_user_process(content["email"], new_image["process"])
     return jsonify(new_image)
@@ -475,17 +645,20 @@ def post_image_rev_video():
         dict: image with inverted intensities.
     """
     content = request.get_json()
-
     user_image_id = db.get_current_image_id(content["email"])
     current_image = db.find_image(user_image_id, content["email"])
     new_image = _link_new_image(current_image)
-
-    image_data, new_image["processing_time"] = \
-        Processing(b64str_to_numpy(current_image.image_data)).reverse_video()
+    try:
+        image_data, new_image["processing_time"] = \
+            Processing(b64str_to_numpy(current_image.image_data)).reverse_video()
+    except ValueError:
+        return error_handler(400, "must be grayscale", "ValueError")
     new_image = _populate_image_meta(new_image, image_data)
-    # maybe something e lse
+    # maybe something else
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["histogram"] = _get_b64_histogram(
+        image_data, is_gray=True)
     new_image["process"] = "reverse_video"
     db.update_user_process(content["email"], new_image["process"])
     return jsonify(new_image)
@@ -512,6 +685,7 @@ def post_image_sharpen():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "sharpen"
     db.update_user_process(content["email"], new_image["process"])
     return jsonify(new_image)
@@ -528,20 +702,36 @@ def post_image_blur():
         object: blurred image.
     """
     content = request.get_json()
-    sigma = request.args.get("s", 5)
-
     user_image_id = db.get_current_image_id(content["email"])
     current_image = db.find_image(user_image_id, content["email"])
     new_image = _link_new_image(current_image)
 
     image_data, new_image["processing_time"] = \
-        Processing(b64str_to_numpy(current_image.image_data)).blur(sigma)
+        Processing(b64str_to_numpy(current_image.image_data)).blur()
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "blur"
     db.update_user_process(content["email"], new_image["process"])
     return jsonify(new_image)
+
+
+def _get_b64_histogram(image_data, is_gray=False):
+    """
+    Gets a base 64 representation of a histogram for an image
+    Args:
+        image_data (np.ndarray): Image.
+
+    Returns:
+        str: Base 64 representation of the histogram for image.
+
+    """
+    histogram = Processing(
+        image_data, is_color=False).histogram(
+        image_data, is_gray=is_gray)
+    histogram = histogram[:, :, :3]
+    return numpy_to_b64str(histogram)
 
 
 @app.route("/api/process/email_image", methods=["POST"])
@@ -582,7 +772,7 @@ def b64str_to_numpy(b64_img):
         np.ndarray: numpy array of image.
 
     """
-    b64_image, _ = _get_b64_format(b64_img)
+    b64_img, _ = _get_b64_format(b64_img)
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
     np_img = imageio.imread(image_buf, format="JPG")
@@ -591,12 +781,12 @@ def b64str_to_numpy(b64_img):
 
 def _get_b64_format(b64_img):
     split = b64_img.split("base64,")  # get rid of header
-    image_format = "None"
     if len(split) == 2:
         b64_img = split[1]
         image_format = _determine_format(split[0])
     else:
         b64_img = split[0]
+        image_format = "JPG"  # assume jpg
     return b64_img, image_format
 
 
