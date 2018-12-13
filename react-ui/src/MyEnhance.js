@@ -20,9 +20,10 @@ export default class MyEnhance extends Component {
 	}
 
 	grabfromKid = (win, im) => {
-		this.setState({passState: win}) ;
-		this.setState({passbackI: im}) ;
-		{this.passUp()} ;
+		this.setState({passState: win, passbackI: im}, () => {
+			this.passUp()
+		}) ;
+		
 	}
 
 

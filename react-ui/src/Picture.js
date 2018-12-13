@@ -15,7 +15,7 @@ export default class Picture extends Component {
 <img src={"data:image/jpeg;" + this.props.tile.image_data} alt={this.props.tile.user_id} />
 
 <GridListTileBar
-  title={this.props.tile.email}
+  title={this.props.tile.height + 'x' + this.props.tile.width}
   subtitle={<span>by: {this.props.tile.format}</span>}
   actionIcon={
     <IconButton color='primary'>

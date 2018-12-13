@@ -19,7 +19,7 @@ app_name = "image_processor"
 app = Flask(app_name)
 
 
-@app.after_request 
+@app.after_request
 def after_request(response): 
     response.headers.add('Access-Control-Allow-Origin', '*') 
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization') 
@@ -47,6 +47,7 @@ except:
 def get_current_image(email):
     """
     Obtains image from database based on ID.
+
     Args:
         email: ID of the user to get current image
 
@@ -54,7 +55,7 @@ def get_current_image(email):
         JSON current image object returned to client
     """
     if not email:
-        return error_handler(400, "Must include user id.", "AttributeError")
+        return error_handler(400, "Must include user email.", "AttributeError")
     image = db.get_current_image(email)
     image = db.image_to_json(image)
     return jsonify(image)
@@ -64,6 +65,7 @@ def get_current_image(email):
 def get_previous_image(email):
     """
     Obtains the parent of the image given an ID.
+
     Args:
         email: ID of the user to get parent image
 
@@ -84,6 +86,7 @@ def get_next_image(email):
     """
     Obtains the child of the image given an ID. If there are multiple
     child images, returns the first one
+
     Args:
         email: ID of the user to get child image
 
@@ -110,6 +113,7 @@ def get_next_image(email):
 def get_user(email):
     """
     Gets the user based on id
+
     Args:
         email: ID of the user to find
 
@@ -127,6 +131,7 @@ def get_user(email):
 def get_original_upload_ids(email):
     """
     Gets all root image ids from a user.
+
     Args:
         email: user to find.
 
@@ -143,6 +148,7 @@ def get_original_upload_ids(email):
 def get_updated_upload_ids(email):
     """
     Gets all updated image ids from a user.
+
     Args:
         email: user to find.
 
@@ -164,6 +170,7 @@ def get_updated_upload_ids(email):
 def get_upload_filenames(email):
     """
     Gets all root image names from a user.
+
     Args:
         email: user to find.
 
@@ -186,6 +193,7 @@ def get_upload_filenames(email):
 def get_original_uploads(email):
     """
     Gets all root/original images from a user.
+
     Args:
         email: user to find.
 
@@ -205,6 +213,7 @@ def get_original_uploads(email):
 def get_updated_uploads(email):
     """
     Gets all updated images from a user.
+
     Args:
         email: user to find.
 
@@ -231,62 +240,112 @@ def post_upload_image():
         filename: the name of the file.
         email: ID of the current user.
         image_data: base64 representation of image.
+
     Returns:
         object: uploaded image object.
     """
     content = request.get_json()
+
     if not content:
         return error_handler(400, "Insufficient post.", "ValueError")
     if type(content) != list and type(content) != dict:
         return error_handler(400, "must by either dict or list of dicts")
-    if "image_data" not in content.keys():
-        return error_handler(400, "must include image_data", "AttributeError")
-    if "email" not in content.keys():
-        return error_handler(400, "must include email", "AttributeError")
-    if type(content["email"]) != str:
-        return error_handler(400, "email must be type str", "TypeError")
-    if "filename" not in content.keys():
-        return error_handler(400, "must include filename", "AttributeError")
-    if type(content["filename"]) != str:
-        return error_handler(400, "filename must be type str", "TypeError")
 
-    if 'zip' in content["filename"].lower():
-        # handles if it's a zipped file
-        return process_zipped(content)
+    if type(content) == dict:
+        if "image_data" not in content.keys():
+            return error_handler(
+                400, "must include image_data", "AttributeError")
+        if "email" not in content.keys():
+            return error_handler(
+                400, "must include email", "AttributeError")
+        if type(content["email"]) != str:
+            return error_handler(
+                400, "email must be type str", "TypeError")
+        if "filename" not in content.keys():
+            return error_handler(
+                400, "must include filename", "AttributeError")
+
+        if type(content["filename"]) != list:
+            if 'zip' in content["filename"].lower():
+                # handles if it's a zipped file
+                return process_zipped(content)
+            else:
+                return process_image_dict(content)
+        else:
+            # handles dict and dict list
+            return process_image_dict(content)
+
+    elif type(content) == list:
+        for upload in content:
+            if type(upload) != dict:
+                return error_handler(
+                    400, "must be type dict", "TypeError")
+            if "image_data" not in upload.keys():
+                return error_handler(
+                    400, "must include image_data", "AttributeError")
+            if "email" not in upload.keys():
+                return error_handler(
+                    400, "must include email", "AttributeError")
+            if type(upload["email"]) != str:
+                return error_handler(
+                    400, "email must be type str", "TypeError")
+            if "filename" not in upload.keys():
+                return error_handler(
+                    400, "must include filename", "AttributeError")
+            valid_types = ["jp", "png", "tif"]
+            if not any(s in upload["filename"] for s in valid_types):
+                return error_handler(400, "file not supported.", "TypeError")
+
+        return process_image_dict(content)
     else:
-        return process_images(content)
+        return error_handler(400, "Bad type", "TypeError")
 
 
-def process_images(content):
+def process_image_dict(content):
     """
     Processes images from end user, individual or in a list.
+
     Args:
         content: The content from the json request.
 
     Returns:
         JSON images with confirmed "upload" process
     """
-    if type(content) == dict and type(content["filename"]) != list:
-        content = [content]
-    elif type(content["filename"]) == list and \
-            type(content["image_data"]) == list:
-        if len(content["filename"]) == len(content["image_data"]):
-            temp_content = []
-            for i, file in enumerate(content["filename"]):
-                image = {
-                    "email": content["email"],
-                    "image_data": content["image_data"][i],
-                    "filename": content["filename"][i],
-                }
-                temp_content.append(image)
-            content = temp_content
-        else:
-            return error_handler("multiple images must "
-                                 "have respective filenames.")
+    valid_types = ["jp", "png", "tif", "zip"]
 
+    if type(content["filename"]) != list and \
+            type(content["image_data"]) != list:
+        print(content["filename"])
+        if not any(s in content["filename"] for s in valid_types):
+            return error_handler(400, "file not supported.", "TypeError")
+        content = [content]
+    elif type(content["filename"]) == list \
+            or type(content["image_data"]) == list:
+
+        if len(content["filename"]) != len(content["image_data"]):
+            return error_handler(400, "multiple images must "
+                                      "have respective filenames.",
+                                 "ValueError")
+
+        temp_content = []
+        for i, filename in enumerate(content["filename"]):
+            if not any(s in filename for s in valid_types):
+                return error_handler(400, "file not supported.", "TypeError")
+
+            image = {
+                "email": content["email"],
+                "image_data": content["image_data"][i],
+                "filename": filename,
+            }
+            temp_content.append(image)
+        content = temp_content
+
+    # process as list
     uploaded_images = []
     for upload in content:
         image = b64str_to_numpy(upload["image_data"])
+        upload["email"] = upload["email"]
+        upload["histogram"] = _get_b64_histogram(image)
         upload["width"] = image.shape[0]
         upload["height"] = image.shape[1]
         upload["image_id"] = random_id()
@@ -298,14 +357,16 @@ def process_images(content):
         image = db.add_image(upload["email"], upload)
         uploaded_images.append(db.image_to_json(image))
 
-    return jsonify(uploaded_images)  # with included ID
+    return jsonify(uploaded_images[-1])  # with included ID
 
 
 def process_zipped(content):
     """
     Processes base 64 zipped data into a zipped folder. Reads folder.
+
     Args:
         content: json payload sent by end user.
+
     Returns:
         JSON zipped images with confirmed "upload" process
     """
@@ -319,13 +380,14 @@ def process_zipped(content):
         zip_image["email"] = content["email"]
         image = db.add_image(content["email"], zip_image)
         uploaded_images.append(db.image_to_json(image))
-    return jsonify(uploaded_images)
+    return jsonify(uploaded_images[-1])
 
 
 def b64str_zip_to_images(b64_str, folder_name):
     """
     Converts a base64 data string representing a zip folder
     to images on the webserver
+
     Args:
         b64_str: json payload sent by end user.
         folder_name: name of folder to save to
@@ -350,6 +412,7 @@ def b64str_zip_to_images(b64_str, folder_name):
             ret["filename"] = filename
             image = imageio.imread(filepath)
             ret["image_data"] = numpy_to_b64str(image)
+            ret["histogram"] = _get_b64_histogram(image)
             ret["width"] = image.shape[0]
             ret["height"] = image.shape[1]
             ret["image_id"] = random_id()
@@ -370,18 +433,21 @@ def post_change_image():
     POSTed request should contain:
         email: user id.
         image_id: new image id to change to.
+
     Returns:
         dict: Image that as associated with user.
     """
     content = request.get_json()
     if "email" not in content.keys():
-        error_handler(400, "needs email", "AttributeError")
+        return error_handler(400, "needs email", "AttributeError")
     if "image_id" not in content.keys():
-        error_handler(400, "needs image_id", "AttributeError")
+        return error_handler(400, "needs image_id", "AttributeError")
 
     # must contain image_data, email
     db.update_user_current(content["email"], content["image_id"])
     image = db.find_image(content["email"], content["image_id"])
+    if not image:
+        return error_handler(400, "Image does not exist", "ValueError")
     image = db.image_to_json(image)
     return jsonify(image)
 
@@ -390,6 +456,7 @@ def post_change_image():
 def post_confirm_image():
     """
     Confirms image change and adds the image to the user.
+
     Returns:
         dict: Image that as associated with user.
     """
@@ -405,6 +472,7 @@ def post_confirm_image():
 def _verify_confirm_image(image):
     """
     Confirms that all necessary attributes are present at image add.
+
     Args:
         image (dict): Image object to be added.
 
@@ -423,9 +491,11 @@ def _verify_confirm_image(image):
 def post_get_images():
     """
     Obtains images from database based on ID.
+
     POSTed request should contain:
         image_ids: as a list of images to get.
         email: user associated with this images.
+
     Returns:
         list: all images
     """
@@ -447,10 +517,12 @@ def post_get_images():
 def post_get_images_zipped():
     """
     Obtains zipped folder of images from database based on IDs.
+
     POSTed request should contain:
         image_ids: as a list of images to get.
         email: user associated with this images.
         format: format for the images to be converted to.
+
     Returns:
         dict: base 64 encoded zip file of all images.
     """
@@ -502,6 +574,7 @@ def post_get_images_zipped():
 def zip_folder(folder_name, ziph):
     """
     Zips folder given a path
+
     Args:
         folder_name (str): folder to zip
         ziph: some zip path indicator.
@@ -513,6 +586,7 @@ def zip_folder(folder_name, ziph):
 def zip_to_b64(filepath):
     """
     Takes a zip file and turns it to base 64.
+
     Args:
         filepath: Filepath of the folder to zip
 
@@ -531,6 +605,7 @@ def zip_to_b64(filepath):
 def _link_new_image(current_image):
     """
     Makes associated links.
+
     Args:
         current_image: current image of the user/post data.
 
@@ -550,13 +625,13 @@ def _link_new_image(current_image):
 def _populate_image_meta(new_image, image_data):
     """
     Populates an existing dict with image meta information.
+
     Args:
         new_image (dict):
         image_data (np.ndarray): image data in RGB
 
     Returns:
         dict: dict with image meta information
-
     """
     new_image["width"] = image_data.shape[0]
     new_image["height"] = image_data.shape[1]
@@ -566,6 +641,7 @@ def _populate_image_meta(new_image, image_data):
 def _determine_format(format_string: str):
     """
     Determines file format from a string. Could be header/ext.
+
     Args:
         format_string: Header or file extension.
 
@@ -589,8 +665,10 @@ def _determine_format(format_string: str):
 def post_hist_eq():
     """
     Takes CURRENT image and performs histogram eq on image.
+
     POSTed request should contain:
         email: ID of the current user.
+
     Returns:
         object: New hist eq'd image.
     """
@@ -615,8 +693,10 @@ def post_hist_eq():
 def post_image_contrast_stretch():
     """
     Takes CURRENT image and performs contrast stretch on image.
+
     POSTed request should contain:
         email: ID of the current user.
+
     Returns:
         object: New contrast stretched image.
     """
@@ -645,6 +725,7 @@ def post_image_contrast_stretch():
 def post_image_log_compression():
     """
     Takes CURRENT image and performs log compression on image.
+
     POSTed request should contain:
         email: ID of the current user.
 
@@ -673,6 +754,7 @@ def post_image_rev_video():
     """
     Inverse the intensities of a grayscale image.
     Only works for grayscale images
+
     POSTed request should contain:
         email: ID of the current user.
 
@@ -685,7 +767,8 @@ def post_image_rev_video():
     new_image = _link_new_image(current_image)
     try:
         image_data, new_image["processing_time"] = \
-            Processing(b64str_to_numpy(current_image.image_data)).reverse_video()
+            Processing(b64str_to_numpy(
+                current_image.image_data)).reverse_video()
     except ValueError:
         return error_handler(400, "must be grayscale", "ValueError")
     new_image = _populate_image_meta(new_image, image_data)
@@ -703,6 +786,7 @@ def post_image_rev_video():
 def post_image_sharpen():
     """
     Takes CURRENT image and performs image sharpen on whole image.
+
     POSTed request should contain:
         email: ID of the current user.
 
@@ -730,6 +814,7 @@ def post_image_sharpen():
 def post_image_blur():
     """
     Takes CURRENT image and performs image blur on whole image.
+
     POSTed request should contain:
         email: ID of the current user.
 
@@ -755,12 +840,12 @@ def post_image_blur():
 def _get_b64_histogram(image_data, is_gray=False):
     """
     Gets a base 64 representation of a histogram for an image
+
     Args:
         image_data (np.ndarray): Image.
 
     Returns:
         str: Base 64 representation of the histogram for image.
-
     """
     histogram = Processing(
         image_data, is_color=False).histogram(
@@ -801,12 +886,12 @@ def post_email_image():
 def b64str_to_numpy(b64_img):
     """
     Converts a b64str to numpy. Strips headers.
+
     Args:
         b64_img (str): base 64 representation of an image.
 
     Returns:
         np.ndarray: numpy array of image.
-
     """
     b64_img, _ = _get_b64_format(b64_img)
     byte_image = base64.b64decode(b64_img)
@@ -818,13 +903,13 @@ def b64str_to_numpy(b64_img):
 def _get_b64_format(b64_img):
     """
     Determines the format of the b64 string
+
     Args:
         b64_img (str): base 64 representation of an image.
 
     Returns:
         b64_image: Array data of the image only
         image_format: The format of the image
-
     """
     split = b64_img.split("base64,")  # get rid of header
     if len(split) == 2:
@@ -839,13 +924,13 @@ def _get_b64_format(b64_img):
 def numpy_to_b64str(img, format="JPG"):
     """
     Converts a numpy array into a base 64 string
+
     Args:
         img (np.array): the image represented as an Numpy Array
         format: The format of the image to be converted into
 
     Returns:
         str: base 64 representation of the numpy array/image.
-
     """
     if _should_reverse_image(format):
         # flip for cv conversion, only some file formats
@@ -859,8 +944,10 @@ def numpy_to_b64str(img, format="JPG"):
 def _should_reverse_image(format):
     """
     Reverses the array format for JPG images
+
     Args:
         format: The format of the image input
+
     Returns:
         bool: True if the image should be reversed. False otherwise
     """
@@ -874,6 +961,7 @@ def _should_reverse_image(format):
 def email_image(image):
     """
     Sends email with image via Sendgrid API.
+
     Args:
         image: Image to be emailed.
 
@@ -901,12 +989,12 @@ def email_image(image):
 def _is_valid_email(email):
     """
     Determines if the email is valid.
+
     Args:
         email: Email to test.
 
     Returns:
         bool: If the email is valid.
-
     """
     if "@" not in email:
         return False
@@ -918,6 +1006,7 @@ def _is_valid_email(email):
 def error_handler(status_code, msg, error_type):
     """
     Handles errors to send back to requester.
+
     Args:
         status_code: The status code, standard.
         msg: Message to send.
@@ -925,7 +1014,6 @@ def error_handler(status_code, msg, error_type):
 
     Returns:
         dict: Error message information.
-
     """
     error_msg = {
         "status_code": status_code,
@@ -938,8 +1026,10 @@ def error_handler(status_code, msg, error_type):
 def random_id(length=10):
     """
     Generates random alpha-numeric ID.
+
     Args:
         length: length of ID. Default 10
+
     Returns:
         str: alpha-numeric ID
     """
@@ -949,6 +1039,7 @@ def random_id(length=10):
 def get_app():
     """
     Gets the app (for testing).
+
     Returns:
         object: Flask application object.
     """

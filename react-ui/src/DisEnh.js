@@ -11,9 +11,9 @@ state = {
 }
 
 startPass = () => {
-  this.setState({myS: 1});
-  this.setState({myI: this.props.tile})
-  {this.passIt()} ;
+  this.setState({myS: 1, myI: this.props.tile}, () => {
+    this.passIt()
+  });
 }
 
 passIt = () => {

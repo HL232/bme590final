@@ -16,6 +16,7 @@ def plot(image_array, title):
 # Grayscale TESTING STARTS HERE *********************************************
 # ***********************************************************************
 
+
 dog_source = './gray_dog.jpg'
 dog_image = imageio.imread(dog_source, format="JPG")
 plt.imshow(dog_image, cmap='gray')

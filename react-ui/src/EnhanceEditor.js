@@ -7,7 +7,7 @@ export default class EnhanceEditor extends Component {
   state = {
     beforeIM: '',
     afterIM: [],
-    enhtype: 1,
+    enhtype: 0,
 
   }
 
@@ -40,12 +40,12 @@ beforeSelector = () => {
   }
 }
 
-afterSelector = () => {
-  var enhtype = this.state.enhtype
-  if (enhtype === 0){
+afterSelector = (nu) => {
+
+  if (nu === 0){
 
   }
-  else if (enhtype === 1) {
+  else if (nu === 1) {
     var myob2 = {}
     myob2['email'] = this.state.beforeIM.email
     axios.post('http://127.0.0.1:5000/api/process/blur', myob2)
@@ -58,13 +58,13 @@ afterSelector = () => {
   console.log(error);
  });
   }
-  else if (enhtype === 2) {
+  else if (nu === 2) {
 
   }
-  else if (enhtype === 3) {
+  else if (nu === 3) {
 
   }
-  else if (enhtype === 4) {
+  else if (nu === 4) {
 
   }
 }
@@ -74,16 +74,29 @@ afterSelector = () => {
       <div>
       {this.beforeSelector()}
 
-      <Button color='primary' variant='contained' onClick={this.afterSelector}>
+      <Button color='primary' variant='contained' onClick={() => this.afterSelector(1)}>
       Histogram EQ
       </Button>
-      Before:
+      <Button color='primary' variant='contained' onClick={() => this.afterSelector(2)}>
+      Contrast Stretch
+      </Button>
+      <Button color='primary' variant='contained' onClick={() => this.afterSelector(3)}>
+      Log Compression
+      </Button>
+      <Button color='primary' variant='contained' onClick={() => this.afterSelector(4)}>
+      Reverse Video
+      </Button>
+      <Button color='primary' variant='contained' onClick={() => this.afterSelector(0)}>
+      Other
+      </Button>
+      <br />
+      Before: Upload Date:{this.state.beforeIM.timestamp} Process Time:{this.state.beforeIM.processing_time}
+       Imagesize: {this.state.beforeIM.height}x{this.state.beforeIM.width}
       <br />
       <img src={this.state.beforeIM.image_data} />
       <br />
-      ||
-      VV
-      After:
+      After: Upload Data:{this.state.afterIM.timestamp} Process Time:{this.state.afterIM.processing_time}
+       Image Size:{this.state.afterIM.height}x{this.state.afterIM.width}
       <img src={"data:image/jpeg;" + this.state.afterIM.image_data} />
 
 
