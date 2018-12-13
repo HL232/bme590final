@@ -41,7 +41,7 @@ export default class MyUpload extends Component {
 	 var myob = {}
 
 	 var helpAr = []
-	 if (this.state.myimgArray.length === 0) {
+	 if (this.state.myimgArray === undefined) {
 
 		 helpAr.push(this.state.currentImageString)
 		 this.setState({myimgArray: helpAr})
