@@ -56,11 +56,11 @@ state = {
     myob2['image_ids'] = this.state.idArray ;
     axios.post('http://127.0.0.1:5000/api/image/get_images_zipped', myob2)
  	 .then(res => {
-     var myAr = []
-     myAr.push(res.data)
-     this.setState({afterIM: myAr}, () => {
-       this.pullArray() ;
-     })
+     console.log(res.data)
+    var img = res.data.zip_data
+    var url = 'data:application/x-zip-compressed;base64,' + img
+    window.open(url);
+
  	 })
  	 .catch(function (error) {
   console.log(error);
