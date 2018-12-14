@@ -40,6 +40,13 @@ beforeSelector = () => {
   }
 }
 
+pullArray = () => {
+  var help = this.state.afterIM[0]
+  this.setState({afterIM: help}, console.log(this.state.afterIM))
+
+}
+
+
 afterSelector = (nu) => {
 
   if (nu === 0){
@@ -47,10 +54,11 @@ afterSelector = (nu) => {
     myob2['email'] = this.state.beforeIM.email
     axios.post('http://127.0.0.1:5000/api/process/blur', myob2)
  	 .then(res => {
-     console.log(res.data)
-     //var myAr = res.data
-     //myAr.push(res.data)
-     //this.setState({afterIM: myAr})
+     var myAr = []
+     myAr.push(res.data)
+     this.setState({afterIM: myAr}, () => {
+       this.pullArray() ;
+     })
  	 })
  	 .catch(function (error) {
   console.log(error);
@@ -61,10 +69,12 @@ afterSelector = (nu) => {
     myob2['email'] = this.state.beforeIM.email
     axios.post('http://127.0.0.1:5000/api/process/hist_eq', myob2)
  	 .then(res => {
-     console.log(res.data)
-     //var myAr = res.data
-     //myAr.push(res.data)
-     //this.setState({afterIM: myAr})
+
+     var myAr = []
+     myAr.push(res.data)
+     this.setState({afterIM: myAr}, () => {
+       this.pullArray() ;
+     })
  	 })
  	 .catch(function (error) {
   console.log(error);
@@ -75,10 +85,11 @@ afterSelector = (nu) => {
     myob2['email'] = this.state.beforeIM.email
     axios.post('http://127.0.0.1:5000/api/process/contrast_stretch', myob2)
  	 .then(res => {
-     console.log(res.data)
-     //var myAr = res.data
-     //myAr.push(res.data)
-     //this.setState({afterIM: myAr})
+     var myAr = []
+     myAr.push(res.data)
+     this.setState({afterIM: myAr}, () => {
+       this.pullArray() ;
+     })
  	 })
  	 .catch(function (error) {
   console.log(error);
@@ -89,10 +100,11 @@ afterSelector = (nu) => {
     myob2['email'] = this.state.beforeIM.email
     axios.post('http://127.0.0.1:5000/api/process/log_compression', myob2)
  	 .then(res => {
-     console.log(res.data)
-     //var myAr = res.data
-     //myAr.push(res.data)
-     //this.setState({afterIM: myAr})
+     var myAr = []
+     myAr.push(res.data)
+     this.setState({afterIM: myAr}, () => {
+       this.pullArray() ;
+     })
  	 })
  	 .catch(function (error) {
   console.log(error);
@@ -104,10 +116,11 @@ afterSelector = (nu) => {
     myob2['email'] = this.state.beforeIM.email
     axios.post('http://127.0.0.1:5000/api/process/reverse_video', myob2)
  	 .then(res => {
-     console.log(res.data)
-     //var myAr = res.data
-     //myAr.push(res.data)
-     //this.setState({afterIM: myAr})
+     var myAr = []
+     myAr.push(res.data)
+     this.setState({afterIM: myAr}, () => {
+       this.pullArray() ;
+     })
  	 })
  	 .catch(function (error) {
   console.log(error);
@@ -119,9 +132,11 @@ afterSelector = (nu) => {
     axios.post('http://127.0.0.1:5000/api/process/sharpen', myob2)
  	 .then(res => {
      console.log(res.data)
-     //var myAr = res.data
-     //myAr.push(res.data)
-     //this.setState({afterIM: myAr})
+     var myAr = []
+     myAr.push(res.data)
+     this.setState({afterIM: myAr}, () => {
+       this.pullArray() ;
+     })
  	 })
  	 .catch(function (error) {
   console.log(error);
@@ -161,7 +176,7 @@ afterSelector = (nu) => {
       <br />
       After: Upload Data:{this.state.afterIM.timestamp} Process Time:{this.state.afterIM.processing_time}
        Image Size:{this.state.afterIM.height}x{this.state.afterIM.width}
-      <img src={"data:image/jpeg;" + this.state.afterIM.image_data} />
+      <img src={"data:image/jpeg;base64," + this.state.afterIM.image_data} />
 
 
       </div>
