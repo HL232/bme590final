@@ -2,6 +2,8 @@ import requests
 from helper import *
 from img_processor_web_server import *
 
+domain = "vcm-7308.vm.duke.edu:5000"
+
 ## Input your email or username
 email = ""
 
@@ -24,7 +26,7 @@ image_obj = {
     "filename": dog_source
 }
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/upload_image",
+    "http:///api/process/upload_image",
     json=image_obj)
 content = byte_2_json(resp)
 id_list.append(content["image_id"])  # used for dwnlding
@@ -42,7 +44,7 @@ image_obj_2 = {
     "filename": dog_source
 }
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/upload_image",
+    "http://{}/api/process/upload_image".format(domain),
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
@@ -58,7 +60,7 @@ image_obj = {
     "filename": zip_file
 }
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/upload_image",
+    "http://{}/api/process/upload_image".format(domain),
     json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
@@ -68,8 +70,7 @@ view_image(b64str_to_numpy(content["image_data"]))
 # get_updated_images or get_original_images
 # endpoints
 resp = requests.get(
-    "http://vcm-7308.vm.duke.edu:5000"
-    "/api/process/get_original_uploads")
+    "http://{}/api/process/get_original_uploads".format(domain))
 content = byte_2_json(resp)
 print("List of image IDS: ", content)
 
@@ -78,14 +79,14 @@ print("List of image IDS: ", content)
 # to parent and child images, thus keeping a record
 # of their action history
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/upload_image",
+    "http://{}/api/process/upload_image".format(domain),
     json=image_obj)
 content = byte_2_json(resp)
 print("Current Image ID (first ID): ",
       content["image_id"])
 # -------------
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/upload_image",
+    "http://{}/api/process/upload_image".format(domain),
     json=image_obj_2)
 content = byte_2_json(resp)
 print("Current Image ID (second ID): ",
@@ -95,7 +96,7 @@ print("Current Image ID (second ID): ",
 # in this case. This creates a tree-like structure
 # for the image history.
 resp = requests.get(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/previous")
+    "http://{}/api/process/previous".format(domain))
 content = byte_2_json(resp)
 print("New Current Image ID (first ID): ",
       content["image_id"])
@@ -105,7 +106,7 @@ content = byte_2_json(resp)
 ## Processing images
 # upload initial image
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/upload_image",
+    "http://{}/api/process/upload_image".format(domain),
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
@@ -116,31 +117,31 @@ view_image(b64str_to_numpy(content["image_data"]))
 # contrast stretching, histogram eq., and reverse video.
 # sharpening
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/sharpen",
+    "http://{}/api/process/sharpen".format(domain),
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # blurring
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/blur",
+    "http://{}/api/process/blur".format(domain),
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # log compression
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/log_compression",
+    "http://{}/api/process/log_compression".format(domain),
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # contrast stretching
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/contrast_stretch",
+    "http://{}/api/process/contrast_stretch".format(domain),
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # histogram equalization
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/hist_eq",
+    "http://{}/api/process/hist_eq".format(domain),
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
@@ -148,18 +149,18 @@ view_image(b64str_to_numpy(content["image_data"]))
 # reverse video
 # NOTE it only works for grayscale images
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/reverse_video",
+    "http://{}/api/process/reverse_video".format(domain),
     json=image_obj_2)
 content = byte_2_json(resp)
 print(content)
 # Here is a grayscale image to test.
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/upload_image",
+    "http://{}/api/process/upload_image".format(domain),
     json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/reverse_video",
+    "http://{}/api/process/reverse_video".format(domain),
     json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
@@ -171,11 +172,11 @@ view_image(b64str_to_numpy(content["image_data"]))
 # This will confirm the reverse video gray dog from
 # above, and then subsequently blur that reversed image.
 confirmed = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/confirm",
+    "http://{}/api/process/confirm".format(domain),
     json={"email": email})
 confirmed = byte_2_json(resp)
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/process/blur",
+    "http://{}/api/process/blur".format(domain),
     json=image_obj_2)
 content = byte_2_json(resp)
 id_list.append(content["image_id"])
@@ -185,8 +186,7 @@ view_image(b64str_to_numpy(content["image_data"]))
 # Every time the user does a process, it is logged.
 # The count will increase, just as a record.
 resp = requests.get(
-    "http://vcm-7308.vm.duke.edu:5000"
-    "/user/get_user".format(email))
+    "http://{}/user/get_user/{}".format(domain, email))
 content = byte_2_json(resp)
 print(content["process_count"])
 
@@ -217,7 +217,7 @@ payload = {
     "email": confirmed["email"]
 }
 resp = requests.post(
-    "http://vcm-7308.vm.duke.edu:5000/api/image/get_images",
+    "http://{}/api/image/get_images".format(domain),
     json=image_obj_2)
 content = byte_2_json(resp)
 np_image = b64str_to_numpy(content[0]["image_data"])
@@ -230,8 +230,9 @@ zip_post = {
     "email": email,
     "format": "PNG"
 }
-resp = requests.post("http://vcm-7308.vm.duke.edu:5000/api/image/get_images_zipped",
-                     json=zip_post)
+resp = requests.post(
+    "http://{}/api/image/get_images_zipped".format(domain),
+    json=zip_post)
 content = byte_2_json(resp)
 # Now it is up to us to convert the base64 zip into a file
 folder_name = "folder_here"
