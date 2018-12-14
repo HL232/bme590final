@@ -314,7 +314,7 @@ def post_upload_image():
                 return error_handler(
                     400, "must include filename", "AttributeError")
             valid_types = ["jp", "png", "tif"]
-            if not any(s in upload["filename"] for s in valid_types):
+            if not any(s in upload["filename"].lower() for s in valid_types):
                 return error_handler(400, "file not supported.", "TypeError")
 
         return process_image_dict(content)
@@ -337,7 +337,8 @@ def process_image_dict(content):
     if type(content["filename"]) != list and \
             type(content["image_data"]) != list:
         print(content["filename"])
-        if not any(s in content["filename"] for s in valid_types):
+        if not any(
+                s in content["filename"].lower() for s in valid_types):
             return error_handler(400, "file not supported.", "TypeError")
         content = [content]
     elif type(content["filename"]) == list \
@@ -350,7 +351,7 @@ def process_image_dict(content):
 
         temp_content = []
         for i, filename in enumerate(content["filename"]):
-            if not any(s in filename for s in valid_types):
+            if not any(s in filename.lower() for s in valid_types):
                 return error_handler(400, "file not supported.", "TypeError")
 
             image = {
@@ -953,7 +954,7 @@ def b64str_to_numpy(b64_img):
     b64_img, _ = _get_b64_format(b64_img)
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
-    np_img = imageio.imread(image_buf, format="JPG")
+    np_img = imageio.imread(image_buf)
     return np_img
 
 
@@ -1104,5 +1105,5 @@ def get_app():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0")
-    # app.run(host="127.0.0.1")
+    # app.run(host="0.0.0.0")
+    app.run(host="127.0.0.1")

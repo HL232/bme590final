@@ -28,11 +28,11 @@ export default class Picture extends Component {
     return (
 
 <GridListTile key={this.props.tile.image_data}>
-<img src={"data:image/jpeg;base64," + this.props.tile.image_data} alt={this.props.tile.user_id} />
+<img src={"data:image/jpeg;base64," + this.props.tile.image_data} alt={this.props.tile.user_id} style="width:200px"/>
 
 <GridListTileBar
   title={this.props.tile.height + 'x' + this.props.tile.width}
-  subtitle={<span>by: {this.props.tile.format}</span>}
+  subtitle={<span>Type: {this.props.tile.format}</span>}
   actionIcon={
     <IconButton color='primary'>
       <PlaylistAdd onClick={this.startPass} />
