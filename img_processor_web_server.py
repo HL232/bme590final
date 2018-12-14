@@ -390,6 +390,9 @@ def process_zipped(content):
     Returns:
         JSON zipped images with confirmed "upload" process
     """
+    # resets images.zip and temp folder
+    _remove_zip_docs()
+
     zip_data = content["image_data"]
     temp_name = 'temp'
     zip_images = b64str_zip_to_images(zip_data, temp_name)
@@ -557,6 +560,9 @@ def post_get_images_zipped():
         content["image_ids"] = [content["image_ids"]]
     format = _determine_format(content["format"]).lower()
 
+    # resets images.zip and temp folder
+    _remove_zip_docs()
+
     # create a temp folder
     folder_name = "temp"
     if not os.path.exists(folder_name):
@@ -595,6 +601,16 @@ def post_get_images_zipped():
 
     return jsonify(ret)
 
+
+def _remove_zip_docs():
+    """
+    Removes all the files associated with
+    downloading and sending a zip.
+    """
+    if os.path.isdir("temp"):
+        os.rmdir('temp')
+    if os.path.exists("images.zip"):
+        os.remove('images.zip')
 
 def zip_folder(folder_name, ziph):
     """
