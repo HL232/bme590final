@@ -207,7 +207,8 @@ def get_original_uploads(email):
     original_uploads = db.get_all_original_images(email)
     original_upload_json = []
     for upload in original_uploads:
-        original_upload_json.append(db.image_to_json(upload))
+        if upload is not None:
+            original_upload_json.append(db.image_to_json(upload))
     return jsonify(original_upload_json)
 
 
@@ -227,7 +228,8 @@ def get_updated_uploads(email):
     updated_uploads = db.get_all_updated_images(email)
     updated_json = []
     for upload in updated_uploads:
-        updated_json.append(db.image_to_json(upload))
+        if upload is not None:
+            updated_json.append(db.image_to_json(upload))
     return jsonify(updated_json)
 
 
@@ -316,7 +318,7 @@ def process_image_dict(content):
     valid_types = ["jp", "png", "tif", "zip"]
 
     if type(content["filename"]) != list and \
-            type(content["image_data"]) != list:
+                    type(content["image_data"]) != list:
         print(content["filename"])
         if not any(s in content["filename"] for s in valid_types):
             return error_handler(400, "file not supported.", "TypeError")

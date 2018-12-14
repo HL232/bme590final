@@ -214,7 +214,6 @@ image_obj["email"] = image_obj["email"]
 image_obj["image_data"] = image_data
 image_obj["filename"] = filenames"""
 
-
 """
 filename = "test_folder.zip"
 image_obj = {
@@ -244,6 +243,11 @@ ids.append(content["image_id"])
 # view_image(b64str_to_numpy(content["histogram"]))
 # attempt to confirm
 resp = requests.post("http://127.0.0.1:5000/api/process/confirm", json=content)
+content = byte_2_json(resp)
+view_image(b64str_to_numpy(content["image_data"]))
+
+resp = requests.get(
+    "http://127.0.0.1:5000/api/user/get_updated_uploads/{}".format(email), json=content)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 

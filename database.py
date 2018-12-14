@@ -47,6 +47,7 @@ class ImageProcessingDB(object):
     modify the information on the database associated with
     each Image and each User.
     """
+
     def __init__(self, **kwargs):
         with open("config.json", 'r') as f:
             config_info = json.load(f)
@@ -444,8 +445,7 @@ class ImageProcessingDB(object):
         Returns:
             ret_json: json dictionary of the image object
         """
-
-        if not image:
+        if image is None:
             raise ValueError("Image does not exist.")
 
         ret_json = {
@@ -477,7 +477,7 @@ class ImageProcessingDB(object):
         Returns:
             ret_json: Json dictionary of User object
         """
-        if not user:
+        if user is None:
             raise ValueError("User does not exist.")
 
         ret_json = {
