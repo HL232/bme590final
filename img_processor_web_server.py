@@ -207,7 +207,9 @@ def get_original_uploads(email):
     original_uploads = db.get_all_original_images(email)
     original_upload_json = []
     for upload in original_uploads:
-        original_upload_json.append(db.image_to_json(upload))
+        if upload is not None:
+            original_upload_json.append(
+                db.image_to_json(upload))
     return jsonify(original_upload_json)
 
 
@@ -227,7 +229,8 @@ def get_updated_uploads(email):
     updated_uploads = db.get_all_updated_images(email)
     updated_json = []
     for upload in updated_uploads:
-        updated_json.append(db.image_to_json(upload))
+        if upload is not None:
+            updated_json.append(db.image_to_json(upload))
     return jsonify(updated_json)
 
 
@@ -249,9 +252,11 @@ def post_upload_image():
     content = request.get_json()
 
     if not content:
-        return error_handler(400, "Insufficient post.", "ValueError")
+        return error_handler(
+            400, "Insufficient post.", "ValueError")
     if type(content) != list and type(content) != dict:
-        return error_handler(400, "must by either dict or list of dicts")
+        return error_handler(
+            400, "must by either dict or list of dicts")
 
     if type(content) == dict:
         if "image_data" not in content.keys():
