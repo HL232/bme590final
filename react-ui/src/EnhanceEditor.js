@@ -43,29 +43,89 @@ beforeSelector = () => {
 afterSelector = (nu) => {
 
   if (nu === 0){
-
-  }
-  else if (nu === 1) {
     var myob2 = {}
     myob2['email'] = this.state.beforeIM.email
     axios.post('http://127.0.0.1:5000/api/process/blur', myob2)
  	 .then(res => {
-     var myAr = []
-     myAr.push(res.data)
-     this.setState({afterIM: myAr})
+     console.log(res.data)
+     //var myAr = res.data
+     //myAr.push(res.data)
+     //this.setState({afterIM: myAr})
+ 	 })
+ 	 .catch(function (error) {
+  console.log(error);
+ });
+  }
+  else if (nu === 1) {
+    var myob2 = {}
+    myob2['email'] = this.state.beforeIM.email
+    axios.post('http://127.0.0.1:5000/api/process/hist_eq', myob2)
+ 	 .then(res => {
+     console.log(res.data)
+     //var myAr = res.data
+     //myAr.push(res.data)
+     //this.setState({afterIM: myAr})
  	 })
  	 .catch(function (error) {
   console.log(error);
  });
   }
   else if (nu === 2) {
-
+    var myob2 = {}
+    myob2['email'] = this.state.beforeIM.email
+    axios.post('http://127.0.0.1:5000/api/process/contrast_stretch', myob2)
+ 	 .then(res => {
+     console.log(res.data)
+     //var myAr = res.data
+     //myAr.push(res.data)
+     //this.setState({afterIM: myAr})
+ 	 })
+ 	 .catch(function (error) {
+  console.log(error);
+ });
   }
   else if (nu === 3) {
+    var myob2 = {}
+    myob2['email'] = this.state.beforeIM.email
+    axios.post('http://127.0.0.1:5000/api/process/log_compression', myob2)
+ 	 .then(res => {
+     console.log(res.data)
+     //var myAr = res.data
+     //myAr.push(res.data)
+     //this.setState({afterIM: myAr})
+ 	 })
+ 	 .catch(function (error) {
+  console.log(error);
+ });
 
   }
   else if (nu === 4) {
-
+    var myob2 = {}
+    myob2['email'] = this.state.beforeIM.email
+    axios.post('http://127.0.0.1:5000/api/process/reverse_video', myob2)
+ 	 .then(res => {
+     console.log(res.data)
+     //var myAr = res.data
+     //myAr.push(res.data)
+     //this.setState({afterIM: myAr})
+ 	 })
+ 	 .catch(function (error) {
+  console.log(error);
+ });
+  }
+  else if (nu ===5) {
+    var myob2 = {}
+    myob2['email'] = this.state.beforeIM.email
+    axios.post('http://127.0.0.1:5000/api/process/sharpen', myob2)
+ 	 .then(res => {
+     console.log(res.data)
+     //var myAr = res.data
+     //myAr.push(res.data)
+     //this.setState({afterIM: myAr})
+ 	 })
+ 	 .catch(function (error) {
+  console.log(error);
+ });
   }
 }
 
@@ -87,13 +147,17 @@ afterSelector = (nu) => {
       Reverse Video
       </Button>
       <Button color='primary' variant='contained' onClick={() => this.afterSelector(0)}>
-      Other
+      Blur
+      </Button>
+      <Button color='primary' variant='contained' onClick={() => this.afterSelector(5)}>
+      Sharpen
       </Button>
       <br />
       Before: Upload Date:{this.state.beforeIM.timestamp} Process Time:{this.state.beforeIM.processing_time}
        Imagesize: {this.state.beforeIM.height}x{this.state.beforeIM.width}
       <br />
       <img src={this.state.beforeIM.image_data} />
+
       <br />
       After: Upload Data:{this.state.afterIM.timestamp} Process Time:{this.state.afterIM.processing_time}
        Image Size:{this.state.afterIM.height}x{this.state.afterIM.width}
