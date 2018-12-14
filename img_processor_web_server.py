@@ -3,7 +3,6 @@ import io
 import cv2
 import json
 import base64
-import shutil
 import imageio
 import zipfile
 import sendgrid
@@ -372,16 +371,9 @@ def process_image_dict(content):
         upload["image_id"] = random_id()
         upload["process"] = "upload"
         upload["processing_time"] = -1
-<<<<<<< HEAD
         upload["format"] = _determine_format(upload["filename"])
         if upload["format"] == "JPG":  # double check
             _, upload["format"] = _get_b64_format(upload["image_data"])
-=======
-        upload["image_data"], upload["format"] = _get_b64_format(
-            upload["image_data"])
-        if "None" in upload["format"]:  # last ditch effort.
-            upload["format"] = _determine_format(upload["filename"])
->>>>>>> origin/master
         image = db.add_image(upload["email"], upload)
         uploaded_images.append(db.image_to_json(image))
 
@@ -398,9 +390,6 @@ def process_zipped(content):
     Returns:
         JSON zipped images with confirmed "upload" process
     """
-    # resets images.zip and temp folder
-    _remove_zip_docs()
-
     zip_data = content["image_data"]
     temp_name = 'temp'
     zip_images = b64str_zip_to_images(zip_data, temp_name)
@@ -442,15 +431,9 @@ def b64str_zip_to_images(b64_str, folder_name):
             ext = os.path.splitext(filename)[1]
             ret["filename"] = filename
             image = imageio.imread(filepath)
-<<<<<<< HEAD
             ret["format"] = _determine_format(ext)
             ret["image_data"] = numpy_to_b64str(
                 image, format=ret["format"])
-=======
-            ret["image_data"] = numpy_to_b64str(image)
-            ret["image_data"], _ = _get_b64_format(
-                ret["image_data"])
->>>>>>> origin/master
             ret["histogram"] = _get_b64_histogram(image)
             ret["width"] = image.shape[0]
             ret["height"] = image.shape[1]
@@ -575,9 +558,6 @@ def post_get_images_zipped():
         content["image_ids"] = [content["image_ids"]]
     format = _determine_format(content["format"]).lower()
 
-    # resets images.zip and temp folder
-    _remove_zip_docs()
-
     # create a temp folder
     folder_name = "temp"
     if not os.path.exists(folder_name):
@@ -615,17 +595,6 @@ def post_get_images_zipped():
     }
 
     return jsonify(ret)
-
-
-def _remove_zip_docs():
-    """
-    Removes all the files associated with
-    downloading and sending a zip.
-    """
-    if os.path.isdir("temp"):
-        shutil.rmtree('temp')
-    if os.path.exists("images.zip"):
-        os.remove('images.zip')
 
 
 def zip_folder(folder_name, ziph):
@@ -740,7 +709,6 @@ def post_hist_eq():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
-    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "hist_eq"
     db.update_user_process(content["email"], new_image["process"])
@@ -773,7 +741,6 @@ def post_image_contrast_stretch():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
-    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "contrast_stretch"
     db.update_user_process(content["email"], new_image["process"])
@@ -802,7 +769,6 @@ def post_image_log_compression():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
-    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "log_compression"
     db.update_user_process(content["email"], new_image["process"])
@@ -835,7 +801,6 @@ def post_image_rev_video():
     # maybe something else
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
-    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(
         image_data, is_gray=True)
     new_image["process"] = "reverse_video"
@@ -865,7 +830,6 @@ def post_image_sharpen():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
-    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "sharpen"
     db.update_user_process(content["email"], new_image["process"])
@@ -893,7 +857,6 @@ def post_image_blur():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
-    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "blur"
     db.update_user_process(content["email"], new_image["process"])
