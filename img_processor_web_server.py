@@ -334,7 +334,7 @@ def process_image_dict(content):
     valid_types = ["jp", "png", "tif", "zip"]
 
     if type(content["filename"]) != list and \
-            type(content["image_data"]) != list:
+                    type(content["image_data"]) != list:
         print(content["filename"])
         if not any(s in content["filename"] for s in valid_types):
             return error_handler(400, "file not supported.", "TypeError")
@@ -371,7 +371,8 @@ def process_image_dict(content):
         upload["image_id"] = random_id()
         upload["process"] = "upload"
         upload["processing_time"] = -1
-        _, upload["format"] = _get_b64_format(upload["image_data"])
+        upload["image_data"], upload["format"] = _get_b64_format(
+            upload["image_data"])
         if "None" in upload["format"]:  # last ditch effort.
             upload["format"] = _determine_format(upload["filename"])
         image = db.add_image(upload["email"], upload)
@@ -432,6 +433,8 @@ def b64str_zip_to_images(b64_str, folder_name):
             ret["filename"] = filename
             image = imageio.imread(filepath)
             ret["image_data"] = numpy_to_b64str(image)
+            ret["image_data"], _ = _get_b64_format(
+                ret["image_data"])
             ret["histogram"] = _get_b64_histogram(image)
             ret["width"] = image.shape[0]
             ret["height"] = image.shape[1]
@@ -708,6 +711,7 @@ def post_hist_eq():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "hist_eq"
     db.update_user_process(content["email"], new_image["process"])
@@ -740,6 +744,7 @@ def post_image_contrast_stretch():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "contrast_stretch"
     db.update_user_process(content["email"], new_image["process"])
@@ -768,6 +773,7 @@ def post_image_log_compression():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "log_compression"
     db.update_user_process(content["email"], new_image["process"])
@@ -800,6 +806,7 @@ def post_image_rev_video():
     # maybe something else
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(
         image_data, is_gray=True)
     new_image["process"] = "reverse_video"
@@ -829,6 +836,7 @@ def post_image_sharpen():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "sharpen"
     db.update_user_process(content["email"], new_image["process"])
@@ -856,6 +864,7 @@ def post_image_blur():
     new_image = _populate_image_meta(new_image, image_data)
     new_image["image_data"] = numpy_to_b64str(image_data,
                                               format=new_image["format"])
+    new_image["image_data"], _ = _get_b64_format(new_image["image_data"])
     new_image["histogram"] = _get_b64_histogram(image_data)
     new_image["process"] = "blur"
     db.update_user_process(content["email"], new_image["process"])
