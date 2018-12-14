@@ -612,6 +612,7 @@ def _remove_zip_docs():
     if os.path.exists("images.zip"):
         os.remove('images.zip')
 
+
 def zip_folder(folder_name, ziph):
     """
     Zips folder given a path
