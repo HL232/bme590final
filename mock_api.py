@@ -26,7 +26,7 @@ image_obj = {
     "filename": dog_source
 }
 resp = requests.post(
-    "http:///api/process/upload_image",
+    "http://{}/api/process/upload_image".format(domain),
     json=image_obj)
 content = byte_2_json(resp)
 id_list.append(content["image_id"])  # used for dwnlding
