@@ -6,6 +6,8 @@ Version: 1.0.0
 
 Licsense: MIT License (See License File)
 
+**Video Demo of our Project can be viewed at: https://drive.google.com/file/d/1PUV9RYPAMvBxtW2BhL8S4apdYqe0DzgF/view?usp=sharing** 
+
 ## Introduction
 This project is an image processor that is meant to be the basis of a medical imaging processor. A graphical user interface (GUI) was developed to allow a user to upload image(s) to a database. These images can be processed to produce different effects (like histogram equailzation, contrast stretching, log compression, reverse video, blurring, and sharpening) as well as the associated histogram of the images. The images are processed on a web server and the results are returned to the user's GUI, which allows the user to download the images. 
 
@@ -16,9 +18,17 @@ This image processor is meant to combine the functionality and scripting _prowes
 
 ## How to run this project:
  1. Clone or download this repo locally. 
- 2. Access the GUI by...
- 3. From the GUI, you can upload images, download images, process images, etc
- 4. To access our web server, **The server is running at http://vcm-7308.vm.duke.edu:5000/ blahblahblah** The server handles POST and GET requests as defined in the `img_processor_web_server.py` file
+ 2. Run our webserver locally: Type `python img_processor_web_server.py`in the Terminal while inside this folder. (**Note that we do have a server running at http://vcm-7308.vm.duke.edu:5000/ blahblahblah** but our GUI is set to access the webserver locally)
+ 3. To run ReactJS GUI Locally:
+  *	Make sure Chrome is set as your default browser
+  *	Open Terminal/Command Prompt
+  *	Navigate to bme590final/react-ui
+  *	Once inside this folder type “npm install” and press enter
+  *	Wait for Install to complete
+  *	Once completed type “npm run start”
+  *	This will open the GUI in a Chrome Web Browser
+
+ 4. From the GUI, you can upload images, download images, process images, etc 
  
  **IMPORTANT: We are using mLab for our MongoDB database. The free tier only gives us 500 MB of storage. When we get to 300 MB our application slows down. When we store more than 500 MB of data, our application crashes. IF THE SERVER GOES DOWN, OR IF mLab FILLS UP, CONTACT STEPHEN (stephen.xu@duke.edu)**
 
@@ -34,6 +44,8 @@ This image processor is meant to combine the functionality and scripting _prowes
  + `img_processor_web_server` - Python file that sets up our FLASK web server that processes images and requests
  + `processing.py` - Python file that the web server uses to process images. 
  + `requirements.txt` - Python packages that need to be installed in the virtual environment to run the project
+ + `react-ui` folder - This contains all the JavsScript files for our front end UI
+ + `helper.py, Image_Processor_Jupyter_Notebook.ipyynb` - These files are used in a "walkthrough" explaining how our webserver works. 
 
  
 # Supported Formats
@@ -52,7 +64,36 @@ which creates the screen and then immediately detaches it.
 # Detailed Notes on Software Logic
 
 ## GUI
-Can talk about the GUI stuff here.
+To Use the GUI:
+
+Upload:
+
+  *	To upload images make sure images are all jpg or jpeg. This includes files in zip folder.
+  *	If you desire to upload one image, click Upload JPG. Then select the image you would like to upload.
+  *	Then click Confirm JPG Upload and wait approx. 15 seconds for server to process
+  *	If you want to upload multiple images simply keep presses the Upload JPG button and selecting new files. Once you have selected all the files that you want click Confirm Upload and all images will be uploaded.
+  *	For a zip file simply click Upload ZIP and select the file. It will automatically be uploaded upon selection.
+
+Library:
+
+  *	This window displays all the images within the database. Please give server ample time to load all photos
+  *	To download photos click the add to list icon contained within the tile bar of image.
+  *	Once you have clicked/selected all images you would like to download select your file type.
+  *	Choose JPG, PNG, or TIFF, once clicked download will automatically begin, please give time for download to occur.
+  *	Files will be downloaded within a zip file.
+
+Enhance:
+
+  *	This window is meant to enable user to enhance desired images.
+  *	To enhance an image, click the camera icon on the respective image tile bar
+  *	This will bring up the Enhance Editor page
+  *	NOTE: Reverse Video enhancement should only work on greyscale images
+  *	Page will display information about the image you have selected.
+  *	To enhance an image, click one of the enhancement types on the top of page
+  *	Wait for enhancement to complete, After Image will automatically change to processed image when finished.
+  *	If you would like to save these changes press the Confirm Button.
+  *	To enhance another image click the Upload or Library button and then click the Enhance button to allow you to select a new image to Enhance.
+
 
 ## MongoDB Database
 Our image processor uses MongoDB to store image data. Our database contains three classes: 
