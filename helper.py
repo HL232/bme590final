@@ -1,13 +1,5 @@
-import json
-import base64
-from random import choice
-from string import ascii_uppercase
 from matplotlib import pyplot as plt
-import requests
 from img_processor_web_server import *
-import imageio
-from tkinter import Tk
-from tkinter.filedialog import askopenfilename
 
 domain = "vcm-7308.vm.duke.edu:5000"
 
