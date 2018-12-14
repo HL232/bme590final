@@ -216,7 +216,8 @@ def test_post_upload_image_no_filename(flask_app, image_upload):
     test = image_upload
     client = flask_app.test_client()
     del test["filename"]
-    resp = client.post('/api/process/upload_image', json=image_upload)
+    resp = client.post(
+        '/api/process/upload_image', json=image_upload)
     assert resp.json["error_type"] == "AttributeError"
 
 
@@ -233,7 +234,8 @@ def test_post_upload_image_bad_filenames(
 def test_post_upload_image_no_image_data(flask_app, image_upload):
     client = flask_app.test_client()
     del image_upload["image_data"]
-    resp = client.post('/api/process/upload_image', json=image_upload)
+    resp = client.post(
+        '/api/process/upload_image', json=image_upload)
     assert resp.json["error_type"] == "AttributeError"
 
 
@@ -242,16 +244,19 @@ def test_post_change_image(flask_app, image_upload):
     image_upload["email"] = random_id()
     resp_1 = client.post(
         '/api/process/upload_image', json=image_upload)
-    resp_2 = client.post('/api/process/upload_image', json=image_upload)
+    resp_2 = client.post(
+        '/api/process/upload_image', json=image_upload)
     print(resp_2.json, '\n',
           resp_2.json["email"], resp_2.json["image_id"])
-    resp_3 = client.post('/api/process/upload_image', json=image_upload)
+    resp_3 = client.post(
+        '/api/process/upload_image', json=image_upload)
     payload = {
         "email": image_upload["email"],
         "image_id": resp_2.json["image_id"]
     }
     print(payload)
-    resp = client.post('/api/process/change_image', json=payload)
+    resp = client.post(
+        '/api/process/change_image', json=payload)
     print(resp.json)
 
     changed_image = resp.json

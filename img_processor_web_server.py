@@ -398,15 +398,20 @@ def post_change_image():
     """
     content = request.get_json()
     if "email" not in content.keys():
-        return error_handler(400, "needs email", "AttributeError")
+        return error_handler(
+            400, "needs email", "AttributeError")
     if "image_id" not in content.keys():
-        return error_handler(400, "needs image_id", "AttributeError")
+        return error_handler(
+            400, "needs image_id", "AttributeError")
 
     # must contain image_data, email
-    db.update_user_current(content["email"], content["image_id"])
-    image = db.find_image(content["image_id"], content["email"])
+    db.update_user_current(
+        content["email"], content["image_id"])
+    image = db.find_image(
+        content["image_id"], content["email"])
     if not image:
-        return error_handler(400, "Image does not exist", "ValueError")
+        return error_handler(
+            400, "Image does not exist", "ValueError")
     image = db.image_to_json(image)
     return jsonify(image)
 
