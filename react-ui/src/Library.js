@@ -33,11 +33,14 @@ state = {
 getData = () => {
   console.log('getData')
   //axios.get("http://127.0.0.1:5000/api/image/get_current_image/myID@no.")
-  axios.get("http://127.0.0.1:5000/api/user/get_original_uploads/myID@no.").then(res => {
+  //http://127.0.0.1:5000/api/user/get_original_uploads/myID@no.
+  axios.get("http://127.0.0.1:5000/api/user/get_updated_uploads/myID@no.").then(res => {
 
 
     var myAr = []
-    myAr.concat(res.data)
+    console.log(res.data)
+    myAr = res.data
+    console.log(myAr)
     this.setState({myData: myAr})
     //console.log(this.state.myData[0].image_data)
   })
