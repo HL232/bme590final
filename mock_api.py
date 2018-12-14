@@ -103,7 +103,7 @@ content = byte_2_json(resp)
 ## Processing images
 # upload initial image
 resp = requests.post(
-    "http://127.0.0.1:5000/api/process/upload_image",
+    "http://vcm-7308.vm.duke.edu:5000/api/process/upload_image",
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
@@ -114,31 +114,31 @@ view_image(b64str_to_numpy(content["image_data"]))
 # contrast stretching, histogram eq., and reverse video.
 # sharpening
 resp = requests.post(
-    "http://127.0.0.1:5000/api/process/sharpen",
+    "http://vcm-7308.vm.duke.edu:5000/api/process/sharpen",
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # blurring
 resp = requests.post(
-    "http://127.0.0.1:5000/api/process/blur",
+    "http://vcm-7308.vm.duke.edu:5000/api/process/blur",
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # log compression
 resp = requests.post(
-    "http://127.0.0.1:5000/api/process/log_compression",
+    "http://vcm-7308.vm.duke.edu:5000/api/process/log_compression",
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # contrast stretching
 resp = requests.post(
-    "http://127.0.0.1:5000/api/process/contrast_stretch",
+    "http://vcm-7308.vm.duke.edu:5000/api/process/contrast_stretch",
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # histogram equalization
 resp = requests.post(
-    "http://127.0.0.1:5000/api/process/hist_eq",
+    "http://vcm-7308.vm.duke.edu:5000/api/process/hist_eq",
     json=image_obj_2)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
@@ -146,18 +146,18 @@ view_image(b64str_to_numpy(content["image_data"]))
 # reverse video
 # NOTE it only works for grayscale images
 resp = requests.post(
-    "http://127.0.0.1:5000/api/process/reverse_video",
+    "http://vcm-7308.vm.duke.edu:5000/api/process/reverse_video",
     json=image_obj_2)
 content = byte_2_json(resp)
 print(content)
 # Here is a grayscale image to test.
 resp = requests.post(
-    "http://127.0.0.1:5000/api/process/upload_image",
+    "http://vcm-7308.vm.duke.edu:5000/api/process/upload_image",
     json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 resp = requests.post(
-    "http://127.0.0.1:5000/api/process/reverse_video",
+    "http://vcm-7308.vm.duke.edu:5000/api/process/reverse_video",
     json=image_obj)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
