@@ -372,10 +372,16 @@ def process_image_dict(content):
         upload["image_id"] = random_id()
         upload["process"] = "upload"
         upload["processing_time"] = -1
+<<<<<<< HEAD
+        upload["format"] = _determine_format(upload["filename"])
+        if upload["format"] == "JPG":  # double check
+            _, upload["format"] = _get_b64_format(upload["image_data"])
+=======
         upload["image_data"], upload["format"] = _get_b64_format(
             upload["image_data"])
         if "None" in upload["format"]:  # last ditch effort.
             upload["format"] = _determine_format(upload["filename"])
+>>>>>>> origin/master
         image = db.add_image(upload["email"], upload)
         uploaded_images.append(db.image_to_json(image))
 
@@ -436,16 +442,21 @@ def b64str_zip_to_images(b64_str, folder_name):
             ext = os.path.splitext(filename)[1]
             ret["filename"] = filename
             image = imageio.imread(filepath)
+<<<<<<< HEAD
+            ret["format"] = _determine_format(ext)
+            ret["image_data"] = numpy_to_b64str(
+                image, format=ret["format"])
+=======
             ret["image_data"] = numpy_to_b64str(image)
             ret["image_data"], _ = _get_b64_format(
                 ret["image_data"])
+>>>>>>> origin/master
             ret["histogram"] = _get_b64_histogram(image)
             ret["width"] = image.shape[0]
             ret["height"] = image.shape[1]
             ret["image_id"] = random_id()
             ret["process"] = "upload"
             ret["processing_time"] = -1
-            ret["format"] = _determine_format(ext)
             ret_images.append(ret)
 
     # os.removedirs(folder_name)
@@ -945,10 +956,10 @@ def b64str_to_numpy(b64_img):
     Returns:
         np.ndarray: numpy array of image.
     """
-    b64_img, _ = _get_b64_format(b64_img)
+    b64_img, format = _get_b64_format(b64_img)
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
-    np_img = imageio.imread(image_buf, format="JPG")
+    np_img = imageio.imread(image_buf, format=format)
     return np_img
 
 
@@ -1004,7 +1015,7 @@ def _should_reverse_image(format):
         bool: True if the image should be reversed. False otherwise
     """
     should_reverse = ["JPG"]
-    if format in should_reverse:
+    if format.upper() in should_reverse:
         return True
     else:
         return False
