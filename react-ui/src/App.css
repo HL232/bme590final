@@ -21,6 +21,9 @@
 .App-link {
   color: #61dafb;
 }
+.link {
+  color: #43a047;
+ }
 
 .paper{
     background-color: rgba(0, 0, 0, 0.4) !important;

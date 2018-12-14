@@ -8,6 +8,10 @@ from processing import Processing
 
 
 class Image(MongoModel):
+    """
+    Image class is a MongoModel. Used to store information about
+    images that have been uploaded to the database
+    """
     image_id = fields.CharField(primary_key=True)
     filename = fields.CharField()
     image_data = fields.CharField()
@@ -26,6 +30,10 @@ class Image(MongoModel):
 
 
 class User(MongoModel):
+    """
+    User class is a MongoModel. Used to store information about
+    Users that are using the app.
+    """
     email = fields.CharField(primary_key=True)
     # the structure of this will be key (upload id): most recent_id
     uploads = fields.DictField()
@@ -34,6 +42,11 @@ class User(MongoModel):
 
 
 class ImageProcessingDB(object):
+    """
+    ImageProcessingDB class contains functions used to
+    modify the information on the database associated with
+    each Image and each User.
+    """
     def __init__(self, **kwargs):
         with open("config.json", 'r') as f:
             config_info = json.load(f)
@@ -48,9 +61,11 @@ class ImageProcessingDB(object):
         """
         Adds image to the database. First checks if it is a child of
         another image, then adds the image.
+
         Args:
             email: User who is adding the image.
             image_info: Information about the image.
+
         Returns:
             object: Image database object that was added.
         """
@@ -102,11 +117,12 @@ class ImageProcessingDB(object):
     def get_current_image_id(self, email):
         """
         Obtains the user's current image id.
+
         Args:
+            email: email associated with User
 
         Returns:
-            object:
-
+            object: the current image ID the assicoated with the User
         """
         user = self.find_user(email)
         if user is None:
@@ -116,12 +132,12 @@ class ImageProcessingDB(object):
     def get_current_image(self, email):
         """
         Obtains the user's current image.
+
         Args:
-            email: user to get current image of.
+            email: email associated with User
 
         Returns:
             dict: user's current image.
-
         """
         image_id = self.get_current_image_id(email)
         image = self.find_image(image_id, email)
@@ -130,12 +146,12 @@ class ImageProcessingDB(object):
     def get_all_updated_images(self, email):
         """
         Gets all updated/recent images of a user.
+
         Args:
-            email: User to get.
+            email: email associated with User
 
         Returns:
-            list: All images as stored in database.
-
+            list: All images as stored in database for the User
         """
         user = self.find_user(email)
         updated_list = []
@@ -149,12 +165,12 @@ class ImageProcessingDB(object):
     def get_all_original_images(self, email):
         """
         Gets all original images of a user.
+
         Args:
             email: User to get.
 
         Returns:
-            list: All original images as stored in database.
-
+            list: All original images as stored in database for the user
         """
         user = self.find_user(email)
         original_list = []
@@ -167,9 +183,11 @@ class ImageProcessingDB(object):
     def _add_child(self, child_id, parent_id, email):
         """
         Adds a child id to the parent image.
+
         Args:
             parent_id: id of the parent to add the child id to.
             child_id: child id to add.
+            email: User's email ID
 
         Returns:
             str: child id of the image that was added.
@@ -184,13 +202,14 @@ class ImageProcessingDB(object):
     def _image_parameter_check(self, image_info):
         """
         Tests if image input is valid.
+
         Args:
-            image_info: Image object with imformation regarding
+            image_info: Image object with information regarding
             image and history.
 
         Returns:
-            bool: Whether or not the image_info object is valid.
-
+            image_info: only returns if image is valid
+             (ie: does not raise an error)
         """
         if not isinstance(image_info, dict):
             raise TypeError("image_info must be type dict.")
@@ -241,12 +260,12 @@ class ImageProcessingDB(object):
     def _valid_process(self, process):
         """
         Determines if the process is valid based on Processing methods.
+
         Args:
             process (str): process to check.
 
         Returns:
             bool: Whether or not the process is valid.
-
         """
         valid_processes = [func for func in dir(Processing)
                            if callable(getattr(Processing, func))]
@@ -258,12 +277,12 @@ class ImageProcessingDB(object):
     def add_user(self, email):
         """
         Adds user to the database.
+
         Args:
-            email: Unique identifier. Doesn't have to be ID.
+            email: Add's a new user's email
 
         Returns:
-            object: user object that was saved.
-
+            object: User object that was saved.
         """
         test_user = self.find_user(email)
         if test_user:
@@ -274,13 +293,14 @@ class ImageProcessingDB(object):
 
     def update_process_history(self, email, process_history: list):
         """
-        Updates user uploads for an image.
+        Updates user process history for an image.
+
         Args:
-            process_history: History of Image ids.
             email: User to update.
+            process_history: History of Image ids.
 
         Returns:
-            object: updated user object.
+            object: updated User object.
         """
 
         root_id = process_history[0]
@@ -294,10 +314,13 @@ class ImageProcessingDB(object):
     def update_user_current(self, email, image_id):
         """
         Updates user current_image.
+
         Args:
             email: User to update.
             image_id: Id to update with
 
+        Returns:
+            object: updated User object
         """
         # image is not yet in the database
         user = self.find_user(email)
@@ -309,10 +332,13 @@ class ImageProcessingDB(object):
     def update_user_process(self, email: str, process: str):
         """
         Increments the count on the process performed.
+
         Args:
             email (str): User to update.
             process (str): Id to update with
 
+        Returns:
+            object: updated User object
         """
         # image is not yet in the database
         if not self._valid_process(process):
@@ -328,8 +354,12 @@ class ImageProcessingDB(object):
         """
         Removes the image from the database.
         DANGER: will not remove parent-child relationship!
+
         Args:
             image_id: ID of the image to remove.
+
+        Returns:
+            object: image object that was removed
         """
         for image in Image.objects.all():
             if str(image.image_id) == image_id:
@@ -341,8 +371,9 @@ class ImageProcessingDB(object):
     def find_image(self, image_id, email):
         """
         Finds the image in the database based on image id.
+
         Args:
-            email: user ID for the image.
+            email: email of User for the image.
             image_id: ID of the image to find.
 
         Returns:
@@ -357,11 +388,13 @@ class ImageProcessingDB(object):
     def find_image_parent(self, image_id, email):
         """
         Finds the parent of the image in the database based on image id.
+
         Args:
             image_id: ID of the image to find.
+            email: User's email
 
         Returns:
-            object: found image in the database.
+            object: found image in the database. Otherwise None
         """
         image = self.find_image(image_id, email)
         if image.parent_id is not None:
@@ -373,11 +406,13 @@ class ImageProcessingDB(object):
     def find_image_child(self, image_id, email):
         """
         Finds the child of the image in the database based on image id.
+
         Args:
             image_id: ID of the image to find.
+            email: User's email
 
         Returns:
-            object: found image in the database.
+            object: found image in the database. Otherwise, none
         """
         image = self.find_image(image_id, email)
         if image is not None:
@@ -387,12 +422,12 @@ class ImageProcessingDB(object):
     def find_user(self, email):
         """
         Finds user in the database and returns if found.
+
         Args:
             email: ID of user to find.
 
         Returns:
             object: found user in the database.
-
         """
         for user in User.objects.all():
             if str(user.email) == email:
@@ -402,11 +437,14 @@ class ImageProcessingDB(object):
     def image_to_json(self, image):
         """
         Gets returnable json format of image.
+
         Args:
-            image: image database object.
+            image: Image object to be converted to Json
+
         Returns:
-            dict: dict version of image.
+            ret_json: json dictionary of the image object
         """
+
         if not image:
             raise ValueError("Image does not exist.")
 
@@ -432,10 +470,12 @@ class ImageProcessingDB(object):
     def user_to_json(self, user):
         """
         Gets returnable json format of user.
+
         Args:
-            user: user database object.
+            user: User object to be converted to JSON
+
         Returns:
-            dict: dict version of user.
+            ret_json: Json dictionary of User object
         """
         if not user:
             raise ValueError("User does not exist.")

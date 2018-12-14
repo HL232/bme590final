@@ -5,11 +5,13 @@ import { MuiThemeProvider, createMuiTheme } from '@material-ui/core/styles';
 import axios from 'axios'
 import Library from './Library' ;
 import MyUpload from './MyUpload'
-import MyEnhance from './MyEnhance' 
+import MyEnhance from './MyEnhance'
 import MyDownload from './MyDownload'
 import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Typography, Grid, Paper} from '@material-ui/core';
-export default class leftSide extends Component {
+import MainEnhance from './MainEnhance'
 
+export default class LeftSide extends Component {
+ 
 
   state = {
     "winDisplay": 1
@@ -21,7 +23,7 @@ export default class leftSide extends Component {
       return (<MyUpload />)
     }
     else if (this.state.winDisplay === 2){
-      return <MyEnhance />
+      return <MainEnhance />
     }
     else if (this.state.winDisplay === 3){
       return <MyDownload />
@@ -33,37 +35,35 @@ export default class leftSide extends Component {
 
   mySt = (myS) => {
     this.setState({"winDisplay": myS})
-    
+
   }
 
 
 	render() {
-		
+
 		return (
 		<MuiThemeProvider>
 			<div>
 
       <Grid container direction='row' spacing={10} spacing={40}>
-      
-      <Grid item xs={1.5} color='gray'>
 
+      <Grid item xs={1.5} color='gray'>
+        <Paper className='paper'>
 				<Button onClick={() => this.mySt(1)} variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
           Upload </Button> <br />
         <Button onClick={() => this.mySt(2)}variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
           Enhance </Button> <br />
-        <Button onClick={() => this.mySt(3)}variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
-          Download </Button> <br />
-          
+
         <Button onClick={() => this.mySt(4)} variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
-          Library </Button>
-				
+          Library </Button> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br />
+          </Paper>
         </Grid>
 
         <Grid item xs={1}>
         </Grid>
 
         <Grid item xs={9}>
-        
+
       <div>
        {this.selector()}
       </div>
@@ -96,6 +96,5 @@ export default class leftSide extends Component {
 
 
 
-	
-}
 
+}
