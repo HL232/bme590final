@@ -424,7 +424,8 @@ class ImageProcessingDB(object):
             "format": image.format,
             "child_ids": image.child_ids,
             "process": image.process,
-            "timestamp": image.timestamp
+            "timestamp": image.timestamp,
+            "histogram": image.histogram
         }
         return ret_json
 

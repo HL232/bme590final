@@ -227,11 +227,14 @@ resp = requests.post(
     "http://127.0.0.1:5000/api/process/upload_image",
     json=image_obj)
 content = byte_2_json(resp)
+view_image(b64str_to_numpy(content["histogram"]))
+
 ids = []
+"""
 for image in content:
     ids.append(image["image_id"])
     # view_image(b64str_to_numpy(image["image_data"]))
-
+"""
 # blur
 image_obj_2 = {"email": email}
 resp = requests.post("http://127.0.0.1:5000/api/process/reverse_video",
