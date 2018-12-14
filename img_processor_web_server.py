@@ -334,7 +334,7 @@ def process_image_dict(content):
     valid_types = ["jp", "png", "tif", "zip"]
 
     if type(content["filename"]) != list and \
-                    type(content["image_data"]) != list:
+            type(content["image_data"]) != list:
         print(content["filename"])
         if not any(s in content["filename"] for s in valid_types):
             return error_handler(400, "file not supported.", "TypeError")
