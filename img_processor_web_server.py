@@ -372,10 +372,14 @@ def process_image_dict(content):
         upload["image_id"] = random_id()
         upload["process"] = "upload"
         upload["processing_time"] = -1
-        upload["image_data"], upload["format"] = _get_b64_format(
-            upload["image_data"])
-        if "None" in upload["format"]:  # last ditch effort.
-            upload["format"] = _determine_format(upload["filename"])
+        upload["format"] = _determine_format(upload["filename"])
+        # removes the header
+        if upload["format"] == "JPG":
+            upload["image_data"], upload["format"] = \
+                _get_b64_format(upload["image_data"])
+        else:
+            upload["image_data"], _ = \
+                _get_b64_format(upload["image_data"])
         image = db.add_image(upload["email"], upload)
         uploaded_images.append(db.image_to_json(image))
 
@@ -436,16 +440,17 @@ def b64str_zip_to_images(b64_str, folder_name):
             ext = os.path.splitext(filename)[1]
             ret["filename"] = filename
             image = imageio.imread(filepath)
-            ret["image_data"] = numpy_to_b64str(image)
+            ret["format"] = _determine_format(ext)
+            ret["image_data"] = numpy_to_b64str(
+                image, format=ret["format"])
             ret["image_data"], _ = _get_b64_format(
-                ret["image_data"])
+                ret["image_data"])  # removes header
             ret["histogram"] = _get_b64_histogram(image)
             ret["width"] = image.shape[0]
             ret["height"] = image.shape[1]
             ret["image_id"] = random_id()
             ret["process"] = "upload"
             ret["processing_time"] = -1
-            ret["format"] = _determine_format(ext)
             ret_images.append(ret)
 
     # os.removedirs(folder_name)
