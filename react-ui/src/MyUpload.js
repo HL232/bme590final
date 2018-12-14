@@ -63,7 +63,7 @@ export default class MyUpload extends Component {
  pusher = () => {
 	 var myob = {} ;
 	 myob['image_data'] = this.state.myimgArray ;
-	 myob['email'] = 'myID@no.';
+	 myob['email'] = 'lickaD@no.';
 	 myob['filename'] = ['stevenisaTWAT.jpg']
 	 console.log(this.state.myimgArray)
  axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
@@ -90,8 +90,8 @@ console.log(error);
 	 var myob = {} ;
 	 console.log(this.state.zipContainer)
 	 myob['image_data'] = this.state.zipContainer;
-	 myob['email'] = 'myID@no.';
-	 myob['filename'] = 'stevenisaTWAT.zip'
+	 myob['email'] = 'lickaD@no.';
+	 myob['filename'] = 'stevenisASIAN.zip'
  axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
  .then(res => {
 	console.log(res)

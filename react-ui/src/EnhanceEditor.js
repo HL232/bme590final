@@ -15,7 +15,7 @@ setImage = () => {
   var myob = {}
   var iStr2 = this.state.beforeIM.image_id
   //iStr = iStr.split(";").pop();
-    myob['email'] = 'myID@no.';
+    myob['email'] = 'lickaD@no.';
     myob['image_id'] = iStr2 ;
     console.log(iStr2)
   axios.post('http://127.0.0.1:5000/api/process/change_image', myob)
@@ -42,8 +42,8 @@ beforeSelector = () => {
 
 confirm = () => {
   var myob2 = {}
-  myob2['email'] = this.state.beforeIM.email
-  axios.post('http://127.0.0.1:5000/api/process/blur', myob2)
+  myob2 = this.state.afterIM
+  axios.post('http://127.0.0.1:5000/api/process/confirm', myob2)
  .then(res => {
    console.log(res.data)
  })
