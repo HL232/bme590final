@@ -80,6 +80,12 @@ def byte_2_json(resp):
 
 
 def view_image(image):
+    """
+    Displays an image using the matplotlib plt.show() function
+    Args:
+        image: the image array to show
+
+    """
     plt.imshow(image)
     plt.axis('off')
     plt.show()
