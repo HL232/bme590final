@@ -172,7 +172,7 @@ afterSelector = (nu) => {
        Imagesize: {this.state.beforeIM.height}x{this.state.beforeIM.width}
       <br />
       <img src={this.state.beforeIM.image_data} />
-
+      <img src={this.state.beforeIM.histogram} />
       <br />
       After: Upload Data:{this.state.afterIM.timestamp} Process Time:{this.state.afterIM.processing_time}
        Image Size:{this.state.afterIM.height}x{this.state.afterIM.width}
