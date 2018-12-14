@@ -2,10 +2,10 @@ import requests
 from helper import *
 from img_processor_web_server import *
 
-domain = "vcm-7308.vm.duke.edu:5000"
+domain = "127.0.0.1:5000"
 
 ## Input your email or username
-email = ""
+email = "youremailhere@gmail.com"
 
 # reads some images
 id_list = []  # Used for downloading
