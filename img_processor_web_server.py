@@ -3,6 +3,7 @@ import io
 import cv2
 import json
 import base64
+import shutil
 import imageio
 import zipfile
 import sendgrid
@@ -611,7 +612,7 @@ def _remove_zip_docs():
     downloading and sending a zip.
     """
     if os.path.isdir("temp"):
-        os.rmdir('temp')
+        shutil.rmtree('temp')
     if os.path.exists("images.zip"):
         os.remove('images.zip')
 
