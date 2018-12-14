@@ -93,6 +93,7 @@ content = byte_2_json(resp)
 print("Current Image ID (second ID): ",
       content["image_id"])
 
+''''
 # we can see that we do indeed go backwards,
 # in this case. This creates a tree-like structure
 # for the image history.
@@ -103,6 +104,7 @@ print("New Current Image ID (first ID): ",
       content["image_id"])
 
 content = byte_2_json(resp)
+'''
 
 # Processing images
 # upload initial image
