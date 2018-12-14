@@ -65,6 +65,8 @@ down = () => {
       {this.containData()}
 
       <Paper className='paper'>
+      <Button onClick={() => this.mySt('.jpg')}variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
+        JPG </Button> <br />
       <GridList cellHeight={400} cols={3}>
 
         <GridListTile key="Subheader" cols={1} style={{height: 'auto'}}>
