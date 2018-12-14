@@ -404,7 +404,7 @@ def post_change_image():
 
     # must contain image_data, email
     db.update_user_current(content["email"], content["image_id"])
-    image = db.find_image(content["email"], content["image_id"])
+    image = db.find_image(content["image_id"], content["email"])
     if not image:
         return error_handler(400, "Image does not exist", "ValueError")
     image = db.image_to_json(image)
