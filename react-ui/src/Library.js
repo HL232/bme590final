@@ -107,7 +107,8 @@ down = () => {
         <Button onClick={() => this.setDtype('png')} variant="contained"   color="primary" style= {{margin: '5px'}} >
           PNG </Button>
           <Button onClick={() => this.setDtype('TIFF')} variant="contained"   color="primary" style= {{margin: '5px'}} >
-            TIFF </Button> <br />
+            TIFF </Button>
+            <h2> Use these to Download Desired File Type: Click to add images then when all images have been selected press desired button</h2> <br />
       <GridList cellHeight={400} cols={3}>
 
         <GridListTile key="Subheader" cols={1} style={{height: 'auto'}}>
