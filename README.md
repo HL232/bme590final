@@ -14,6 +14,14 @@ This image processor is meant to combine the functionality and scripting _prowes
 
 ![alt text](https://github.com/HL232/bme590final/blob/read-me/BME%20Software%20Final.jpg) 
 
+## How to run this project:
+ 1. Clone or download this repo locally. 
+ 2. Access the GUI by...
+ 3. From the GUI, you can upload images, download images, process images, etc
+ 4. To access our web server, **The server is running at http://vcm-7308.vm.duke.edu:5000/ blahblahblah** The server handles POST and GET requests as defined in the `img_processor_web_server.py` file
+ 
+ **IMPORTANT: We are using mLab for our MongoDB database. The free tier only gives us 500 MB of storage. When we get to 300 MB our application slows down. When we store more than 500 MB of data, our application crashes. IF THE SERVER GOES DOWN, OR IF mLab FILLS UP, CONTACT STEPHEN (stephen.xu@duke.edu)**
+
 ## What's included in this repo:
  + `tests` folder - This contains all the unit testing python files
  + `docs, Makefile, conf.py, index.rst, make.bat` - these files are used to produce auto generated sphinx documentation
@@ -27,11 +35,6 @@ This image processor is meant to combine the functionality and scripting _prowes
  + `processing.py` - Python file that the web server uses to process images. 
  + `requirements.txt` - Python packages that need to be installed in the virtual environment to run the project
 
-## How to run this project:
- 1. Clone or download this repo locally. 
- 2. Access the GUI by...
- 3. From the GUI, you can upload images, download images, process images, etc
- 4. To access our web server, **The server is running at BLAHHHHHHHHHHHHHHHHHHHH** The server handles POST and GET requests as defined in the `img_processor_web_server.py` file
  
 # Supported Formats
 
