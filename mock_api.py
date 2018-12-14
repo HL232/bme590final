@@ -9,7 +9,7 @@ email = ""
 dog_source = "images_for_testing/gray_dog.jpg"
 dog_source_2 = "images_for_testing/color_dog.jpg"
 dog_image = imageio.imread(dog_source)
-dog_image_2 = imageio.imread(dog_source)
+dog_image_2 = imageio.imread(dog_source_2)
 image_format = determine_format(dog_source)
 
 ## Uploading images
@@ -67,7 +67,8 @@ view_image(b64str_to_numpy(content["image_data"]))
 # endpoints
 resp = requests.get(
     "http://127.0.0.1:5000"
-    "/api/process/get_original_uploads")
+    "/api/process/get_original_uploads/{}".format(
+        email))
 content = byte_2_json(resp)
 print("List of image IDS: ", content)
 
@@ -115,31 +116,31 @@ view_image(b64str_to_numpy(content["image_data"]))
 # sharpening
 resp = requests.post(
     "http://127.0.0.1:5000/api/process/sharpen",
-    json=image_obj_2)
+    json=)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # blurring
 resp = requests.post(
     "http://127.0.0.1:5000/api/process/blur",
-    json=image_obj_2)
+    json={"email": email})
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # log compression
 resp = requests.post(
     "http://127.0.0.1:5000/api/process/log_compression",
-    json=image_obj_2)
+    json={"email": email})
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # contrast stretching
 resp = requests.post(
     "http://127.0.0.1:5000/api/process/contrast_stretch",
-    json=image_obj_2)
+    json={"email": email})
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 # histogram equalization
 resp = requests.post(
     "http://127.0.0.1:5000/api/process/hist_eq",
-    json=image_obj_2)
+    json={"email": email})
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 
@@ -147,20 +148,39 @@ view_image(b64str_to_numpy(content["image_data"]))
 # NOTE it only works for grayscale images
 resp = requests.post(
     "http://127.0.0.1:5000/api/process/reverse_video",
-    json=image_obj_2)
+    json={"email": email})
 content = byte_2_json(resp)
 print(content)
 # Here is a grayscale image to test.
 resp = requests.post(
     "http://127.0.0.1:5000/api/process/upload_image",
-    json=image_obj)
+    json={"email": email})
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 resp = requests.post(
     "http://127.0.0.1:5000/api/process/reverse_video",
-    json=image_obj)
+    json={"email": email})
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
+
+## Confirming
+# Notice that none of the actions done to the initial
+# Image was permanent. In order to commit a to a change
+# or a processing functionality, you need to confirm
+# This will confirm the reverse video gray dog from
+# above, and then subsequently blur that reversed image.
+requests.post(
+    "http://127.0.0.1:5000/api/process/confirm",
+    json={"email": email})
+resp = requests.post(
+    "http://127.0.0.1:5000/api/process/blur",
+    json=image_obj_2)
+content = byte_2_json(resp)
+print("Image ID: ", content["image_id"])
+view_image(b64str_to_numpy(content["image_data"]))
+
+## Downloading
+# Downloading comes in several different forms
 
 """
 filenames = []
