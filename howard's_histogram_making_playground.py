@@ -2,6 +2,8 @@ from processing import Processing
 import matplotlib.pyplot as plt
 import imageio
 
+from tkinter import Tk
+from tkinter.filedialog import askopenfilename
 # Manually testing processing.py
 
 
