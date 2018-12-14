@@ -1,10 +1,26 @@
 import React, { Component } from 'react';
 import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Button, Typography, Grid, Paper} from '@material-ui/core';
-import { CloudDownload } from '@material-ui/icons'
+import { CloudDownload, PlaylistAdd } from '@material-ui/icons'
 
 export default class Picture extends Component {
 
+  state = {
+    myI: '',
+    myS: 0 ,
+  }
 
+  startPass = () => {
+    this.setState({myS: 1, myI: this.props.tile}, () => {
+      this.passIt()
+    });
+  }
+
+  passIt = () => {
+    var win = this.state.myS ;
+    var im = this.state.myI ;
+    this.props.onSel(win, im) ;
+    
+  }
 
 
   render() {
@@ -19,11 +35,10 @@ export default class Picture extends Component {
   subtitle={<span>by: {this.props.tile.format}</span>}
   actionIcon={
     <IconButton color='primary'>
-      <a className='link' href={this.props.tile.image_data} download={this.props.tile.image_id + '.jpeg'}>
-      <CloudDownload fill='primary' />
-      </a>
+      <PlaylistAdd onClick={this.startPass} />
 
     </IconButton>
+
   }
 />
 

@@ -28,7 +28,7 @@ passIt = () => {
     return (
 
 <GridListTile key={this.props.tile.image_data}>
-<img src={"data:image/jpeg;" + this.props.tile.image_data} alt={this.props.tile.user_id} />
+<img src={"data:image/jpeg;base64," + this.props.tile.image_data} alt={this.props.tile.user_id} />
 
 <GridListTileBar
   title={this.props.tile.user_id}

@@ -18,7 +18,9 @@ export default class MyUpload extends Component {
 
 	state = {
 		myimgArray: [],
+		myFnArray: [],
 		zipContainer: '',
+		curreFna: ''
 	}
 
 
@@ -29,10 +31,11 @@ export default class MyUpload extends Component {
 
 		onUpload = (files) => {
 			const reader = new FileReader()
+			//console.log(files[0].name)
 			const myF = files[0]
 			reader.readAsDataURL(myF);
 			reader.onloadend = () => {
-				this.setState({currentImageString: reader.result}, () => {
+				this.setState({currentImageString: reader.result, curreFna: myF.name}, () => {
 					this.addtoArray()
 				});
 			}
@@ -44,17 +47,29 @@ export default class MyUpload extends Component {
 
 
 	 var helpAr = []
+	 var strAr = []
 	 if (this.state.myimgArray === undefined) {
+		 var sst = this.state.curreFna
+		 //console.log(sst)
+		 strAr.push(sst)
+
+		 //console.log(strAr)
+		 this.setState({myFnArray: strAr}, console.log(this.state.myFnArray))
+
 
 		 helpAr.push(this.state.currentImageString)
-		 this.setState({myimgArray: helpAr})
+		 this.setState({myimgArray: helpAr}, console.log(this.state.myimgArray))
 	 }
 	 else {
 		 console.log('Hit')
 	    var myAr = this.state.myimgArray
-			console.log(myAr)
 	 		myAr.push(this.state.currentImageString)
 			this.setState({myimgArray: myAr})
+
+			var sst = this.state.curreFna
+			var my2Ar = this.state.myFnArray
+			my2Ar.push(sst)
+			this.setState({myFnArray: my2Ar}, console.log(this.state.myFnArray))
 		}
 	 //iStr = iStr.split(";").pop();
  }
@@ -63,9 +78,9 @@ export default class MyUpload extends Component {
  pusher = () => {
 	 var myob = {} ;
 	 myob['image_data'] = this.state.myimgArray ;
-	 myob['email'] = 'myID@no.';
-	 myob['filename'] = ['stevenisaTWAT.jpg']
-	 console.log(this.state.myimgArray)
+	 myob['email'] = 'lickaD@no.';
+	 myob['filename'] = this.state.myFnArray ;
+
  axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
  .then(res => {
 	console.log(res)
@@ -88,10 +103,10 @@ console.log(error);
 
  pusherZIP = () => {
 	 var myob = {} ;
-	 console.log(this.state.zipContainer)
+
 	 myob['image_data'] = this.state.zipContainer;
-	 myob['email'] = 'myID@no.';
-	 myob['filename'] = 'stevenisaTWAT.zip'
+	 myob['email'] = 'lickaD@no.';
+	 myob['filename'] = 'stevenisASIAN.zip'
  axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
  .then(res => {
 	console.log(res)

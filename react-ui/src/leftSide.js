@@ -11,7 +11,7 @@ import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Typo
 import MainEnhance from './MainEnhance'
 
 export default class LeftSide extends Component {
- 
+
 
   state = {
     "winDisplay": 1
@@ -45,7 +45,7 @@ export default class LeftSide extends Component {
 		<MuiThemeProvider>
 			<div>
 
-      <Grid container direction='row' spacing={10} spacing={40}>
+      <Grid container direction='row' spacing={11} spacing={40}>
 
       <Grid item xs={1.5} color='gray'>
         <Paper className='paper'>
@@ -62,7 +62,7 @@ export default class LeftSide extends Component {
         <Grid item xs={1}>
         </Grid>
 
-        <Grid item xs={9}>
+        <Grid item xs={10}>
 
       <div>
        {this.selector()}
