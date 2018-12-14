@@ -70,7 +70,8 @@ view_image(b64str_to_numpy(content["image_data"]))
 # get_updated_images or get_original_images
 # endpoints
 resp = requests.get(
-    "http://{}/api/process/get_original_uploads".format(domain))
+    "http://{}/api/process/get_original_uploads/{}".format(
+        domain, email))
 content = byte_2_json(resp)
 print("List of image IDS: ", content)
 
