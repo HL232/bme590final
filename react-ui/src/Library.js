@@ -113,7 +113,7 @@ down = () => {
 
         <GridListTile key="Subheader" cols={1} style={{height: 'auto'}}>
           <ListSubheader component="div"> <h1>Library</h1> </ListSubheader>
-        </GridListTile>
+        </GridListTile >
         // All I have to do here is change this to myData.map and make sure
         // that the '.' parts match the data type
         // probably need a little tweaking to pull the thing out of the state though

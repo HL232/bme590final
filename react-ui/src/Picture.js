@@ -19,7 +19,7 @@ export default class Picture extends Component {
     var win = this.state.myS ;
     var im = this.state.myI ;
     this.props.onSel(win, im) ;
-    
+
   }
 
 
@@ -27,7 +27,7 @@ export default class Picture extends Component {
 
     return (
 
-<GridListTile key={this.props.tile.image_data}>
+<GridListTile width = '50%' key={this.props.tile.image_data}>
 <img src={"data:image/jpeg;base64," + this.props.tile.image_data} alt={this.props.tile.user_id} />
 
 <GridListTileBar
