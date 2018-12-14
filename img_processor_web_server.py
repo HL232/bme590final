@@ -59,8 +59,12 @@ def get_current_image(email):
     if not email:
         return error_handler(400, "Must include user email.", "AttributeError")
     image = db.get_current_image(email)
-    image = db.image_to_json(image)
-    return jsonify(image)
+    if image:
+        image = db.image_to_json(image)
+        return jsonify(image)
+    else:
+        return error_handler(
+            400, "image doesn't exist", "ValueError")
 
 
 @app.route("/api/image/get_previous_image/<email>", methods=["GET"])
@@ -78,9 +82,13 @@ def get_previous_image(email):
         return error_handler(400, "Must include user id.", "AttributeError")
     current_image = db.get_current_image_id(email)
     image = db.find_image_parent(current_image, email)
-    image = db.image_to_json(image)
-    db.update_user_current(image["email"], image["image_id"])
-    return jsonify(image)
+    if image:
+        image = db.image_to_json(image)
+        db.update_user_current(image["email"], image["image_id"])
+        return jsonify(image)
+    else:
+        return error_handler(
+            400, "image doesn't exist", "ValueError")
 
 
 @app.route("/api/image/get_next_image/<email>", methods=["GET"])
@@ -96,7 +104,8 @@ def get_next_image(email):
         JSON child image object returned to client
     """
     if not email:
-        return error_handler(400, "Must include user id.", "AttributeError")
+        return error_handler(
+            400, "Must include user id.", "AttributeError")
     curr_image_id = db.get_current_image_id(email)
     child_ids = db.find_image_child(curr_image_id, email)
 
@@ -104,10 +113,13 @@ def get_next_image(email):
     if not child_ids:
         return None
     image = db.find_image(child_ids[0], email)
-    image = db.image_to_json(image)
-    db.update_user_current(image["email"], image["image_id"])
-
-    return jsonify(image)
+    if image:
+        image = db.image_to_json(image)
+        db.update_user_current(image["email"], image["image_id"])
+        return jsonify(image)
+    else:
+        return error_handler(
+            400, "image doesn't exist", "ValueError")
 
 
 # ---------- get user stuff ----------
@@ -187,7 +199,8 @@ def get_upload_filenames(email):
     names = {}
     for image_id in user.uploads.keys():
         image = db.find_image(image_id, email)
-        names[image_id] = image.filename
+        if image:
+            names[image_id] = image.filename
     return jsonify(names)
 
 
@@ -207,7 +220,9 @@ def get_original_uploads(email):
     original_uploads = db.get_all_original_images(email)
     original_upload_json = []
     for upload in original_uploads:
-        original_upload_json.append(db.image_to_json(upload))
+        if upload is not None:
+            original_upload_json.append(
+                db.image_to_json(upload))
     return jsonify(original_upload_json)
 
 
@@ -227,7 +242,8 @@ def get_updated_uploads(email):
     updated_uploads = db.get_all_updated_images(email)
     updated_json = []
     for upload in updated_uploads:
-        updated_json.append(db.image_to_json(upload))
+        if upload is not None:
+            updated_json.append(db.image_to_json(upload))
     return jsonify(updated_json)
 
 
@@ -249,9 +265,11 @@ def post_upload_image():
     content = request.get_json()
 
     if not content:
-        return error_handler(400, "Insufficient post.", "ValueError")
+        return error_handler(
+            400, "Insufficient post.", "ValueError")
     if type(content) != list and type(content) != dict:
-        return error_handler(400, "must by either dict or list of dicts")
+        return error_handler(
+            400, "must by either dict or list of dicts")
 
     if type(content) == dict:
         if "image_data" not in content.keys():

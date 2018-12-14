@@ -188,7 +188,7 @@ def b64str_zip_to_images(b64_str, folder_name):
     return ret_images
 
 
-email = "dukebme590.imageprocessor@gmail.com"
+email = "dukebme590.imageprocessor2@gmail.com"
 dog_source = 'https://i.imgur.com/B15ubOP.jpg'
 # dog_source = "https://i.imgur.com/2gX8HVS.png"
 # dog_source = "MARBIBM.TIF"
@@ -200,7 +200,8 @@ dog_image = imageio.imread(dog_source)
 image_format = _determine_format(dog_source)
 image_obj = {
     "email": email,
-    "image_data": numpy_to_b64str(dog_image, format=image_format),
+    "image_data": numpy_to_b64str(
+        dog_image, format=image_format),
     "filename": dog_source
 }
 
@@ -237,13 +238,20 @@ for image in content:
 """
 # blur
 image_obj_2 = {"email": email}
-resp = requests.post("http://127.0.0.1:5000/api/process/reverse_video",
-                     json=image_obj)
+resp = requests.post(
+    "http://127.0.0.1:5000/api/process/reverse_video",
+    json=image_obj)
 content = byte_2_json(resp)
 ids.append(content["image_id"])
 # view_image(b64str_to_numpy(content["histogram"]))
 # attempt to confirm
 resp = requests.post("http://127.0.0.1:5000/api/process/confirm", json=content)
+content = byte_2_json(resp)
+view_image(b64str_to_numpy(content["image_data"]))
+
+resp = requests.get(
+    "http://127.0.0.1:5000/api/user/"
+    "get_updated_uploads/{}".format(email), json=content)
 content = byte_2_json(resp)
 view_image(b64str_to_numpy(content["image_data"]))
 
