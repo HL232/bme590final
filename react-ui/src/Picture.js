@@ -19,7 +19,7 @@ export default class Picture extends Component {
     var win = this.state.myS ;
     var im = this.state.myI ;
     this.props.onSel(win, im) ;
-    console.log(this.state.myI) ;
+    
   }
 
 

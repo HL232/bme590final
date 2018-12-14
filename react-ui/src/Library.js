@@ -56,7 +56,7 @@ state = {
     myob2['image_ids'] = this.state.idArray ;
     axios.post('http://127.0.0.1:5000/api/image/get_images_zipped', myob2)
  	 .then(res => {
-     console.log(res.data)
+
     var img = res.data.zip_data
     var url = 'data:application/x-zip-compressed;base64,' + img
     window.open(url);
@@ -75,9 +75,9 @@ getData = () => {
 
 
     var myAr = []
-    console.log(res.data)
+
     myAr = res.data
-    console.log(myAr)
+
     this.setState({myData: myAr})
     //console.log(this.state.myData[0].image_data)
   })
@@ -112,7 +112,7 @@ down = () => {
       <GridList cellHeight={400} cols={3}>
 
         <GridListTile key="Subheader" cols={1} style={{height: 'auto'}}>
-          <ListSubheader component="div"> Library </ListSubheader>
+          <ListSubheader component="div"> <h1>Library</h1> </ListSubheader>
         </GridListTile>
         // All I have to do here is change this to myData.map and make sure
         // that the '.' parts match the data type

@@ -36,11 +36,11 @@ export default class MyEnhance extends Component {
 
 	getData = () => {
 	  console.log('getData')
-	  axios.get("http://127.0.0.1:5000/api/image/get_current_image/lickaD@no.").then(res => {
+	  axios.get("http://127.0.0.1:5000/api/user/get_updated_uploads/lickaD@no.").then(res => {
 
 
 	    var myAr = []
-	    myAr.push(res.data)
+	    myAr = res.data
 	    this.setState({myData: myAr})
 	    //console.log(this.state.myData[0].image_data)
 	  })

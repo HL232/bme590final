@@ -17,7 +17,7 @@ setImage = () => {
   //iStr = iStr.split(";").pop();
     myob['email'] = 'lickaD@no.';
     myob['image_id'] = iStr2 ;
-    console.log(iStr2)
+
   axios.post('http://127.0.0.1:5000/api/process/change_image', myob)
   .then(res => {
    console.log(res.data)
@@ -184,14 +184,14 @@ afterSelector = (nu) => {
       Sharpen
       </Button>
       <br />
-      Before: Upload Date:{this.state.beforeIM.timestamp} Process Time:{this.state.beforeIM.processing_time}
-       Imagesize: {this.state.beforeIM.height}x{this.state.beforeIM.width}
+      <h2>Before: Upload Date:{this.state.beforeIM.timestamp} Process Time:{this.state.beforeIM.processing_time}
+       Imagesize: {this.state.beforeIM.height}x{this.state.beforeIM.width} </h2>
       <br />
       <img src={"data:image/jpeg;base64," +this.state.beforeIM.image_data} />
       <img src={"data:image/jpeg;base64," +this.state.beforeIM.histogram} />
       <br />
-      After: Upload Data:{this.state.afterIM.timestamp} Process Time:{this.state.afterIM.processing_time}
-       Image Size:{this.state.afterIM.height}x{this.state.afterIM.width}
+      <h2>After: Upload Data:{this.state.afterIM.timestamp} Process Time:{this.state.afterIM.processing_time}
+       Image Size:{this.state.afterIM.height}x{this.state.afterIM.width} </h2>
       <img src={"data:image/jpeg;base64," + this.state.afterIM.image_data} />
       <img src={"data:image/jpeg;base64," +this.state.afterIM.histogram} />
       <Button color='primary' variant='contained' onClick={() => this.confirm()}>
