@@ -6,7 +6,9 @@ Version: 1.0.0
 
 Licsense: MIT License (See License File)
 
-**Video Demo of our Project can be viewed at: https://drive.google.com/file/d/1PUV9RYPAMvBxtW2BhL8S4apdYqe0DzgF/view?usp=sharing** 
+**Narrated Demo 1 of prototype 1 can be viewed at: https://drive.google.com/file/d/1PUV9RYPAMvBxtW2BhL8S4apdYqe0DzgF/view?usp=sharing** 
+
+**Unnarrated Demo 2 of final version can be viewed at: https://drive.google.com/open?id=1M-ARBRLB8Stkfzxn0Wz2ARGeCt6xRW6C**
 
 Because we used ReactUI, we are not 100% sure of it's reliability. Therefore, we have also created a Jupyter Notebook Walkthrough to explain how our image processor works, with some examples. (https://github.com/HL232/bme590final/blob/master/Image_Processor_Jupyter_Notebook.ipynb) We kindly ask that you look kindly on our front-end UI as an opportunity for extra credit since we believe we went above and beyond in attempting to use it. 
 
