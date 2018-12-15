@@ -15,10 +15,10 @@ setImage = () => {
   var myob = {}
   var iStr2 = this.state.beforeIM.image_id
   //iStr = iStr.split(";").pop();
-    myob['email'] = 'lickaD@no.';
+    myob['email'] = 'test_email@duke.edu';
     myob['image_id'] = iStr2 ;
 
-  axios.post('http://127.0.0.1:5000/api/process/change_image', myob)
+  axios.post('http://vcm-7308.vm.duke.edu:5000/api/process/change_image', myob)
   .then(res => {
    console.log(res.data)
   })
@@ -43,7 +43,7 @@ beforeSelector = () => {
 confirm = () => {
   var myob2 = {}
   myob2 = this.state.afterIM
-  axios.post('http://127.0.0.1:5000/api/process/confirm', myob2)
+  axios.post('http://vcm-7308.vm.duke.edu:5000/api/process/confirm', myob2)
  .then(res => {
    console.log(res.data)
  })
@@ -68,7 +68,7 @@ afterSelector = (nu) => {
   if (nu === 0){
     var myob2 = {}
     myob2['email'] = this.state.beforeIM.email
-    axios.post('http://127.0.0.1:5000/api/process/blur', myob2)
+    axios.post('http://vcm-7308.vm.duke.edu:5000/api/process/blur', myob2)
  	 .then(res => {
      var myAr = []
      myAr.push(res.data)
@@ -83,7 +83,7 @@ afterSelector = (nu) => {
   else if (nu === 1) {
     var myob2 = {}
     myob2['email'] = this.state.beforeIM.email
-    axios.post('http://127.0.0.1:5000/api/process/hist_eq', myob2)
+    axios.post('http://vcm-7308.vm.duke.edu:5000/api/process/hist_eq', myob2)
  	 .then(res => {
 
      var myAr = []
@@ -99,7 +99,7 @@ afterSelector = (nu) => {
   else if (nu === 2) {
     var myob2 = {}
     myob2['email'] = this.state.beforeIM.email
-    axios.post('http://127.0.0.1:5000/api/process/contrast_stretch', myob2)
+    axios.post('http://vcm-7308.vm.duke.edu:5000/api/process/contrast_stretch', myob2)
  	 .then(res => {
      var myAr = []
      myAr.push(res.data)
@@ -114,7 +114,7 @@ afterSelector = (nu) => {
   else if (nu === 3) {
     var myob2 = {}
     myob2['email'] = this.state.beforeIM.email
-    axios.post('http://127.0.0.1:5000/api/process/log_compression', myob2)
+    axios.post('http://vcm-7308.vm.duke.edu:5000/api/process/log_compression', myob2)
  	 .then(res => {
      var myAr = []
      myAr.push(res.data)
@@ -130,7 +130,7 @@ afterSelector = (nu) => {
   else if (nu === 4) {
     var myob2 = {}
     myob2['email'] = this.state.beforeIM.email
-    axios.post('http://127.0.0.1:5000/api/process/reverse_video', myob2)
+    axios.post('http://vcm-7308.vm.duke.edu:5000/api/process/reverse_video', myob2)
  	 .then(res => {
      var myAr = []
      myAr.push(res.data)
@@ -145,7 +145,7 @@ afterSelector = (nu) => {
   else if (nu ===5) {
     var myob2 = {}
     myob2['email'] = this.state.beforeIM.email
-    axios.post('http://127.0.0.1:5000/api/process/sharpen', myob2)
+    axios.post('http://vcm-7308.vm.duke.edu:5000/api/process/sharpen', myob2)
  	 .then(res => {
      console.log(res.data)
      var myAr = []

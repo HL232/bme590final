@@ -1,4 +1,4 @@
- import React, { Component } from 'react';
+import React, { Component } from 'react';
 import {ListSubheader, IconButton, GridList, GridListTile, GridListTileBar, Button, Typography, Grid, Paper} from '@material-ui/core';
 import axios from 'axios'
 import image from './a.jpeg'
@@ -51,10 +51,10 @@ state = {
 
   getIms = () => {
     var myob2 = {}
-    myob2['email'] = 'lickaD@no.';
+    myob2['email'] = 'test_email@duke.edu';
     myob2['format'] = this.state.dType ;
     myob2['image_ids'] = this.state.idArray ;
-    axios.post('http://127.0.0.1:5000/api/image/get_images_zipped', myob2)
+    axios.post('http://vcm-7308.vm.duke.edu:5000/api/image/get_images_zipped', myob2)
  	 .then(res => {
 
     var img = res.data.zip_data
@@ -69,9 +69,7 @@ state = {
 
 getData = () => {
   console.log('getData')
-  //axios.get("http://127.0.0.1:5000/api/image/get_current_image/myID@no.")
-  //http://127.0.0.1:5000/api/user/get_original_uploads/myID@no.
-  axios.get("http://127.0.0.1:5000/api/user/get_updated_uploads/lickaD@no.").then(res => {
+  axios.get("http://vcm-7308.vm.duke.edu:5000/api/user/get_updated_uploads/test_email@duke.edu").then(res => {
 
 
     var myAr = []
@@ -109,10 +107,12 @@ down = () => {
           <Button onClick={() => this.setDtype('TIFF')} variant="contained"   color="primary" style= {{margin: '5px'}} >
             TIFF </Button>
             <h2> Use these to Download Desired File Type: Click to add images then when all images have been selected press desired button</h2> <br />
-      <GridList cellHeight={400} cols={3}>
+      <GridList cellHeight={400} cols={3} justify="center" direction="column">
 
         <GridListTile key="Subheader" cols={1} style={{height: 'auto'}}>
-          <ListSubheader component="div"> <h1>Library</h1> </ListSubheader>
+          <ListSubheader component="div">
+            <h1>Library</h1>
+          </ListSubheader>
         </GridListTile>
         // All I have to do here is change this to myData.map and make sure
         // that the '.' parts match the data type
