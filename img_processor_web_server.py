@@ -948,7 +948,7 @@ def b64str_to_numpy(b64_img):
     b64_img, _ = _get_b64_format(b64_img)
     byte_image = base64.b64decode(b64_img)
     image_buf = io.BytesIO(byte_image)
-    np_img = imageio.imread(image_buf, format="JPG")
+    np_img = imageio.imread(image_buf)
     return np_img
 
 
