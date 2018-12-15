@@ -20,7 +20,7 @@ This project is an image processor that is meant to be the basis of a medical im
 Note that this is a development version of our application, not a production version, so you will have to run this project manually. In the future, we would like to learn how to deploy an app with a front-end ReactUI and a Python/Flask backend. 
 
  1. Clone or download this repo locally. 
- 2. Run our webserver locally: Type `python img_processor_web_server.py`in the Terminal while inside this folder. (**Note that we do have a server running at http://vcm-7308.vm.duke.edu:5000/ blahblahblah** but our GUI is set to access the webserver locally)
+ 2. **Note that our GUI is set to send API requests to a server running at http://vcm-7308.vm.duke.edu:5000/ blahblahblah, but you still need to run the ReactJS GUI locally**
  3. To run ReactJS GUI Locally:
   *	Make sure Chrome is set as your default browser
   *	Open Terminal/Command Prompt
@@ -32,7 +32,7 @@ Note that this is a development version of our application, not a production ver
 
  4. From the GUI, you can upload images, download images, process images, etc. **The GUI runs rather slowly. Use smaller images for maximum speed**
  
- **IMPORTANT: We are using mLab for our MongoDB database. The free tier only gives us 500 MB of storage. When we get to 300 MB our application slows down. When we store more than 500 MB of data, our application crashes. IF THE SERVER GOES DOWN, OR IF mLab FILLS UP, CONTACT STEPHEN (stephen.xu@duke.edu)**
+ **IMPORTANT: We are using mLab for our MongoDB database. The free tier only gives us 500 MB of storage. When we get to 300 MB our application slows down significantly. If you go over 500 MB of data, our application crashes. IF THE SERVER GOES DOWN, OR IF mLab FILLS UP, CONTACT STEPHEN (stephen.xu@duke.edu)**
 
 ## What's included in this repo:
  + `docs` folder - this folder has the rst files needed to produce Sphinx documentation
