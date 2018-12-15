@@ -8,44 +8,47 @@ Licsense: MIT License (See License File)
 
 **Video Demo of our Project can be viewed at: https://drive.google.com/file/d/1PUV9RYPAMvBxtW2BhL8S4apdYqe0DzgF/view?usp=sharing** 
 
-## Introduction
-This project is an image processor that is meant to be the basis of a medical imaging processor. A graphical user interface (GUI) was developed to allow a user to upload image(s) to a database. These images can be processed to produce different effects (like histogram equailzation, contrast stretching, log compression, reverse video, blurring, and sharpening) as well as the associated histogram of the images. The images are processed on a web server and the results are returned to the user's GUI, which allows the user to download the images. 
+Because we used ReactUI, we are not 100% sure of it's reliability. Therefore, we have also created a Jupyter Notebook Walkthrough to explain how our image processor works, with some examples. (https://github.com/HL232/bme590final/blob/master/Image_Processor_Jupyter_Notebook.ipynb) We kindly ask that you look kindly on our front-end UI as an opportunity for extra credit since we believe we went above and beyond in attempting to use it. 
 
-This image processor is meant to combine the functionality and scripting _prowess_ of python with the modularity and adaptability of cloud computing. The project is split into 3 primary components: image processing, web api, and a GUI, generally following the typical Model/View/Controller paradigm. For a general schematic of how our project works, check out this helpful graphic below:
+## Introduction
+This project is an image processor that is meant to be the basis of a medical imaging processor. A graphical user interface (GUI) was developed to allow a user to upload image(s) to a database. These images can be processed to produce different effects (like histogram equailzation, contrast stretching, log compression, reverse video, blurring, and sharpening) as well as the associated histogram of the images. The images are processed on a web server and the results are returned to the user's GUI, which allows the user to download the images. The project is split into 3 primary components: image processing, web api, and a GUI, generally following the typical Model/View/Controller paradigm. For a general schematic of how our project works, check out this helpful graphic below:
 
 
 ![alt text](https://github.com/HL232/bme590final/blob/read-me/BME%20Software%20Final.jpg) 
 
 ## How to run this project:
+Note that this is a development version of our application, not a production version, so you will have to run this project manually. In the future, we would like to learn how to deploy an app with a front-end ReactUI and a Python/Flask backend. 
+
  1. Clone or download this repo locally. 
  2. Run our webserver locally: Type `python img_processor_web_server.py`in the Terminal while inside this folder. (**Note that we do have a server running at http://vcm-7308.vm.duke.edu:5000/ blahblahblah** but our GUI is set to access the webserver locally)
  3. To run ReactJS GUI Locally:
   *	Make sure Chrome is set as your default browser
   *	Open Terminal/Command Prompt
   *	Navigate to bme590final/react-ui
-  *	Once inside this folder type “npm install” and press enter
+  *	Once inside this folder type `npm install` and press enter
   *	Wait for Install to complete
-  *	Once completed type “npm run start”
+  *	Once completed type `npm run start`
   *	This will open the GUI in a Chrome Web Browser
 
- 4. From the GUI, you can upload images, download images, process images, etc 
+ 4. From the GUI, you can upload images, download images, process images, etc. **The GUI runs rather slowly. Use smaller images for maximum speed**
  
  **IMPORTANT: We are using mLab for our MongoDB database. The free tier only gives us 500 MB of storage. When we get to 300 MB our application slows down. When we store more than 500 MB of data, our application crashes. IF THE SERVER GOES DOWN, OR IF mLab FILLS UP, CONTACT STEPHEN (stephen.xu@duke.edu)**
 
 ## What's included in this repo:
+ + `docs` folder - this folder has the rst files needed to produce Sphinx documentation
+ + `images_for_test` folder - this folder contains sample images from our image processor. These images are used for unit testing
+ + `react-ui` folder - This contains all the JavsScript files for our front end UI
  + `tests` folder - This contains all the unit testing python files
- + `docs, Makefile, conf.py, index.rst, make.bat` - these files are used to produce auto generated sphinx documentation
  + `.gitignore` - files that Git should not upload to github
  + `.travis.yml` - Travis CI/CD setup
- + `README.md` - this file is the readme
+ + `helper.py, Image_Processor_Jupyter_Notebook.ipyynb` - These files are used in a "walkthrough" explaining how our webserver works. 
  + `LICENSE` - the license file which contains information on usage. Don't steal from us.
+ + `README.md` - this file is the readme
  + `config.json` - a JSON dictionary file which contains environmental variables we need
  + `database.py` - Python file that sets up our MongoDB database that stores image data
  + `img_processor_web_server` - Python file that sets up our FLASK web server that processes images and requests
  + `processing.py` - Python file that the web server uses to process images. 
  + `requirements.txt` - Python packages that need to be installed in the virtual environment to run the project
- + `react-ui` folder - This contains all the JavsScript files for our front end UI
- + `helper.py, Image_Processor_Jupyter_Notebook.ipyynb` - These files are used in a "walkthrough" explaining how our webserver works. 
 
  
 # Supported Formats
