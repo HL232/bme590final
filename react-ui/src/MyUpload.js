@@ -119,33 +119,33 @@ console.log(error);
 	render() {
 		return (
 
-			<div>
-			<Paper className='paper'>
+			<Grid container direction="column" justify="flex-end" alignItems="center">
+				<Paper className='paper'>
 
 
-				<h2> Upload Images! (zip is uploaded automatically) </h2>
-				<Button color = 'primary' variant = 'contained' style= {{margin: '5px'}}>
-				<UploadField onFiles={this.onUpload}>
-					Upload
-					</UploadField>
-					</Button>
-
+					<h2> Upload Images! (zip is uploaded automatically) </h2>
 					<Button color = 'primary' variant = 'contained' style= {{margin: '5px'}}>
-					<UploadField onFiles={this.onUploadzip}>
-						Upload ZIP
+					<UploadField onFiles={this.onUpload}>
+						Upload
 						</UploadField>
 						</Button>
 
-					<img src={this.state.currentImageString} />
+						<Button color = 'primary' variant = 'contained' style= {{margin: '5px'}}>
+						<UploadField onFiles={this.onUploadzip}>
+							Upload ZIP
+							</UploadField>
+							</Button>
 
-					<Button style= {{margin: '5px'}} variant='contained' color='primary' onClick={this.pusher}>
-					Confirm Upload
-					</Button>
+						<img src={this.state.currentImageString} />
+
+						<Button style= {{margin: '5px'}} variant='contained' color='primary' onClick={this.pusher}>
+						Confirm Upload
+						</Button>
 
 
 
-			</Paper>
-			</div>
+				</Paper>
+			</Grid>
 
 		)
 	}

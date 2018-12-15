@@ -32,11 +32,11 @@ export default class MainEnhance extends Component {
   render() {
     return (
 
-      <div>
-        {this.eSelect()}
-      </div>
-
-
+      <Grid container direction="column" justify="flex-end" alignItems="center">
+        <Paper>
+          {this.eSelect()}
+        </Paper>
+      </Grid>
     )
   }
 }

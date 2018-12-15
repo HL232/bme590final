@@ -45,30 +45,32 @@ export default class LeftSide extends Component {
 		<MuiThemeProvider>
 			<div>
 
-      <Grid container direction='row' spacing={11} spacing={40}>
+      <Grid container direction='column' spacing={11} spacing={40}>
 
-      <Grid item xs={1.5} color='gray'>
-        <Paper className='paper'>
-				<Button onClick={() => this.mySt(1)} variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
-          Upload </Button> <br />
-        <Button onClick={() => this.mySt(2)}variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
-          Enhance </Button> <br />
+        <Grid item xs={4} color='white'>
+          <Paper>
+  				<Button onClick={() => this.mySt(1)} variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
+            Upload </Button> <br />
+                  <Button onClick={() => this.mySt(2)}variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}} >
+                    Enhance </Button> <br />
 
-        <Button onClick={() => this.mySt(4)} variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
-          Library </Button>
-          </Paper>
-        </Grid>
+                  <Button onClick={() => this.mySt(4)} variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
+                    Library </Button>
+            </Paper>
+          </Grid>
 
-        <Grid item xs={1}>
-        </Grid>
+          <Grid item xs={1}>
+          </Grid>
 
-        <Grid item xs={10}>
+          <Grid item xs={10}>
 
-      <div>
-       {this.selector()}
-      </div>
+            <div>
+                <Grid container direction="column" justify="flex-end" alignItems="center">
+                  <Paper>{this.selector()}</Paper>
+                </Grid>
+            </div>
 
-        </Grid>
+          </Grid>
       </Grid>
 
 

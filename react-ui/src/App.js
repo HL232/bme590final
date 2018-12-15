@@ -56,22 +56,22 @@ const theme = createMuiTheme({
 class App extends Component {
   render() {
 
-    document.body.style = 'background: #f2f2f2;';
+    document.body.style = 'background: #f2f2f2; height: full;';
     return (
 
       <MuiThemeProvider theme={theme}>
-      <div>
-      <AppBar position="static" color="default">
-        <Toolbar>
-          <Typography variant="h6" color="primary">
-            X-Ray Enhancer
-          </Typography>
-        </Toolbar>
-      </AppBar>
 
-      <LeftSide />
+          <AppBar position="static" color="default">
+            <Toolbar>
+              <Typography variant="h6" color="primary">
+                X-Ray Enhancer
+              </Typography>
+            </Toolbar>
+          </AppBar>
 
-      </div>
+            <Grid container direction="column" justify="flex-end" alignItems="center" spacing={24}>
+                <Paper><LeftSide /></Paper>
+            </Grid>
       </MuiThemeProvider>
     );
   }
