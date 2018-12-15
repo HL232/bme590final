@@ -55,7 +55,7 @@ export default class LeftSide extends Component {
           Enhance </Button> <br />
 
         <Button onClick={() => this.mySt(4)} variant="contained" fullWidth={true} size ='small' color="primary" style= {{margin: '5px'}}>
-          Library </Button> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br /> <br />
+          Library </Button>
           </Paper>
         </Grid>
 

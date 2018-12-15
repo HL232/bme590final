@@ -36,7 +36,7 @@ export default class MyEnhance extends Component {
 
 	getData = () => {
 	  console.log('getData')
-	  axios.get("http://127.0.0.1:5000/api/user/get_updated_uploads/lickaD@no.").then(res => {
+	  axios.get("http://vcm-7308.vm.duke.edu:5000/api/user/get_updated_uploads/test_email@duke.edu").then(res => {
 
 
 	    var myAr = []

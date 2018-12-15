@@ -78,10 +78,10 @@ export default class MyUpload extends Component {
  pusher = () => {
 	 var myob = {} ;
 	 myob['image_data'] = this.state.myimgArray ;
-	 myob['email'] = 'lickaD@no.';
+	 myob['email'] = 'test_email@duke.edu';
 	 myob['filename'] = this.state.myFnArray ;
 
- axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
+ axios.post('http://vcm-7308.vm.duke.edu:5000/api/process/upload_image', myob)
  .then(res => {
 	console.log(res)
  })
@@ -105,9 +105,9 @@ console.log(error);
 	 var myob = {} ;
 
 	 myob['image_data'] = this.state.zipContainer;
-	 myob['email'] = 'lickaD@no.';
+	 myob['email'] = 'test_email@duke.edu';
 	 myob['filename'] = 'stevenisASIAN.zip'
- axios.post('http://127.0.0.1:5000/api/process/upload_image', myob)
+ axios.post('http://vcm-7308.vm.duke.edu:5000/api/process/upload_image', myob)
  .then(res => {
 	console.log(res)
  })
@@ -126,7 +126,7 @@ console.log(error);
 				<h2> Upload Images! (zip is uploaded automatically) </h2>
 				<Button color = 'primary' variant = 'contained' style= {{margin: '5px'}}>
 				<UploadField onFiles={this.onUpload}>
-					Upload JPG
+					Upload
 					</UploadField>
 					</Button>
 
@@ -139,7 +139,7 @@ console.log(error);
 					<img src={this.state.currentImageString} />
 
 					<Button style= {{margin: '5px'}} variant='contained' color='primary' onClick={this.pusher}>
-					Confirm JPG Upload?
+					Confirm Upload
 					</Button>
 
 
